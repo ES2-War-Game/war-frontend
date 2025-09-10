@@ -60,6 +60,10 @@
 .buttons button:hover::after {
     opacity: 1;
 }
+.buttons a{
+    color:#fff;
+    text-decoration: none;
+}
 
 .container img{
     width: 40vw;
