@@ -8,3 +8,54 @@
     background-position: center;
     background-repeat: no-repeat;
 }
+
+
+.homePill {
+  position: absolute;
+  top: 50px;
+  left: 50px;
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.85);
+  border-radius: 32px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  padding: 8px 16px;
+  min-width: 48px;
+  width: 48px;
+  height: 48px;
+  transition: width 0.3s cubic-bezier(.4,0,.2,1), background 0.2s;
+  overflow: hidden;
+  text-decoration: none;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.homePill:hover {
+  width: 180px;
+  background: #eafbe7;
+}
+
+.arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+}
+
+.text {
+  color: #13551c;
+  font-family: Inter, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  margin-left: 8px;
+  opacity: 0;
+  white-space: nowrap;
+  transition: opacity 0.2s, margin-left 0.2s;
+}
+
+.homePill:hover .text {
+  opacity: 1;
+  margin-left: 12px;
+}
+

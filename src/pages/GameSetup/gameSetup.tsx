@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import PlayerSlot from "../../components/PlayerSlot/playerSlot";
 import style from "./gamesetup.module.css";
+import player from "../../assets/player.png"
 
 const GameSetupPage: React.FC = () => {
   return (
@@ -13,34 +14,34 @@ const GameSetupPage: React.FC = () => {
         <PlayerSlot
           borderColor="blue"
           defaultName="Jogador azul"
-          avatar="/avatars/knight-blue.png"
+          avatar={player}
         />
         <PlayerSlot
           borderColor="red"
           defaultName="Jogador vermelho"
-          avatar="/avatars/knight-red.png"
+          avatar={player}
         />
         <PlayerSlot
           borderColor="green"
           defaultName="Jogador verde"
-          avatar="/avatars/knight-green.png"
+          avatar={player}
           initialType="CPU"
         />
         <PlayerSlot
-          borderColor="yellow"
+          borderColor="#bfa640" // amarelo escuro
           defaultName="Jogador amarelo"
-          avatar="/avatars/knight-yellow.png"
+          avatar={player}
         />
         <PlayerSlot
           borderColor="purple"
           defaultName="Jogador roxo"
-          avatar="/avatars/knight-purple.png"
+          avatar={player}
           initialType="Desativado"
         />
         <PlayerSlot
           borderColor="black"
           defaultName="Jogador preto"
-          avatar="/avatars/knight-black.png"
+          avatar={player}
           initialType="CPU"
         />
       </div>
