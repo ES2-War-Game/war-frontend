@@ -1,66 +1,92 @@
 .slotContainer {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 12px 16px;
-    border-radius: 24px;
-    background-color: rgba(128,128,128,0.5);
-    width: 420px;
-  }
-  
-  .avatarContainer {
-    border: 3px solid red; 
-    border-radius: 50%;     
-    padding: 2px;           
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .avatar {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%; 
-  }
-  
-  .nameContainer {
-    flex-grow: 1;
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    color: white;
-  }
-  
-  .nameEditable input {
-    width: 120px;
-    text-align: center;
-    border-radius: 4px;
-    border: 1px solid #ccc;
-    padding: 4px;
-  }
-  
-  .nameDisplay {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-weight: bold;
-    color: white;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-  }
-  
-  .typeSelector {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: bold;
-  }
-  
-  .arrow {
-    cursor: pointer;
-    user-select: none;
-    font-size: 1.5rem;
-  }
-  
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 18px 28px;
+  border-radius: 32px;
+  background: linear-gradient(90deg, #555555 0%, #1b1b1b 100%);
+  width: 440px;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.slotContainer:hover {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.avatarContainer {
+  border: 3px solid #000000;
+  border-radius: 50%;
+  padding: 3px;
+  box-shadow: 0 2px 8px #bfa64044;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px #bfa64033;
+}
+
+.nameContainer {
+  flex-grow: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #e4a828;
+}
+
+.nameEditable input {
+  width: 140px;
+  text-align: center;
+  border-radius: 8px;
+  border: 2px solid #bfa640;
+  padding: 6px;
+  font-size: 1.1rem;
+  background: #2c2c2c;
+  color: #f5e16e;
+  box-shadow: 0 1px 4px #bfa64022;
+}
+
+.nameDisplay {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: #ffffff;
+  font-family: "Hermeneus One", Impact, sans-serif;
+  font-size: 20px; 
+  padding: 0.3rem 0.7rem;
+  letter-spacing: 2px;
+  border-radius: 8px;
+  background: rgba(191, 166, 64, 0.08);
+  text-shadow: 6px 2px 6px rgba(0,0,0,0.18), 0 1px 0 #bfa640;
+}
+
+.typeSelector {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: "Hermeneus One", Impact, sans-serif;
+  font-size: 14px;
+  padding: 0.3rem 0.7rem;
+  letter-spacing: 2px;
+  border-radius: 8px;
+  color: #ffffff;
+}
+
+.arrow {
+  cursor: pointer;
+  user-select: none;
+  font-size: 1.7rem;
+  color: #bfa640;
+  transition: color 0.2s, transform 0.2s;
+}
+.arrow:hover {
+  color: #f5e16e;
+  transform: scale(1.2);
+}
