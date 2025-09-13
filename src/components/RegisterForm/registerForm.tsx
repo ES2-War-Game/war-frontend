@@ -74,8 +74,8 @@ export default function RegisterForm() {
 
         <button type="submit">Cadastrar</button>
       </form>
-      <Link to="cadastro">
-        Não possui login? <span>Cadastre-se!</span>
+      <Link to="/login">
+        Já possui login? <span>Realize seu login!</span>
       </Link>
     </div>
   );

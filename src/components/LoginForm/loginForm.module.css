@@ -17,16 +17,15 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  width: 100%;
   gap: 32px;
 }
 .inputs input {
   display: flex;
-  width: 200px;
+  width: calc(100% - 20px);
   height: 16px;
-  padding: 16px 22px;
+  padding: 16px 0px 16px 22px;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
   border-radius: 12px;
   background: #dad9d9;
   color: #000;
@@ -41,7 +40,7 @@
   padding: 14px 24px;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+  align-self: flex-end;
   border-radius: 12px;
   background: var(--secondary-400, #1f9b5f);
   color: #f0effe;
@@ -60,10 +59,10 @@
   font-size: 16px;
   font-style: normal;
   font-weight: 600;
-  line-height: 24px; 
+  line-height: 24px;
   letter-spacing: -0.196px;
   text-decoration: none;
 }
-.login a span{
-    color:#1ec033;
+.login a span {
+  color: #1ec033;
 }
