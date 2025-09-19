@@ -3,6 +3,7 @@ import Home from "../pages/Home/home";
 import Login from "../pages/Login/login";
 import Register from "../pages/Register/register";
 import GameSetupPage from "../pages/GameSetup/gameSetup";
+import Hub from "../pages/Hub/hub";
 import MainLayout from "../layout/MainLayout";
 
 const router = createBrowserRouter([
@@ -21,6 +22,10 @@ const router = createBrowserRouter([
       {
         path: "/jogadores",
         element: <GameSetupPage />,
+      },
+      {
+        path: "/hub",
+        element: <Hub />,
       },
       {
         path: "/register",
