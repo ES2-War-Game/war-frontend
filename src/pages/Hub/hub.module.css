@@ -1,0 +1,294 @@
+.hubContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 64px;
+    background-image: url("../../assets/battle-bg.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 20px;
+    min-height: 100vh;
+  }
+  
+
+  .hubContainer h1 {
+    margin-top: 64px;
+    color: #f5ca6e;
+    font-family: "Hermeneus One", Impact, sans-serif;
+    font-size: 48px;
+    font-style: normal;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow:
+      0 2px 8px #000,
+      0 0 0.5px #bfa640,
+      2px 2px 0 #bfa640,
+      0 4px 24px #3a2d00;
+    padding: 12px 32px;
+    border-radius: 12px;
+    border: 2px solid #bfa640;
+    background: rgba(0,0,0,0.25);
+    box-shadow: 0 8px 32px rgba(60, 40, 10, 0.25);
+  }
+  
+
+  .roomList {
+    width: 100%;
+    max-width: 700px;
+    max-height: 500px;
+    overflow: visible;
+    overflow-y: auto; 
+    overflow-x: hidden; 
+    display: flex;
+    flex-direction: column;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    gap: 0;
+    border: none;
+    background: none;
+  }
+
+
+
+.roomList {
+    scrollbar-width: thin;                
+    scrollbar-color: #555 #d3d3d3;       
+  }
+  
+
+  .roomList::-webkit-scrollbar {
+    width: 14px;                         
+  }
+  
+  .roomList::-webkit-scrollbar-track {
+    background: #d3d3d3;                  
+  }
+  
+  .roomList::-webkit-scrollbar-thumb {
+    background-color: #555;               
+    border-radius: 10px;
+    border: 3px solid #d3d3d3;            
+  }
+  
+
+  .roomList::-webkit-scrollbar-button:single-button:vertical:decrement {
+    background-color: #555;
+    height: 14px;
+    display: block;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 8px;
+
+    background-image: 
+      linear-gradient(to top left, transparent 50%, white 50%),
+      linear-gradient(to top right, transparent 50%, white 50%);
+    background-position: 4px 6px, 6px 6px;
+    background-size: 6px 6px;
+  }
+  
+
+  .roomList::-webkit-scrollbar-button:single-button:vertical:increment {
+    background-color: #555;
+    height: 14px;
+    display: block;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 8px;
+
+    background-image: 
+      linear-gradient(to bottom left, transparent 50%, white 50%),
+      linear-gradient(to bottom right, transparent 50%, white 50%);
+    background-position: 4px 2px, 6px 2px;
+    background-size: 6px 6px;
+  }
+  
+  
+  
+
+  .roomCard {
+    width: 100%; 
+    min-height: 80px;
+    margin: 0 auto;
+    background-color: #776531; 
+    padding: 15px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2rem;
+    border-bottom: 1px solid white;
+    box-sizing: border-box;
+    transition: box-shadow 0.2s, transform 0.2s;
+    border-radius: 16px; 
+  }
+  .roomCard:hover {
+    transform: translateY(-2px); 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+
+  .roomInfo h3 {
+    margin: 0 0 5px 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+  }
+  
+  .roomInfo p {
+    margin: 0;
+    font-size: 1.1rem;
+  }
+  
+
+  .joinBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 140px;
+    height: 50px;
+    border-radius: 16px;
+    background: linear-gradient(90deg, #4caf50 0%, #66d26a 100%);
+    color: #fff;
+    font-family: Inter, sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 16px rgba(42, 37, 212, 0.15);
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+  }
+  
+  .joinBtn:hover {
+    background: linear-gradient(90deg, #66d26a 0%, #4caf50 100%);
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 8px 24px rgba(42, 37, 212, 0.25);
+  }
+  
+
+  .buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  
+  .buttons button,
+  .buttons .btn {
+    display: flex;
+    width: 180px;
+    height: 50px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 16px;
+    background: linear-gradient(90deg, #2925d4 0%, #6a5af9 100%);
+    color: #fff;
+    font-family: Inter, sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 16px rgba(42, 37, 212, 0.15);
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+    text-decoration: none;
+    text-align: center;
+  }
+  
+  .buttons .btn:hover,
+  .buttons button:hover {
+    background: linear-gradient(90deg, #6a5af9 0%, #2925d4 100%);
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 8px 24px rgba(42, 37, 212, 0.25);
+  }
+  
+  .buttons .btn-voltar {
+    background: #6c757d;
+  }
+  
+  .buttons .btn-voltar:hover {
+    background: #5a6268;
+  }
+
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+
+  .modal {
+    background-color: #2e2b24;
+    padding: 30px 40px;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 320px;
+    max-width: 400px;
+    color: #f5ca6e;
+    font-family: "Inter", sans-serif;
+  }
+  
+
+  .modal input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+    margin-top: 5px;
+  }
+  
+  .modalButtons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+
+  .confirmBtn {
+    flex: 1;
+    background: linear-gradient(90deg, #4caf50 0%, #66d26a 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 0;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .confirmBtn:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  }
+  
+  /* Cancelar */
+  .cancelBtn {
+    flex: 1;
+    background: #6c757d;
+    color: white;
+    font-weight: 700;
+    font-size: 16px;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 0;
+    cursor: pointer;
+  }
+  
+  .cancelBtn:hover {
+    background: #5a6268;
+  }
+  

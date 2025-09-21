@@ -1,30 +1,50 @@
-import type { HttpClient, HttpResponse } from "../types/httpClient";
-import type { User, UserLogin } from "../types/user";
+import api from '../interceptor/api';
 
-interface IUser{
-    login: (data: UserLogin)=> Promise<HttpResponse<string>>
-    register: (data: User)=> Promise<HttpResponse<User>>
+export interface LoginRequest {
+  username: string;
+  password: string;
 }
 
+export interface LoginResponse {
+  token: string;
+}
 
-export class UsersService implements IUser{
-  private readonly httpClient: HttpClient;
-  constructor(httpClient: HttpClient) {
-    this.httpClient = httpClient;
+export interface RegisterRequest {
+  username: string;
+  email: string;
+  password: string;
+}
+
+export interface RegisterResponse {
+  message?: string;
+  id?: number;
+  username?: string;
+}
+
+export class UsersService {
+  async login(params: LoginRequest): Promise<LoginResponse> {
+    try {
+      const response = await api.post('/api/v1/players/login', params);
+      
+      if (response.data && response.data.token) {
+        console.log('Login bem-sucedido, token recebido:', response.data.token);
+        return { token: response.data.token };
+      }
+      
+      throw new Error('Token não encontrado na resposta');
+    } catch (error: any) {
+      console.error('Erro no login:', error.response?.data || error.message);
+      throw error;
+    }
   }
 
-  register(data: User) {
-    return this.httpClient.request<User>({
-      url: import.meta.env.VITE_BACKEND_URL + "/api/v1/players/register",
-      method: "post",
-      body: data,
-    });
+  async register(params: RegisterRequest): Promise<RegisterResponse> {
+    try {
+      const response = await api.post('/api/v1/players/register', params);
+      return response.data;
+    } catch (error: any) {
+      console.error('Erro no registro:', error.response?.data || error.message);
+      throw error;
+    }
   }
-  login(data: UserLogin) {
-    return this.httpClient.request<string>({
-      url: import.meta.env.VITE_BACKEND_URL + "/api/v1/players/login",
-      method: "post",
-      body: data,
-    });
-  }
-  }
+}
