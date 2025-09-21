@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import style from "./loginForm.module.css";
 import logo from "../../assets/war_logo.png";
 import z from "zod";
@@ -19,6 +19,7 @@ const userService = new UsersService();
 
 export default function LoginForm() {
   const { setToken } = useAuthStore();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
@@ -43,6 +44,9 @@ export default function LoginForm() {
       // Salva o token no Zustand
       setToken(response.token);
       
+      // Redireciona para home após login bem-sucedido
+      navigate("/");
+      
     } catch (error: any) {
       console.error("Erro durante login:", error);
       
@@ -58,6 +62,7 @@ export default function LoginForm() {
     }
   };
 
+  // ...existing code...
   return (
     <div className={style.login}>
       <img src={logo} alt="WAR Logo" />

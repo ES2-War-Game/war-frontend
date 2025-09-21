@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import PlayerSlot from "../../components/PlayerSlot/playerSlot";
-import style from "./gamesetup.module.css";
+import style from "./gameSetup.module.css";
 import player from "../../assets/player.png"
 
 const GameSetupPage: React.FC = () => {

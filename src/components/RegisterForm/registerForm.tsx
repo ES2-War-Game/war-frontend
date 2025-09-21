@@ -29,11 +29,13 @@ const userService = new UsersService();
 export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
 
   const {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<RegisterFormType>({
     resolver: zodResolver(registerSchema),
   });
@@ -41,6 +43,7 @@ export default function RegisterForm() {
   const onSubmit = async (data: RegisterFormType) => {
     setIsLoading(true);
     setErrorMessage("");
+    setSuccessMessage("");
     
     try {
       // Primeiro registra o usuário
@@ -51,6 +54,15 @@ export default function RegisterForm() {
       });
       
       console.log('Registro bem-sucedido:', registerResponse);
+      
+      // Mostra mensagem de sucesso e limpa o formulário
+      setSuccessMessage("Cadastro realizado com sucesso!");
+      reset();
+      
+      // Opcional: redirecionar após alguns segundos
+      setTimeout(() => {
+        setSuccessMessage("");
+      }, 8000);
       
     } catch (error: any) {
       console.error("Erro durante registro:", error);
@@ -74,6 +86,28 @@ export default function RegisterForm() {
     <div className={style.register}>
       <img src={logo} alt="WAR Logo" />
       <form className={style.inputs} onSubmit={handleSubmit(onSubmit)}>
+        {successMessage && (
+          <div style={{ 
+            color: "#f0effe", 
+            marginBottom: "15px", 
+            textAlign: "center",
+            padding: "16px 24px",
+            backgroundColor: "var(--secondary-400, #1f9b5f)",
+            border: "none",
+            borderRadius: "12px",
+            fontSize: "16px",
+            fontWeight: "600",
+            fontFamily: "Inter",
+            lineHeight: "24px",
+            letterSpacing: "-0.196px",
+            boxShadow: "0 4px 8px rgba(31, 155, 95, 0.2)",
+            animation: "slideIn 0.3s ease-out",
+            width: "calc(100% - 48px)"
+          }}>
+            {successMessage}
+          </div>
+        )}
+
         {errorMessage && (
           <div style={{ 
             color: "red", 
@@ -142,6 +176,21 @@ export default function RegisterForm() {
       <Link to="/login">
         Já possui login? <span>Realize seu login!</span>
       </Link>
+      
+      <style>
+        {`
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateY(-10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }
