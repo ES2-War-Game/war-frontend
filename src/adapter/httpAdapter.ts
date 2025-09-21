@@ -18,10 +18,13 @@ export class AxiosHttpClientAdapter implements HttpClient {
         body: axiosResponse.data,
       };
     } catch (error: any) {
-      return {
-        statusCode: error.response?.status ?? 500,
-        body: error.response?.data,
-      };
+      // Lança erro para ser tratado no catch do componente
+      if (error.response) {
+        const err: any = new Error(error.response.data?.message || 'Erro na requisição');
+        err.response = error.response;
+        throw err;
+      }
+      throw error;
     }
   }
 }

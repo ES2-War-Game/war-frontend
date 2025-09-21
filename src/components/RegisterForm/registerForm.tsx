@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import style from "./registerForm.module.css";
 import logo from "../../assets/war_logo.png";
 import z from "zod";
@@ -26,6 +26,9 @@ type RegisterFormType = z.infer<typeof registerSchema>;
 
 const userService = new UsersService(new AxiosHttpClientAdapter());
 
+
+import { useState } from "react";
+
 export default function RegisterForm() {
   const {
     register,
@@ -35,19 +38,40 @@ export default function RegisterForm() {
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = (data: RegisterFormType) => {
-    const response = userService.register({
-      email: data.email,
-      password: data.password,
-      username: data.username,
-    });
-    console.log(response);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate()
+
+  const onSubmit = async (data: RegisterFormType) => {
+    setSubmitError(null);
+    setLoading(true);
+    try {
+      await userService.register({
+        username: data.username,
+        email: data.email,
+        password: data.password,
+        
+      });
+      console.log("cadastro realizado com sucesso!");
+      navigate("/login");
+    } catch (err: any) {
+      setSubmitError(
+        err?.response?.status === 409
+          ? "E-mail ou usuário já cadastrado."
+          : err?.response?.data?.message || err?.message || "Erro ao cadastrar. Tente novamente."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className={style.register}>
       <img src={logo} alt="WAR Logo" />
       <form className={style.inputs} onSubmit={handleSubmit(onSubmit)}>
+        {submitError && (
+          <span style={{ color: "red", marginBottom: 8 }}>{submitError}</span>
+        )}
         <input type="text" placeholder="Username" {...register("username")} />
         {errors.username && (
           <span style={{ color: "red" }}>{errors.username.message}</span>
@@ -72,7 +96,9 @@ export default function RegisterForm() {
           <span style={{ color: "red" }}>{errors.confirmPassword.message}</span>
         )}
 
-        <button type="submit">Cadastrar</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Cadastrando..." : "Cadastrar"}
+        </button>
       </form>
       <Link to="/login">
         Já possui login? <span>Realize seu login!</span>
