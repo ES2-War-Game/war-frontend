@@ -1,0 +1,21 @@
+.page{
+    background-color: rgba(0, 0, 255, 0.247);
+    background-image: url("../../assets/Game_background.jpg");
+    
+    background-size:contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 180vh;
+    width: 100vw;
+}
+.fundo{
+    background-color: rgba(67, 67, 218, 0.651);
+    position: absolute;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 180vh;
+    width: 100vw;
+}

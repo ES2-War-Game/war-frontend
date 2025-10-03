@@ -39,6 +39,19 @@ export default function SouthAmerica() {
             fill={Brasil ? "#ff0000" : "#9C240F"}
           />
         </g>
+        <text
+          x="130"
+          y="70"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill="white"
+          fontSize="16"
+          fontWeight="bold"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          style={{ pointerEvents: "none" }}
+        >
+          Brasil
+        </text>
         <defs>
           <filter
             id="filter0_f_222_284"
@@ -93,6 +106,19 @@ export default function SouthAmerica() {
             fill={Argentina ? "#ff0000" : "#9C240F"}
           />
         </g>
+        <text
+            x="50"
+            y="70"
+            textAnchor="middle"
+            dominantBaseline="central"
+            fill="white"
+            fontSize="16"
+            fontWeight="bold"
+            fontFamily="TrajanPro, Arial, sans-serif"
+            style={{ pointerEvents: "none" }}
+          >
+            Argentina
+          </text>
         <defs>
           <filter
             id="filter0_f_222_285"
@@ -147,6 +173,19 @@ export default function SouthAmerica() {
             fill={Bolivia ? "#ff0000" : "#9C240F"}
           />
         </g>
+        <text
+            x="50"
+            y="70"
+            textAnchor="middle"
+            dominantBaseline="central"
+            fill="white"
+            fontSize="16"
+            fontWeight="bold"
+            fontFamily="TrajanPro, Arial, sans-serif"
+            style={{ pointerEvents: "none" }}
+          >
+            Bolívia
+          </text>
         <defs>
           <filter
             id="filter0_f_222_286"
@@ -201,6 +240,19 @@ export default function SouthAmerica() {
             fill={Venezuela ? "#ff0000" : "#9C240F"}
           />
         </g>
+        <text
+            x="50"
+            y="40"
+            textAnchor="middle"
+            dominantBaseline="central"
+            fill="white"
+            fontSize="16"
+            fontWeight="bold"
+            fontFamily="TrajanPro, Arial, sans-serif"
+            style={{ pointerEvents: "none" }}
+          >
+            Venezuela
+          </text>
         <defs>
           <filter
             id="filter0_f_222_283"

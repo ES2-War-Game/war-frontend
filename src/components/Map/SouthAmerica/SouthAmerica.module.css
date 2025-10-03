@@ -1,10 +1,11 @@
 .southAmerica {
 
-  position: relative;
+  position:relative;
   width: 230px;
   height: 360px;
-  margin-top: 4rem;
-  margin-left: 6rem;
+  top: 300px;
+  left: 150px;
+  
 }
 .Brasil {
   position: absolute;
