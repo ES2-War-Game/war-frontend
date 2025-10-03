@@ -7,6 +7,9 @@
   left: 150px;
   
 }
+text{
+  user-select: none;
+}
 .Brasil {
   position: absolute;
   top:35px;

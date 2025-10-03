@@ -8,6 +8,7 @@
     background-attachment: fixed;
     min-height: 180vh;
     width: 100vw;
+    overflow: hidden;
 }
 .fundo{
     background-color: rgba(67, 67, 218, 0.651);

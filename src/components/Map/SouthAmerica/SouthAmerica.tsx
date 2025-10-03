@@ -44,13 +44,20 @@ export default function SouthAmerica() {
           y="70"
           textAnchor="middle"
           dominantBaseline="central"
-          fill="white"
-          fontSize="16"
-          fontWeight="bold"
+          fontSize="12"
           fontFamily="TrajanPro, Arial, sans-serif"
-          style={{ pointerEvents: "none" }}
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
         >
-          Brasil
+          BRASIL
         </text>
         <defs>
           <filter
@@ -107,18 +114,25 @@ export default function SouthAmerica() {
           />
         </g>
         <text
-            x="50"
-            y="70"
-            textAnchor="middle"
-            dominantBaseline="central"
-            fill="white"
-            fontSize="16"
-            fontWeight="bold"
-            fontFamily="TrajanPro, Arial, sans-serif"
-            style={{ pointerEvents: "none" }}
-          >
-            Argentina
-          </text>
+          x="50"
+          y="75"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="12"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
+        >
+          ARGENTINA 
+        </text>
         <defs>
           <filter
             id="filter0_f_222_285"
@@ -174,18 +188,25 @@ export default function SouthAmerica() {
           />
         </g>
         <text
-            x="50"
-            y="70"
-            textAnchor="middle"
-            dominantBaseline="central"
-            fill="white"
-            fontSize="16"
-            fontWeight="bold"
-            fontFamily="TrajanPro, Arial, sans-serif"
-            style={{ pointerEvents: "none" }}
-          >
-            Bolívia
-          </text>
+          x="50"
+          y="70"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="12"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
+        >
+          BOLÍVIA
+        </text>
         <defs>
           <filter
             id="filter0_f_222_286"
@@ -241,18 +262,25 @@ export default function SouthAmerica() {
           />
         </g>
         <text
-            x="50"
-            y="40"
-            textAnchor="middle"
-            dominantBaseline="central"
-            fill="white"
-            fontSize="16"
-            fontWeight="bold"
-            fontFamily="TrajanPro, Arial, sans-serif"
-            style={{ pointerEvents: "none" }}
-          >
-            Venezuela
-          </text>
+          x="60"
+          y="30"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="12"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
+        >
+          VENEZUELA
+        </text>
         <defs>
           <filter
             id="filter0_f_222_283"

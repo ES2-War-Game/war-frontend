@@ -45,6 +45,26 @@ export default function NorthAmerica() {
             fill={Alaska ? "#eff167ff" : "#B5B81D"}
           />
         </g>
+        <text
+          x="50"
+          y="60"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="12"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
+        >
+          ALASKA
+        </text>
         <defs>
           <filter
             id="filter0_f_222_306"
@@ -101,6 +121,26 @@ export default function NorthAmerica() {
             fill={Mackenzie ? "#eff167ff" : "#B5B81D"}
           />
         </g>
+         <text
+          x="90"
+          y="60"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="12"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
+        >
+          MACKENZIE
+        </text>
         <defs>
           <filter
             id="filter0_f_222_308"
@@ -157,6 +197,26 @@ export default function NorthAmerica() {
             fill={Groelandia ? "#eff167ff" : "#B5B81D"}
           />
         </g>
+        <text
+          x="90"
+          y="60"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="12"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
+        >
+          GROELÂNDIA
+        </text>
         <defs>
           <filter
             id="filter0_f_222_310"
@@ -213,6 +273,26 @@ export default function NorthAmerica() {
             fill={Vancouver ? "#eff167ff" : "#B5B81D"}
           />
         </g>
+        <text
+          x="50"
+          y="60"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="12"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
+        >
+          VANCOUVER
+        </text>
         <defs>
           <filter
             id="filter0_f_222_316"
@@ -269,6 +349,26 @@ export default function NorthAmerica() {
             fill={Ottawa ? "#eff167ff" : "#B5B81D"}
           />
         </g>
+        <text
+          x="37"
+          y="60"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="12"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
+        >
+          OTTAWA
+        </text>
         <defs>
           <filter
             id="filter0_f_222_307"
@@ -325,6 +425,26 @@ export default function NorthAmerica() {
             fill={Labrador ? "#eff167ff" : "#B5B81D"}
           />
         </g>
+        <text
+          x="49"
+          y="60"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="12"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
+        >
+          LABRADOR
+        </text>
         <defs>
           <filter
             id="filter0_f_222_314"
@@ -381,6 +501,26 @@ export default function NorthAmerica() {
             fill={California ? "#eff167ff" : "#B5B81D"}
           />
         </g>
+        <text
+          x="50"
+          y="50"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="12"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
+        >
+          CALIFÓRNIA
+        </text>
         <defs>
           <filter
             id="filter0_f_222_313"
@@ -437,6 +577,26 @@ export default function NorthAmerica() {
             fill={NovaYork ? "#eff167ff" : "#B5B81D"}
           />
         </g>
+        <text
+          x="65"
+          y="80"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="12"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
+        >
+          NOVA YORK
+        </text>
         <defs>
           <filter
             id="filter0_f_222_312"
@@ -493,6 +653,26 @@ export default function NorthAmerica() {
             fill={Mexico ? "#eff167ff" : "#B5B81D"}
           />
         </g>
+        <text
+          x="40"
+          y="60"
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontSize="12"
+          fontFamily="TrajanPro, Arial, sans-serif"
+          fontWeight="bold"
+          fill="white"
+          style={{
+            pointerEvents: "none",
+            userSelect: "none",
+            paintOrder: "stroke", // desenha o contorno primeiro
+            stroke: "black", // cor do contorno
+            strokeWidth: "2px", // espessura do contorno
+            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
+          }}
+        >
+          MÉXICO
+        </text>
         <defs>
           <filter
             id="filter0_f_222_315"
