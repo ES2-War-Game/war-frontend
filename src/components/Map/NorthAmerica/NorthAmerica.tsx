@@ -121,7 +121,7 @@ export default function NorthAmerica() {
             fill={Mackenzie ? "#eff167ff" : "#B5B81D"}
           />
         </g>
-         <text
+        <text
           x="90"
           y="60"
           textAnchor="middle"
@@ -242,86 +242,86 @@ export default function NorthAmerica() {
         </defs>
       </svg>
       <div
-      style={{
-        position:"absolute",
-        borderTop: "2px dashed #000", 
-        top:"-118px",
-         transform: "rotate(-60deg)",
-        left:"175px",// 2px, tracejada e preta
-        width: "65px ",                 // ocupa toda a largura do container
-        margin: "20px 0",              // espaço acima e abaixo
-      }}
-    />
-    <div
-      style={{
-        position:"absolute",
-        borderTop: "2px dashed #000", 
-        top:"-104px",
-         transform: "rotate(-40deg)",
-        left:"106px",// 2px, tracejada e preta
-        width: "134px ",                 // ocupa toda a largura do container
-        margin: "20px 0",              // espaço acima e abaixo
-      }}
-    />
-    <div
-      style={{
-        position:"absolute",
-        borderTop: "2px dashed #000", 
-        top:"-141px",
-         transform: "rotate(-10deg)",
-        left:"160px",// 2px, tracejada e preta
-        width: "65px ",                 // ocupa toda a largura do container
-        margin: "20px 0",              // espaço acima e abaixo
-      }}
-    />
-    <div
-      style={{
-        position:"absolute",
-        width: "8px",       // largura da bola
-        height: "8px", 
-        top:"-130px",
-        left:"220px",     // altura da bola
-        backgroundColor: "black", // cor preta
-        borderRadius: "50%",   
-        zIndex:"-1 "   // deixa redondo
-      }}
-    />
-    <div
-      style={{
-        position:"absolute",
-        width: "8px",       // largura da bola
-        height: "8px", 
-        top:"-119px",
-        left:"157px",     // altura da bola
-        backgroundColor: "black", // cor preta
-        borderRadius: "50%",   
-        zIndex:"-1 "   // deixa redondo
-      }}
-    />
-    <div
-      style={{
-        position:"absolute",
-        width: "8px",       // largura da bola
-        height: "8px", 
-        top:"-44px",
-        left:"117px",     // altura da bola
-        backgroundColor: "black", // cor preta
-        borderRadius: "50%",   
-        zIndex:"-1 "   // deixa redondo
-      }}
-    />
-    <div
-      style={{
-        position:"absolute",
-        width: "8px",       // largura da bola
-        height: "8px", 
-        top:"-77px",
-        left:"189px",     // altura da bola
-        backgroundColor: "black", // cor preta
-        borderRadius: "50%",   
-        zIndex:"-1 "   // deixa redondo
-      }}
-    />
+        style={{
+          position: "absolute",
+          borderTop: "2px dashed #000",
+          top: "-118px",
+          transform: "rotate(-60deg)",
+          left: "175px", // 2px, tracejada e preta
+          width: "65px ", // ocupa toda a largura do container
+          margin: "20px 0", // espaço acima e abaixo
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          borderTop: "2px dashed #000",
+          top: "-104px",
+          transform: "rotate(-40deg)",
+          left: "106px", // 2px, tracejada e preta
+          width: "134px ", // ocupa toda a largura do container
+          margin: "20px 0", // espaço acima e abaixo
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          borderTop: "2px dashed #000",
+          top: "-141px",
+          transform: "rotate(-10deg)",
+          left: "160px", // 2px, tracejada e preta
+          width: "65px ", // ocupa toda a largura do container
+          margin: "20px 0", // espaço acima e abaixo
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          width: "8px", // largura da bola
+          height: "8px",
+          top: "-130px",
+          left: "220px", // altura da bola
+          backgroundColor: "black", // cor preta
+          borderRadius: "50%",
+          zIndex: "-1 ", // deixa redondo
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          width: "8px", // largura da bola
+          height: "8px",
+          top: "-119px",
+          left: "157px", // altura da bola
+          backgroundColor: "black", // cor preta
+          borderRadius: "50%",
+          zIndex: "-1 ", // deixa redondo
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          width: "8px", // largura da bola
+          height: "8px",
+          top: "-44px",
+          left: "117px", // altura da bola
+          backgroundColor: "black", // cor preta
+          borderRadius: "50%",
+          zIndex: "-1 ", // deixa redondo
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          width: "8px", // largura da bola
+          height: "8px",
+          top: "-77px",
+          left: "189px", // altura da bola
+          backgroundColor: "black", // cor preta
+          borderRadius: "50%",
+          zIndex: "-1 ", // deixa redondo
+        }}
+      />
 
       {/*Vancouver*/}
       <svg
