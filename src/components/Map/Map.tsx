@@ -1,3 +1,4 @@
+import Africa from "./Africa/Africa";
 import Europe from "./Europe/Europe";
 import NorthAmerica from "./NorthAmerica/NorthAmerica";
 import SouthAmerica from "./SouthAmerica/SouthAmerica";
@@ -8,6 +9,7 @@ export default function Map(){
             <NorthAmerica/>
             <SouthAmerica/>
             <Europe/>
+            <Africa/>
         </div>
     )
 }

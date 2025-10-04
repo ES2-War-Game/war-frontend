@@ -5,10 +5,11 @@ import background from "../../assets/Game_background.jpg";
 export default function Game() {
   const [pos, setPos] = React.useState({ x: 0, y: 0 });
   const [zoom, setZoom] = React.useState(1);
+
   const dragging = React.useRef(false);
   const last = React.useRef({ x: 0, y: 0 });
+  const targetPos = React.useRef({ x: 0, y: 0 }); // alvo para interpolação
 
-  // estado para redesenhar cursor
   const [spacePressed, setSpacePressed] = React.useState(false);
 
   function clampPosition(x: number, y: number, zoom: number) {
@@ -28,6 +29,26 @@ export default function Game() {
     };
   }
 
+  // Loop de suavização
+  React.useEffect(() => {
+    let anim: number;
+
+    function animate() {
+      setPos((prev) => {
+        // interpolação (lerp) para suavizar
+        const smooth = 0.15; // ajuste: menor valor = mais suave
+        const newX = prev.x + (targetPos.current.x - prev.x) * smooth;
+        const newY = prev.y + (targetPos.current.y - prev.y) * smooth;
+
+        return { x: newX, y: newY };
+      });
+      anim = requestAnimationFrame(animate);
+    }
+
+    anim = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(anim);
+  }, []);
+
   // Detecta espaço e zoom
   React.useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -44,7 +65,6 @@ export default function Game() {
         e.preventDefault();
       }
     }
-
     function onKeyUp(e: KeyboardEvent) {
       if (e.code === "Space") setSpacePressed(false);
     }
@@ -57,7 +77,7 @@ export default function Game() {
     };
   }, []);
 
-  const SPEED = 5;
+  const SPEED = 1.5; // ajuste fino da velocidade
   // Pan
   React.useEffect(() => {
     function onMouseDown(e: MouseEvent) {
@@ -67,16 +87,16 @@ export default function Game() {
 
         function onMouseMove(ev: MouseEvent) {
           if (dragging.current) {
-            setPos((p) => {
-              const deltaX = (ev.clientX - last.current.x) * SPEED;
-              const deltaY = (ev.clientY - last.current.y) * SPEED;
+            const deltaX = (ev.clientX - last.current.x) * SPEED;
+            const deltaY = (ev.clientY - last.current.y) * SPEED;
 
-              const newX = p.x + deltaX;
-              const newY = p.y + deltaY;
+            const newTarget = clampPosition(
+              targetPos.current.x + deltaX,
+              targetPos.current.y + deltaY,
+              zoom
+            );
 
-              return clampPosition(newX, newY, zoom);
-            });
-
+            targetPos.current = newTarget;
             last.current = { x: ev.clientX, y: ev.clientY };
           }
         }
@@ -95,7 +115,7 @@ export default function Game() {
 
     window.addEventListener("mousedown", onMouseDown, true);
     return () => window.removeEventListener("mousedown", onMouseDown, true);
-  }, [spacePressed]);
+  }, [spacePressed, zoom]);
 
   return (
     <div

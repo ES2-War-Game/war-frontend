@@ -12,7 +12,7 @@ export default function Europe() {
 
   return (
     <div className={style.Europe}>
-        <div
+      <div
         style={{
           position: "absolute",
           borderTop: "2px dashed #000",
