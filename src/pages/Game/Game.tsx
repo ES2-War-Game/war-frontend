@@ -12,21 +12,21 @@ export default function Game() {
   const [spacePressed, setSpacePressed] = React.useState(false);
 
   function clampPosition(x: number, y: number, zoom: number) {
-  const VIEWPORT_WIDTH = window.innerWidth;
-  const VIEWPORT_HEIGHT = window.innerHeight;
-  const MAP_WIDTH = 4000;
-  const MAP_HEIGHT = 2000;
+    const VIEWPORT_WIDTH = window.innerWidth;
+    const VIEWPORT_HEIGHT = window.innerHeight;
+    const MAP_WIDTH = 3000;
+    const MAP_HEIGHT = 1000;
 
-  const maxX = 0;
-  const maxY = 0;
-  const minX = VIEWPORT_WIDTH - MAP_WIDTH * zoom;
-  const minY = VIEWPORT_HEIGHT - MAP_HEIGHT * zoom;
+    const maxX = 0;
+    const maxY = 0;
+    const minX = VIEWPORT_WIDTH - MAP_WIDTH * zoom;
+    const minY = VIEWPORT_HEIGHT - MAP_HEIGHT * zoom;
 
-  return {
-    x: Math.min(maxX, Math.max(minX, x)),
-    y: Math.min(maxY, Math.max(minY, y)),
-  };
-}
+    return {
+      x: Math.min(maxX, Math.max(minX, x)),
+      y: Math.min(maxY, Math.max(minY, y)),
+    };
+  }
 
   // Detecta espaço e zoom
   React.useEffect(() => {
