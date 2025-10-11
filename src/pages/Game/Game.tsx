@@ -15,8 +15,8 @@ export default function Game() {
   function clampPosition(x: number, y: number, zoom: number) {
     const VIEWPORT_WIDTH = window.innerWidth;
     const VIEWPORT_HEIGHT = window.innerHeight;
-    const MAP_WIDTH = 3000;
-    const MAP_HEIGHT = 1000;
+    const MAP_WIDTH = 2000;
+    const MAP_HEIGHT = 900;
 
     const maxX = 0;
     const maxY = 0;
