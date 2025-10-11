@@ -5,6 +5,7 @@ import Register from "../pages/Register/register";
 import GameSetupPage from "../pages/GameSetup/gameSetup";
 import Hub from "../pages/Hub/hub";
 import MainLayout from "../layout/MainLayout";
+import Game from "../pages/Game/Game";
 
 const router = createBrowserRouter([
   {
@@ -30,6 +31,10 @@ const router = createBrowserRouter([
       {
         path: "/register",
         element: <Register />,
+      },
+      {
+        path: "/game",
+        element: <Game />,
       },
     ],
   },
