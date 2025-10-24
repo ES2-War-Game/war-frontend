@@ -5,7 +5,12 @@ import Register from "../pages/Register/register";
 import GameSetupPage from "../pages/GameSetup/gameSetup";
 import Hub from "../pages/Hub/hub";
 import MainLayout from "../layout/MainLayout";
+<<<<<<< HEAD
+import Hub from "../pages/Hub/hub";
+import ProtectedRoute from "./ProtectedRoute";
+=======
 import Game from "../pages/Game/Game";
+>>>>>>> origin/main
 
 const router = createBrowserRouter([
   {
@@ -14,7 +19,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <Home />,
+        element: (
+          <ProtectedRoute>
+            <Home />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/login",
@@ -22,7 +31,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/jogadores",
-        element: <GameSetupPage />,
+        element: (
+          <ProtectedRoute>
+            <GameSetupPage />
+          </ProtectedRoute>
+        ),
       },
       {
         path: "/hub",
@@ -33,9 +46,19 @@ const router = createBrowserRouter([
         element: <Register />,
       },
       {
+<<<<<<< HEAD
+        path: "/hub",
+        element: (
+          <ProtectedRoute>
+            <Hub />
+          </ProtectedRoute>
+        ),
+      }
+=======
         path: "/game",
         element: <Game />,
       },
+>>>>>>> origin/main
     ],
   },
 ]);
