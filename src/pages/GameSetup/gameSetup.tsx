@@ -50,7 +50,7 @@ const GameSetupPage: React.FC = () => {
         <Link to="/" className={`${style.btn} ${style["btn-voltar"]}`}>
           Voltar
         </Link>
-        <button className={style.btn}>Começar Jogo</button>
+        <Link to="/game" className={style.btn}>Começar Jogo</Link>
       </div>
     </div>
   );

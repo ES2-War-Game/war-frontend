@@ -1,0 +1,41 @@
+.Africa {
+  position: relative;
+  top: -79px;
+  left: 380px;
+}
+.Nigeria {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+}
+.Egito {
+  position: absolute;
+  top: 23px;
+  left: 104px;
+}
+.Sudao {
+  position: absolute;
+  top: 82px;
+  left: 159px;
+}
+.Congo {
+  position: absolute;
+  top: 134px;
+  left: 101px;
+}
+.SouthAfrica {
+  position: absolute;
+  top: 210px;
+  left:115px;
+}
+.Madagascar {
+  position: absolute;
+  top: 250px;
+  left: 248px;
+}
+.MadagascarTexto {
+  position: absolute;
+  top: 250px;
+  left: 232px;
+}
+     

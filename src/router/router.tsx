@@ -3,9 +3,14 @@ import Home from "../pages/Home/home";
 import Login from "../pages/Login/login";
 import Register from "../pages/Register/register";
 import GameSetupPage from "../pages/GameSetup/gameSetup";
+import Hub from "../pages/Hub/hub";
 import MainLayout from "../layout/MainLayout";
+<<<<<<< HEAD
 import Hub from "../pages/Hub/hub";
 import ProtectedRoute from "./ProtectedRoute";
+=======
+import Game from "../pages/Game/Game";
+>>>>>>> origin/main
 
 const router = createBrowserRouter([
   {
@@ -33,10 +38,15 @@ const router = createBrowserRouter([
         ),
       },
       {
+        path: "/hub",
+        element: <Hub />,
+      },
+      {
         path: "/register",
         element: <Register />,
       },
       {
+<<<<<<< HEAD
         path: "/hub",
         element: (
           <ProtectedRoute>
@@ -44,6 +54,11 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       }
+=======
+        path: "/game",
+        element: <Game />,
+      },
+>>>>>>> origin/main
     ],
   },
 ]);

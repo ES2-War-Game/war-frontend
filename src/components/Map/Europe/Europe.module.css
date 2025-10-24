@@ -1,0 +1,41 @@
+.Europe {
+  position: relative;
+  top: -370px;
+  left: 340px;
+  background-color: aqua;
+ }
+.Islandia {
+  position: absolute;
+  top: 35px;
+  left: 30px;
+}
+.Suecia {
+  position: absolute;
+  top: -6px;
+  left: 110px;
+}
+.Moscou {
+  position: absolute;
+  top: -3px;
+  left: 181px;
+}
+.Inglaterra {
+  position: absolute;
+  top: 90px;
+  left: 0px;
+}
+.Polonia {
+  position: absolute;
+  top: 104px;
+  left: 97px;
+}
+.Italia {
+  position: absolute;
+  top: 180px;
+  left: 108px;
+}
+.Espanha {
+  position: absolute;
+  top: 180px;
+  left: 26px;
+}

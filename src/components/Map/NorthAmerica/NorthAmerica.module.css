@@ -1,0 +1,51 @@
+.NorthAmerica {
+  position: relative;
+  top: 115px;
+  left: 42px;
+}
+
+.Alaska {
+  position: absolute;
+  top: -142px;
+  left: -114px;
+}
+.Mackenzie {
+  position: absolute;
+  top: -158px;
+  left: -30px;
+}
+.Groelandia {
+  position: absolute;
+  top: -205px;
+  left: 180px;
+}
+.Vancouver {
+  position: absolute;
+  top: -76px;
+  left: -17px;
+}
+.Ottawa {
+  position: absolute;
+  top: -74px;
+  left: 78px;
+}
+.Labrador {
+  position: absolute;
+  top: -79px;
+  left: 151px;
+}
+.California {
+  position: absolute;
+  top: 0px;
+  left: -10px;
+}
+.NovaYork {
+  position: absolute;
+  top: 2px;
+  left: 56px;
+}
+.Mexico {
+  position: absolute;
+
+  top: 90px;
+}

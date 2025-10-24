@@ -1,0 +1,30 @@
+.southAmerica {
+  position: relative;
+  width: 230px;
+  height: 360px;
+  top: 300px;
+  left: 150px;
+}
+text {
+  user-select: none;
+}
+.Brasil {
+  position: absolute;
+  top: 35px;
+  right: 34px;
+}
+.Argentina {
+  position: absolute;
+  bottom: 3px;
+  right: 110px;
+}
+.Venezuela {
+  position: absolute;
+  top: 0px;
+  right: 108px;
+}
+.Bolivia {
+  position: absolute;
+  top: 52px;
+  right: 120px;
+}
