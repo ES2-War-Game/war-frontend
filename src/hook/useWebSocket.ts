@@ -99,7 +99,7 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
 
       // Subscribe to the lobby topic using backend format
       lobbySubscriptionRef.current = stompClientRef.current.subscribe(
-        `/topic/lobby/${lobbyId}`,
+        `/topic/lobby/${lobbyId}/state`,
         (message) => {
           try {
             const players: Player[] = JSON.parse(message.body);
@@ -299,7 +299,8 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
 
   // Leave a lobby
   const leaveLobby = async () => {
-    if (!currentLobbyId) {
+    const lobbyIdStore = useLobbyStore.getState().currentLobbyId;
+    if (!lobbyIdStore) {
       console.warn("Attempted to leave lobby but not in any lobby");
       return;
     }
@@ -313,11 +314,12 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
         setError("Não autorizado. Faça login novamente.");
         throw new Error("Token not found");
       }
+      
 
       // Use the REST API to leave a lobby
-      await api.post(`/api/games/leave/${currentLobbyId}`, {});
+      await api.post(`/api/games/leave/${lobbyIdStore}`, {});
 
-      console.log(`Left lobby ${currentLobbyId}`);
+      console.log(`Left lobby ${lobbyIdStore}`);
 
       // Clean up subscription
       if (lobbySubscriptionRef.current) {
