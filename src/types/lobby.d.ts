@@ -2,6 +2,7 @@ export interface Player {
   id: number;
   username: string;
   email: string;
+  image:string
 }
 
 export interface LobbyCreationRequestDto {
@@ -9,8 +10,8 @@ export interface LobbyCreationRequestDto {
 }
 
 export interface LobbyCreationResponseDto {
-  id: number;
-  name: string;
+  gameId: number;
+  lobbyName: string;
 }
 
 export interface LobbyListResponseDto {

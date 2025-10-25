@@ -1,14 +1,16 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Client } from '@stomp/stompjs';
-import SockJS from 'sockjs-client';
-import api from '../interceptor/api';
-import type { 
-  LobbyListResponseDto, 
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
+import api from "../interceptor/api";
+import type {
+  LobbyListResponseDto,
   LobbyCreationRequestDto,
   LobbyCreationResponseDto,
-  Player
-} from '../types/lobby';
-import { useAuthStore } from '../store/useAuthStore';
+  Player,
+} from "../types/lobby";
+import { useAuthStore } from "../store/useAuthStore";
+import { useNavigate } from "react-router-dom";
+import { useLobbyStore } from "../store/lobbyStore";
 
 interface UseLobbyWebSocketReturn {
   lobbies: LobbyListResponseDto[];
@@ -30,42 +32,47 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
+  const navigate = useNavigate();
+
   const stompClientRef = useRef<Client | null>(null);
   const lobbySubscriptionRef = useRef<any>(null);
-  
+
   // Get token from the store
-  const token = useAuthStore(state => state.token);
-  const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+  const token = useAuthStore((state) => state.token);
+  const backendUrl =
+    import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
 
   // Fetch lobbies from server
   const refreshLobbies = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // Get fresh token from store
       const currentToken = useAuthStore.getState().token;
-      
+
       if (!currentToken) {
-        setError('Não autorizado. Faça login novamente.');
+        setError("Não autorizado. Faça login novamente.");
         return;
       }
-      
+
       console.log("Fetching lobbies with token");
-      
-      const response = await api.get<LobbyListResponseDto[]>('/api/games/lobbies');
+
+      const response = await api.get<LobbyListResponseDto[]>(
+        "/api/games/lobbies"
+      );
       // Note: We don't need to manually set the header here since the api interceptor does it
-      
+
       console.log("Lobbies fetched:", response.data);
       setLobbies(response.data);
     } catch (err: any) {
-      console.error('Error fetching lobbies:', err);
-      
+      console.error("Error fetching lobbies:", err);
+
       if (err.response?.status === 401 || err.response?.status === 403) {
-        setError('Sessão expirada. Por favor, faça login novamente.');
+        setError("Sessão expirada. Por favor, faça login novamente.");
       } else {
-        setError('Falha ao carregar lobbies. Verifique sua conexão.');
+        setError("Falha ao carregar lobbies. Verifique sua conexão.");
       }
     } finally {
       setIsLoading(false);
@@ -73,35 +80,49 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
   }, []);
 
   // Subscribe to a specific lobby
-  const subscribeToLobby = useCallback((lobbyId: number) => {
-    if (!stompClientRef.current || !stompClientRef.current.connected) {
-      console.warn("Attempted to subscribe without active WebSocket connection");
-      return;
-    }
-    
-    // Clear previous subscription if exists
-    if (lobbySubscriptionRef.current) {
-      lobbySubscriptionRef.current.unsubscribe();
-      lobbySubscriptionRef.current = null;
-    }
-    
-    console.log(`Subscribing to lobby ${lobbyId}`);
-    
-    // Subscribe to the lobby topic using backend format
-    lobbySubscriptionRef.current = stompClientRef.current.subscribe(
-      `/topic/lobby/${lobbyId}`, 
-      (message) => {
-        try {
-          const players: Player[] = JSON.parse(message.body);
-          console.log(`Received lobby update for ${lobbyId}:`, players);
-          setCurrentLobbyPlayers(players);
-          refreshLobbies();
-        } catch (err) {
-          console.error('Error processing lobby message:', err);
-        }
+  const subscribeToLobby = useCallback(
+    (lobbyId: number) => {
+      if (!stompClientRef.current || !stompClientRef.current.connected) {
+        console.warn(
+          "Attempted to subscribe without active WebSocket connection"
+        );
+        return;
       }
-    );
-  }, [refreshLobbies]);
+
+      // Clear previous subscription if exists
+      if (lobbySubscriptionRef.current) {
+        lobbySubscriptionRef.current.unsubscribe();
+        lobbySubscriptionRef.current = null;
+      }
+
+      console.log(`Subscribing to lobby ${lobbyId}`);
+
+      // Subscribe to the lobby topic using backend format
+      lobbySubscriptionRef.current = stompClientRef.current.subscribe(
+        `/topic/lobby/${lobbyId}`,
+        (message) => {
+          try {
+            const players: Player[] = JSON.parse(message.body);
+            console.log(`Received lobby update for ${lobbyId}:`, players);
+
+            // update local state
+            setCurrentLobbyPlayers(players);
+            setCurrentLobbyId(lobbyId);
+
+            // persist to shared store so other pages see the update
+            useLobbyStore.getState().setCurrentLobbyPlayers(players);
+            useLobbyStore.getState().setCurrentLobbyId(lobbyId);
+
+            // refresh lobby list (keeps hub in sync)
+            refreshLobbies();
+          } catch (err) {
+            console.error("Error processing lobby message:", err);
+          }
+        }
+      );
+    },
+    [refreshLobbies]
+  );
 
   // Initialize WebSocket with JWT
   useEffect(() => {
@@ -119,18 +140,18 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
       }
       stompClientRef.current = null;
     }
-    
+
     // Create a new SockJS instance pointing to backend's /ws endpoint
     const socket = new SockJS(`${backendUrl}/ws`);
-    
+
     const client = new Client({
       webSocketFactory: () => socket,
       connectHeaders: {
         // Important: Format must be "Bearer <token>" to match backend expectation
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       debug: (str) => {
-        console.log('STOMP: ' + str);
+        console.log("STOMP: " + str);
       },
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
@@ -138,13 +159,13 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
     });
 
     client.onConnect = () => {
-      console.log('WebSocket connected successfully');
+      console.log("WebSocket connected successfully");
       setIsConnected(true);
       setError(null);
-      
+
       // Refresh lobby list upon connection
       refreshLobbies();
-      
+
       // Resubscribe if already in a lobby
       if (currentLobbyId) {
         subscribeToLobby(currentLobbyId);
@@ -152,23 +173,23 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
     };
 
     client.onStompError = (frame) => {
-      console.error('STOMP error:', frame);
+      console.error("STOMP error:", frame);
       setError(`Connection error: ${frame.headers.message}`);
       setIsConnected(false);
     };
 
     client.onWebSocketClose = (event) => {
-      console.log('WebSocket connection closed', event);
+      console.log("WebSocket connection closed", event);
       setIsConnected(false);
-      
+
       if (event && event.code === 1006) {
-        setError('Conexão perdida. Verifique sua internet.');
+        setError("Conexão perdida. Verifique sua internet.");
       }
     };
-    
+
     client.onWebSocketError = (event) => {
-      console.error('WebSocket error:', event);
-      setError('Erro na conexão com o servidor de chat.');
+      console.error("WebSocket error:", event);
+      setError("Erro na conexão com o servidor de chat.");
     };
 
     // Activate the client
@@ -192,39 +213,37 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const currentToken = useAuthStore.getState().token;
-      if (!currentToken) {
-        setError('Não autorizado. Faça login novamente.');
-        throw new Error('Token not found');
-      }
-      
+
       const request: LobbyCreationRequestDto = { lobbyName };
-      
-      // Use the REST API to create a lobby
       const response = await api.post<LobbyCreationResponseDto>(
-        '/api/games/create-lobby', 
+        "/api/games/create-lobby",
         request
       );
-      
-      console.log('Lobby created:', response.data);
-      const lobbyId = response.data.id;
-      setCurrentLobbyId(lobbyId);
-      
-      // Subscribe to the newly created lobby
-      subscribeToLobby(lobbyId);
-      
-      // Refresh the lobby list
-      await refreshLobbies();
-    } catch (err: any) {
-      console.error('Error creating lobby:', err);
-      
-      if (err.response?.status === 401 || err.response?.status === 403) {
-        setError('Sessão expirada. Por favor, faça login novamente.');
+
+      // use uma variável local para o id — não dependa do estado imediatamente
+      const lobbyId = Number(response.data.gameId);
+      console.log("Lobby created:", response.data, "resolved lobbyId:", lobbyId);
+
+      setCurrentLobbyId(lobbyId); // atualiza o state (assíncrono)
+      useLobbyStore.getState().setCurrentLobbyId(lobbyId);
+
+      // usar lobbyId local para ações imediatas
+      if (stompClientRef.current && stompClientRef.current.connected) {
+        subscribeToLobby(lobbyId);
       } else {
-        setError('Falha ao criar lobby. Tente novamente.');
+        // opcional: guarde em pending para assinar no onConnect
+        (stompClientRef as any).pendingLobby = lobbyId;
       }
-      
+
+      await refreshLobbies();
+      navigate("/jogadores"); // redireciona imediatamente
+    } catch (err: any) {
+      console.error("Error creating lobby:", err);
+      if (err.response?.status === 401 || err.response?.status === 403) {
+        setError("Sessão expirada. Por favor, faça login novamente.");
+      } else {
+        setError("Falha ao criar lobby. Tente novamente.");
+      }
       throw err;
     } finally {
       setIsLoading(false);
@@ -236,37 +255,42 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const currentToken = useAuthStore.getState().token;
       if (!currentToken) {
-        setError('Não autorizado. Faça login novamente.');
-        throw new Error('Token not found');
+        setError("Não autorizado. Faça login novamente.");
+        throw new Error("Token not found");
       }
-      
-      // Use the REST API to join a lobby
+
+      // Normalize token to "Bearer <token>"
+
+      // Use the REST API to join a lobby and explicitly pass Authorization header
       const response = await api.post<Player[]>(
         `/api/games/join/${lobbyId}`,
         {}
       );
-      
+
       console.log(`Joined lobby ${lobbyId}:`, response.data);
       setCurrentLobbyId(lobbyId);
       setCurrentLobbyPlayers(response.data);
-      
+
+      // sincroniza store
+      useLobbyStore.getState().setCurrentLobbyId(lobbyId);
+      useLobbyStore.getState().setCurrentLobbyPlayers(response.data);
+
       // Subscribe to the joined lobby
       subscribeToLobby(lobbyId);
-      
-      // Refresh the lobby list
-      await refreshLobbies();
+
+      navigate("/jogadores");
     } catch (err: any) {
-      console.error('Error joining lobby:', err);
-      
+      console.error("Error joining lobby:", err);
+
       if (err.response?.status === 401 || err.response?.status === 403) {
-        setError('Sessão expirada. Por favor, faça login novamente.');
+        setError("Sessão expirada. Por favor, faça login novamente.");
       } else {
-        setError('Falha ao entrar no lobby. Tente novamente.');
+        setError("Falha ao entrar no lobby. Tente novamente.");
       }
-      
+
       throw err;
     } finally {
       setIsLoading(false);
@@ -279,46 +303,45 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
       console.warn("Attempted to leave lobby but not in any lobby");
       return;
     }
-    
+
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const currentToken = useAuthStore.getState().token;
       if (!currentToken) {
-        setError('Não autorizado. Faça login novamente.');
-        throw new Error('Token not found');
+        setError("Não autorizado. Faça login novamente.");
+        throw new Error("Token not found");
       }
-      
+
       // Use the REST API to leave a lobby
-      await api.post(
-        `/api/games/leave/${currentLobbyId}`,
-        {}
-      );
-      
+      await api.post(`/api/games/leave/${currentLobbyId}`, {});
+
       console.log(`Left lobby ${currentLobbyId}`);
-      
+
       // Clean up subscription
       if (lobbySubscriptionRef.current) {
         lobbySubscriptionRef.current.unsubscribe();
         lobbySubscriptionRef.current = null;
       }
-      
+
       // Reset state
       setCurrentLobbyId(null);
       setCurrentLobbyPlayers([]);
-      
+      useLobbyStore.getState().setCurrentLobbyId(null);
+      useLobbyStore.getState().setCurrentLobbyPlayers([]);
+
       // Refresh the lobby list
       await refreshLobbies();
     } catch (err: any) {
-      console.error('Error leaving lobby:', err);
-      
+      console.error("Error leaving lobby:", err);
+
       if (err.response?.status === 401 || err.response?.status === 403) {
-        setError('Sessão expirada. Por favor, faça login novamente.');
+        setError("Sessão expirada. Por favor, faça login novamente.");
       } else {
-        setError('Falha ao sair do lobby. Tente novamente.');
+        setError("Falha ao sair do lobby. Tente novamente.");
       }
-      
+
       throw err;
     } finally {
       setIsLoading(false);
@@ -335,6 +358,6 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
     createLobby,
     joinLobby,
     leaveLobby,
-    refreshLobbies
+    refreshLobbies,
   };
 };

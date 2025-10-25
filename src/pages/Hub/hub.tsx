@@ -20,7 +20,6 @@ const Hub: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newRoomName, setNewRoomName] = useState("");
 
-  const navigate = useNavigate();
 
   // Carregar lobbies ao montar o componente
   useEffect(() => {
@@ -42,6 +41,7 @@ const Hub: React.FC = () => {
   const handleConfirm = async () => {
     if (newRoomName.trim()) {
       try {
+        
         await createLobby(newRoomName.trim());
         setNewRoomName("");
         setIsModalOpen(false);
@@ -153,10 +153,10 @@ const Hub: React.FC = () => {
                   </div>
                   <button
                     className={styles.joinBtn}
-                    onClick={() => navigate(`/jogadores`)}
-                    disabled={isLoading || lobby.status !== "Lobby"}
+                    onClick={() => handleJoin(lobby.id)}
+                    disabled={isLoading || lobby.status !== "LOBBY"}
                   >
-                    {lobby.status !== "Lobby" ? "Em jogo" : isLoading ? "Entrando..." : "Entrar"}
+                    {lobby.status !== "LOBBY" ? "Em jogo" : isLoading ? "Entrando..." : "Entrar"}
                   </button>
                 </div>
               ))
