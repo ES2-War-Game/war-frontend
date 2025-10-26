@@ -39,7 +39,7 @@ export default function Profile({
     partidas: "15",
     vitorias: "8",
   });
-
+  void token;
   const [formData, setFormData] = useState(userData);
 
   const handleEditToggle = () => {
