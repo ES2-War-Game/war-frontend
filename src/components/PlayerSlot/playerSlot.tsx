@@ -1,4 +1,4 @@
-import { useState, type KeyboardEvent, type ChangeEvent } from "react";
+import { useState, useEffect, type KeyboardEvent, type ChangeEvent } from "react";
 import styles from "./playerSlot.module.css";
 
 interface PlayerSlotProps {
@@ -19,6 +19,18 @@ const PlayerSlot: React.FC<PlayerSlotProps> = ({
   >(initialType);
   const [name, setName] = useState(defaultName);
   const [isEditing, setIsEditing] = useState(false);
+
+  // 🔥 NOVO: Atualiza o estado quando as props mudam
+  useEffect(() => {
+    console.log(`🔄 PlayerSlot update:`, {
+      name: defaultName,
+      type: initialType,
+      avatar: avatar,
+      borderColor: borderColor
+    });
+    setName(defaultName);
+    setPlayerType(initialType);
+  }, [defaultName, initialType, avatar, borderColor]);
 
   const handleEdit = () => setIsEditing(true);
 

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import style from "./SouthAmerica.module.css";
 import Territory from "../Teritory/Territory";
 import { SouthAmericaList } from "../../../utils/continents";

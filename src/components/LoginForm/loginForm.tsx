@@ -7,6 +7,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { UsersService } from "../../service/userService";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useState } from "react";
+import { gameService } from "../../service/gameService";
+import GameResumeModal from "../GameResumeModal/gameResumeModal";
+import type { GameState } from "../../types/lobby";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username é obrigatório"),
@@ -22,6 +25,7 @@ export default function LoginForm() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [currentGame, setCurrentGame] = useState<GameState | null>(null);
 
   const {
     register,
@@ -30,6 +34,20 @@ export default function LoginForm() {
   } = useForm<LoginFormType>({
     resolver: zodResolver(loginSchema),
   });
+
+  const checkCurrentGame = async () => {
+    try {
+      const game = await gameService.getCurrentGame();
+      if (game) {
+        setCurrentGame(game);
+      } else {
+        navigate("/hub");
+      }
+    } catch (error) {
+      console.error("Erro ao verificar jogo atual:", error);
+      navigate("/hub");
+    }
+  };
 
   const onSubmit = async (data: LoginFormType) => {
     setIsLoading(true);
@@ -41,19 +59,18 @@ export default function LoginForm() {
         password: data.password,
       });
       
-      // Salva o token no Zustand
       setToken(response.token);
       
-      // Redireciona para home após login bem-sucedido
-      navigate("/");
+      await checkCurrentGame();
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Erro durante login:", error);
       
-      if (error.response?.status === 401) {
+      const err = error as { response?: { status?: number; data?: { message?: string } } };
+      if (err.response?.status === 401) {
         setErrorMessage("Credenciais inválidas");
-      } else if (error.response?.data?.message) {
-        setErrorMessage(error.response.data.message);
+      } else if (err.response?.data?.message) {
+        setErrorMessage(err.response.data.message);
       } else {
         setErrorMessage("Erro interno do servidor. Tente novamente.");
       }
@@ -115,6 +132,13 @@ export default function LoginForm() {
       <Link to="/register">
         Não tem cadastro? <span>Cadastre-se!</span>
       </Link>
+
+      {currentGame && (
+        <GameResumeModal 
+          game={currentGame} 
+          onClose={() => setCurrentGame(null)} 
+        />
+      )}
     </div>
   );
 }
