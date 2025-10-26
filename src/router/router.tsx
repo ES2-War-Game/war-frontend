@@ -7,6 +7,7 @@ import MainLayout from "../layout/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import Game from "../pages/Game/Game";
 import Hub from "../pages/Hub/hub";
+import Profile from "../components/Profile/Profile";
 
 const router = createBrowserRouter([
   {
@@ -36,6 +37,10 @@ const router = createBrowserRouter([
       {
         path: "/register",
         element: <Register />,
+      },
+      {
+        path: "/profile",
+        element: <Profile />,
       },
       {
         path: "/hub",
