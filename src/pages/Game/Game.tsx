@@ -4,6 +4,7 @@ import background from "../../assets/Game_background.jpg";
 import GameHUD from "../../components/GameHUD/gameHUD";
 import playerAvatar from "../../assets/player.png";
 import ObjectiveButton from "../../components/ObjectiveButton/ObjectiveButton";
+import { useAllocateStore } from "../../store/useAllocate";
 
 export default function Game() {
   const [pos, setPos] = React.useState({ x: 0, y: 0 });
@@ -138,6 +139,8 @@ export default function Game() {
     if (fromPhase === "attack") setCurrentPhase("move");
   };
 
+  const allocating = useAllocateStore.getState().allocating
+
   return (
     <div
       style={{
@@ -172,11 +175,11 @@ export default function Game() {
         <Map />
       </div>
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 10 }}>
-        <GameHUD
+        {!allocating?<GameHUD
           player={player}
           currentPhase={currentPhase}
           onSkipPhase={handleSkipPhase}
-        />
+        />:null}
       </div>
       <ObjectiveButton/>
     </div>

@@ -10,6 +10,7 @@ export default function Map(){
     // subscribe to territoriesColors so Map re-renders when websocket updates the store
     const territoriesColors = useGameStore(state => state.territoriesColors);
     void territoriesColors; // keep subscription active; no direct usage needed here
+    
 
     return(
         <div style={{position:"relative",top:"140px",left:"160px",width:"100vw",height:"100vh"}}>
