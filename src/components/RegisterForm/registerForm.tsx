@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import style from "./registerForm.module.css";
 import logo from "../../assets/war_logo.png";
 import z from "zod";
@@ -30,6 +30,7 @@ export default function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [successMessage, setSuccessMessage] = useState<string>("");
+  const navigate = useNavigate()
 
   const {
     register,
@@ -58,6 +59,7 @@ export default function RegisterForm() {
       // Mostra mensagem de sucesso e limpa o formulário
       setSuccessMessage("Cadastro realizado com sucesso!");
       reset();
+      navigate("/login")
       
       // Opcional: redirecionar após alguns segundos
       setTimeout(() => {

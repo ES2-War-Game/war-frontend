@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/useAuthStore';
 export class AxiosHttpClientAdapter implements HttpClient {
   async request<T = any>(params: HttpRequest): Promise<HttpResponse<T>> {
     try {
-      const token = useAuthStore.getState().token;
+      const token = useAuthStore.getState().user?.token;
       
       const headers: Record<string, string> = {
         'Content-Type': 'application/json',

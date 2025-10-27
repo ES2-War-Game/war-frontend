@@ -9,11 +9,16 @@ import type {
   LobbyCreationResponseDto,
   Player,
   GameLobbyDetailsDto,
-  GameState,
+  GameStatus,
 } from "../types/lobby";
 import { useAuthStore } from "../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import { useLobbyStore } from "../store/lobbyStore";
+import { useGameStore } from "../store/useGameStore";
+import {
+  extractTerritoryInfo,
+  extractAndStorePlayerObjective,
+} from "../utils/gameState";
 
 interface UseLobbyWebSocketReturn {
   lobbies: LobbyListResponseDto[];
@@ -45,7 +50,7 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
   const gameStateSubscriptionRef = useRef<any>(null); // 🆕 Para game state
 
   // Get token from the store
-  const token = useAuthStore((state) => state.token);
+  const token = useAuthStore((state) => state.user?.token);
   const backendUrl =
     import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
 
@@ -53,15 +58,15 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
   useEffect(() => {
     const storedLobbyId = useLobbyStore.getState().currentLobbyId;
     const storedPlayers = useLobbyStore.getState().currentLobbyPlayers;
-    
+
     if (storedLobbyId && storedPlayers && storedPlayers.length > 0) {
       console.log("🔄 Synchronizing hook state with persisted store...");
       console.log("📍 Stored Lobby ID:", storedLobbyId);
       console.log("👥 Stored Players:", storedPlayers);
-      
+
       setCurrentLobbyId(storedLobbyId);
       setCurrentLobbyPlayers(storedPlayers);
-      
+
       console.log("✅ Hook state synchronized with store");
     }
   }, []); // Executa apenas uma vez ao montar
@@ -73,7 +78,7 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
       setError(null);
 
       // Get fresh token from store
-      const currentToken = useAuthStore.getState().token;
+      const currentToken = useAuthStore.getState().user?.token;
 
       if (!currentToken) {
         setError("Não autorizado. Faça login novamente.");
@@ -128,11 +133,13 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
           try {
             console.log("📨 RAW WebSocket message received:", message);
             console.log("📨 Message body:", message.body);
-            
+
             // ⚠️ IMPORTANTE: O WebSocket envia diretamente o Array de players
             // Não há objeto aninhado aqui - já é Player[] puro
             const players: Player[] = JSON.parse(message.body);
-            console.log(`🔄 Received lobby update for ${lobbyId} via WebSocket`);
+            console.log(
+              `🔄 Received lobby update for ${lobbyId} via WebSocket`
+            );
             console.log("👥 Players from WebSocket:", players);
             console.log("📊 Number of players:", players.length);
 
@@ -156,7 +163,7 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
           }
         }
       );
-      
+
       console.log(`✅ Successfully subscribed to lobby ${lobbyId}`);
       console.log("✅ Subscription object:", lobbySubscriptionRef.current);
 
@@ -168,31 +175,55 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
           try {
             console.log("🎮 RAW Game State message received:", message);
             console.log("🎮 Message body:", message.body);
-            
-            const gameState: GameState = JSON.parse(message.body);
-            console.log("🎮 Game State received:", gameState);
+
+            const gameState: GameStateResponseDto = JSON.parse(message.body);
+            console.log("🎮 Parsed Game State:", gameState);
             console.log("🎮 Game Status:", gameState.status);
 
-            // Quando o jogo inicia (qualquer status diferente de LOBBY)
-            if (gameState.status && gameState.status !== "LOBBY") {
-              console.log("🚀 Game started! Status:", gameState.status);
-              console.log("🚀 Game ID:", gameState.id);
-              console.log("🚀 Players in game:", gameState.playerGames?.length || gameState.players?.length);
-              console.log("🚀 Redirecting to /game...");
-              
-              // Redireciona todos os jogadores para o mapa
-              navigate("/game");
-            } else {
-              console.log("⏸️ Still in lobby, waiting for game to start...");
+            useGameStore.getState().setGameStatus(gameState.status as GameStatus);
+
+            // Mapeia cores por território (por NOME) e objetivos dos jogadores
+            const territoriesColors = extractTerritoryInfo(gameState);
+
+            // coloca no storage qual jogador que esta jogando
+            if (gameState.turnPlayer) {
+              useGameStore.getState().setTurnPlayer(gameState.turnPlayer.id);
             }
+
+            // as cores dos terrtitorios com map de nome por {id,cor,ownedid}
+            useGameStore.getState().setTerritoriesColors(territoriesColors);
+
+            // Store only the authenticated player's PlayerGameDto in the game store
+            const userId = useAuthStore.getState().getUserId?.();
+            const playersList = gameState.playerGames || [];
+            const myPlayer = userId
+              ? playersList.find((p) => String(p.id) === String(userId)) ?? null
+              : null;
+            useGameStore.getState().setPlayer(myPlayer);
+
+            // Set objective only when we have a valid player with a description to satisfy strict typing
+            if (
+              myPlayer?.id != null &&
+              myPlayer.objective?.description != null
+            ) {
+              useGameStore.getState().setPlayerObjective({
+                id: myPlayer.id,
+                objective: myPlayer.objective.description,
+              });
+            }
+
+            console.log("🎨 Territories colors stored:", territoriesColors);
+
+            navigate("/game");
           } catch (err) {
             console.error("❌ Error processing game state message:", err);
-            console.error("❌ Error details:", err);
           }
         }
       );
-      
-      console.log(`✅ Successfully subscribed to game state for lobby ${lobbyId}`);
+
+      console.log(
+        `✅ Successfully subscribed to game state for lobby ${lobbyId}`
+      );
     },
     [navigate] // Adicionado navigate
   );
@@ -238,23 +269,32 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
 
       // 1. Subscrição ao Tópico Global de Lobbies (atualização em tempo real)
       console.log("Subscribing to global lobbies topic: /topic/lobbies/list");
-      globalLobbiesSubscriptionRef.current = client.subscribe('/topic/lobbies/list', (message) => {
-        try {
-          const updatedLobbies: LobbyListResponseDto[] = JSON.parse(message.body);
-          console.log("🔄 Received global lobby list update via WebSocket:", updatedLobbies);
-          setLobbies(updatedLobbies); // Atualiza o estado da lista de lobbies em tempo real
-        } catch (err) {
-          console.error("Error processing global lobby list message:", err);
+      globalLobbiesSubscriptionRef.current = client.subscribe(
+        "/topic/lobbies/list",
+        (message) => {
+          try {
+            const updatedLobbies: LobbyListResponseDto[] = JSON.parse(
+              message.body
+            );
+            console.log(
+              "🔄 Received global lobby list update via WebSocket:",
+              updatedLobbies
+            );
+            setLobbies(updatedLobbies); // Atualiza o estado da lista de lobbies em tempo real
+          } catch (err) {
+            console.error("Error processing global lobby list message:", err);
+          }
         }
-      });
+      );
 
       // Refresh lobby list upon connection (garantir carregamento inicial)
       refreshLobbies();
 
       // 🔥 IMPORTANTE: Resubscribe se já estava em um lobby
       // Verifica tanto o estado local quanto o store persistido
-      const lobbyToSubscribe = currentLobbyId || useLobbyStore.getState().currentLobbyId;
-      
+      const lobbyToSubscribe =
+        currentLobbyId || useLobbyStore.getState().currentLobbyId;
+
       if (lobbyToSubscribe) {
         console.log("🔄 Reconnecting to lobby:", lobbyToSubscribe);
         subscribeToLobby(lobbyToSubscribe);
@@ -322,7 +362,12 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
 
       // use uma variável local para o id — não dependa do estado imediatamente
       const lobbyId = Number(response.data.gameId);
-      console.log("✅ Lobby created:", response.data, "resolved lobbyId:", lobbyId);
+      console.log(
+        "✅ Lobby created:",
+        response.data,
+        "resolved lobbyId:",
+        lobbyId
+      );
 
       // Após criar, fazer join para obter os dados completos do lobby (incluindo o jogador)
       const lobbyDetailsResponse = await api.post<GameLobbyDetailsDto>(
@@ -331,7 +376,10 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
       );
 
       console.log("✅ Joined created lobby:", lobbyDetailsResponse.data);
-      console.log("Players in created lobby:", lobbyDetailsResponse.data.players);
+      console.log(
+        "Players in created lobby:",
+        lobbyDetailsResponse.data.players
+      );
 
       const playersList = lobbyDetailsResponse.data.players;
 
@@ -352,7 +400,7 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
 
       // Não é mais necessário chamar refreshLobbies() aqui
       // O backend enviará a atualização via WebSocket no tópico /topic/lobbies/list
-      
+
       navigate("/jogadores"); // redireciona imediatamente
     } catch (err: any) {
       console.error("Error creating lobby:", err);
@@ -373,7 +421,7 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
       setIsLoading(true);
       setError(null);
 
-      const currentToken = useAuthStore.getState().token;
+      const currentToken = useAuthStore.getState().user?.token;
       if (!currentToken) {
         setError("Não autorizado. Faça login novamente.");
         throw new Error("Token not found");
@@ -437,12 +485,12 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
       setIsLoading(true);
       setError(null);
 
-      const currentToken = useAuthStore.getState().token;
+      const currentToken = useAuthStore.getState().user?.token;
       if (!currentToken) {
         setError("Não autorizado. Faça login novamente.");
         throw new Error("Token not found");
       }
-      
+
       console.log(`🚪 Leaving lobby ${lobbyIdStore}...`);
 
       await api.post(`/api/games/leave/${lobbyIdStore}`, {});
@@ -455,7 +503,7 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
         lobbySubscriptionRef.current.unsubscribe();
         lobbySubscriptionRef.current = null;
       }
-      
+
       if (gameStateSubscriptionRef.current) {
         console.log("🔌 Unsubscribing from game state updates");
         gameStateSubscriptionRef.current.unsubscribe();
@@ -492,18 +540,41 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
 
       console.log(`🚀 Starting game for lobby ${lobbyId}...`);
 
-      // Chama a API para iniciar a partida
-      const gameState = await gameService.startGame(lobbyId);
+      // Chama a API para iniciar a partida e usa o snapshot inicial
+      const gameState: GameStateResponseDto = await gameService.startGame(
+        lobbyId
+      );
 
       console.log("✅ Game started successfully:", gameState);
       console.log("🎮 Game ID:", gameState.id);
       console.log("🎮 Game Status:", gameState.status);
       console.log("🎮 Players in game:", gameState.playerGames?.length);
 
-      // O WebSocket já está inscrito em /topic/game/{lobbyId}/state
-      // e irá redirecionar automaticamente quando receber a notificação
-      console.log("⏳ Waiting for WebSocket notification to redirect...");
+      // Popula estado inicial para pintar o mapa e objetivos antes dos updates do WS
+      const territoriesColors = extractTerritoryInfo(gameState);
+      useGameStore.getState().setTerritoriesColors(territoriesColors);
+      // Persist only the authenticated player's PlayerGameDto into the store
+      const startPlayers = gameState.playerGames || [];
+      const startUserId = useAuthStore.getState().getUserId?.();
+      const startMyPlayer = startUserId
+        ? startPlayers.find((p) => String(p.id) === String(startUserId)) ?? null
+        : null;
+      useGameStore.getState().setPlayer(startMyPlayer);
 
+      // Persistir objetivos por jogador no store
+      const playersList = gameState.playerGames || [];
+      for (const p of playersList) {
+        extractAndStorePlayerObjective(gameState, String(p.id));
+      }
+
+      console.log("🎨 Initial territoriesColors stored:", territoriesColors);
+      console.log(
+        "🏁 Initial playerObjectives stored:",
+        useGameStore.getState().playerObjective
+      );
+
+      // O WebSocket continuará enviando atualizações em /topic/game/{lobbyId}/state
+      console.log("⏳ WebSocket will keep streaming updates...");
     } catch (err: any) {
       console.error("❌ Error starting game:", err);
 

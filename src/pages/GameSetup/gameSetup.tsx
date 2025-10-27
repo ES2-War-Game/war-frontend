@@ -158,7 +158,7 @@ const GameSetupPage: React.FC = () => {
     }
 
     // Obtém o token e decodifica para pegar o username do usuário atual
-    const token = useAuthStore.getState().token;
+    const token = useAuthStore.getState().user?.token;
     if (!token) {
       alert("Erro: Você precisa estar autenticado para iniciar a partida.");
       return;
@@ -206,7 +206,7 @@ const GameSetupPage: React.FC = () => {
   const activePlayers = currentLobbyPlayers || currentLobbyPlayersStore || [];
 
   // Verifica se o usuário atual é o dono do lobby
-  const token = useAuthStore.getState().token;
+  const token = useAuthStore.getState().user?.token;
   let isCurrentUserOwner = false;
   
   if (token && activePlayers) {

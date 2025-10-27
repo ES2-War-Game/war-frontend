@@ -23,6 +23,8 @@ export default function SouthAmerica() {
         top={territorio.top}
         bottom={territorio.bottom}
         rigth={territorio.rigth}
+        cx={territorio.cx}
+          cy={territorio.cy}
         />
       ))}
     </div>

@@ -7,6 +7,9 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
+  id:number;
+  username:string;
+  email:string;
 }
 
 export interface RegisterRequest {
@@ -27,8 +30,8 @@ export class UsersService {
       const response = await api.post('/api/v1/players/login', params);
       
       if (response.data && response.data.token) {
-        console.log('Login bem-sucedido, token recebido:', response.data.token);
-        return { token: response.data.token };
+        console.log('Login bem-sucedido, token recebido:', response.data);
+        return { token: response.data.token , id: response.data.id , email:response.data.email , username:response.data.username };
       }
       
       throw new Error('Token não encontrado na resposta');

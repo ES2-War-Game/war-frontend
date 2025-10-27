@@ -1,0 +1,65 @@
+.button {
+  background-color: transparent;
+  position: absolute;
+  bottom: 10px;
+  right: 30px;
+  border: 0px;
+  z-index: 10;
+  cursor: pointer;
+}
+.modal {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, 15%);
+  width: 25vw;
+  height: 25vw;
+  z-index: 6;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0px 32px;
+  gap: 64px;
+  border-radius: 12px;
+  border: 4px solid #fff;
+  background: linear-gradient(175deg, #3a3535 4.32%, #585656 96.67%);
+  overflow: hidden;
+}
+.modal img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.25;
+  pointer-events: none;
+  z-index: 0;
+}
+.modal h1 {
+  font-family: Roboto;
+  color: #ffffff;
+  font-size: 48px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  text-align: center;
+}
+.modal p {
+  color: #fff;
+  text-align: center;
+  font-family: Roboto;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: normal;
+}
+.fundo {
+  width: 100vw;
+  height: 100vh;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 5;
+}

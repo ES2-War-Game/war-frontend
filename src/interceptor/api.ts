@@ -13,7 +13,7 @@ const api = axios.create({
 api.interceptors.request.use(
   config => {
     // Get the token from the store
-    const token = useAuthStore.getState().token;
+    const token = useAuthStore.getState().user?.token;
     
     // Only add authorization header if token exists AND it's not an auth endpoint
     const isAuthEndpoint = config.url?.includes('/api/v1/players/login') || 
@@ -39,8 +39,8 @@ api.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       console.error('Unauthorized access - token may be expired');
       // Clear the token if it's expired
-      const { clearToken } = useAuthStore.getState();
-      clearToken();
+      const { clearUser } = useAuthStore.getState();
+      clearUser();
       
       // Redirect to login if not already on auth pages
       if (!window.location.pathname.includes('/login') && !window.location.pathname.includes('/register')) {

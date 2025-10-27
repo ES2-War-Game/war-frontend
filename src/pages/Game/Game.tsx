@@ -2,7 +2,8 @@ import React from "react";
 import Map from "../../components/Map/Map";
 import background from "../../assets/Game_background.jpg";
 import GameHUD from "../../components/GameHUD/gameHUD";
-import playerAvatar from "../../assets/player.png";
+import ObjectiveButton from "../../components/ObjectiveButton/ObjectiveButton";
+import { useAllocateStore } from "../../store/useAllocate";
 
 export default function Game() {
   const [pos, setPos] = React.useState({ x: 0, y: 0 });
@@ -18,7 +19,7 @@ export default function Game() {
     const VIEWPORT_WIDTH = window.innerWidth;
     const VIEWPORT_HEIGHT = window.innerHeight;
     const MAP_WIDTH = 2000;
-    const MAP_HEIGHT = 900;
+    const MAP_HEIGHT = 1100;
 
     const maxX = 0;
     const maxY = 0;
@@ -119,23 +120,10 @@ export default function Game() {
     return () => window.removeEventListener("mousedown", onMouseDown, true);
   }, [spacePressed, zoom]);
 
-  // 🔹 Mock de dados do jogador
-  const player = {
-    id: "1",
-    name: "Jogador 1",
-    color: "#4caf50",
-    avatar: playerAvatar,
-    troops: 20,
-  };
+  
 
-  const [currentPhase, setCurrentPhase] = React.useState<
-    "fortify" | "attack" | "move"
-  >("fortify");
 
-  const handleSkipPhase = (fromPhase: "fortify" | "attack" | "move") => {
-    if (fromPhase === "fortify") setCurrentPhase("attack");
-    if (fromPhase === "attack") setCurrentPhase("move");
-  };
+  const allocating = useAllocateStore.getState().allocating;
 
   return (
     <div
@@ -170,13 +158,18 @@ export default function Game() {
       >
         <Map />
       </div>
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 10 }}>
-        <GameHUD
-          player={player}
-          currentPhase={currentPhase}
-          onSkipPhase={handleSkipPhase}
-        />
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 10,
+        }}
+      >
+        {!allocating ? <GameHUD /> : null}
       </div>
+      <ObjectiveButton />
     </div>
   );
 }

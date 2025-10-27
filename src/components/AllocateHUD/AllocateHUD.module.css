@@ -1,0 +1,110 @@
+.fortificarContainer {
+  background-color: #2f2f2f;
+  padding: 12px;
+  border-radius: 15px;
+  width: 360px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  color: white;
+  font-family: sans-serif;
+  z-index: 13;
+  position: absolute;
+  bottom: 10px;
+  left:40%;
+}
+
+.titulo {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.botoesLinha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.botao {
+  border: none;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.botaoRed {
+  background-color: #c62828;
+  border-radius: 50%;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+}
+
+.botaRed:hover {
+  background-color: #b71c1c;
+}
+
+.botaoGreen {
+  background-color: #2e7d32;
+  border-radius: 50%;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+}
+
+.botaoGreen:hover {
+  background-color: #1b5e20;
+}
+
+.botaoCinza {
+  background-color: #757575;
+  border-radius: 6px;
+  font-size: 18px;
+  width: 35px;
+  height: 35px;
+}
+
+.botaoCinza:hover {
+  background-color: #616161;
+}
+
+.botaoAzul {
+  background-color: #1e88e5;
+  border-radius: 6px;
+  font-size: 18px;
+  width: 35px;
+  height: 35px;
+}
+
+.botaoAzul:hover {
+  background-color: #1565c0;
+}
+
+.controle {
+  display: flex;
+  align-items: center;
+  background-color: #424242;
+  padding: 5px 10px;
+  border-radius: 8px;
+}
+
+.carrossel {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 70px;
+  font-weight: bold;
+  gap:16px;
+}
+
+.num {
+  margin: 0 4px;
+  font-size: 18px;
+}
+
+.numFade {
+  opacity: 0.4;
+}
+
+.numAtual {
+  border-bottom: 2px solid white;
+}
