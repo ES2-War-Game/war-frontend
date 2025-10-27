@@ -1,3 +1,6 @@
+import { useAuthStore } from "../store/useAuthStore";
+import { useGameStore } from "../store/useGameStore";
+
 // Using global ambient DTO interfaces declared in src/types/*.d.ts
 
 // Normaliza chave de território por nome (sem acentos, caixa baixa)
@@ -17,12 +20,14 @@ const fallbackColor = (identifier: string) => {
 };
 
 
-// Retorna um mapa: nome normalizado do território => { color, id }
-export function extractTerritoryInfo(state: GameStateResponseDto): Record<string, { color: string; id: number }> {
+// Retorna um mapa: nome normalizado do território => { color, id, ownerId }
+export function extractTerritoryInfo(
+  state: GameStateResponseDto
+): Record<string, { color: string; id: number; ownerId: number | null }> {
   const players: PlayerGameDto[] = state.playerGames || [];
   const territories: GameTerritoryDto[] = state.gameTerritories || [];
 
-  const info: Record<string, { color: string; id: number }> = {};
+  const info: Record<string, { color: string; id: number; ownerId: number | null }> = {};
 
   for (const t of territories) {
     const name = t.territory.name ?? "";
@@ -32,21 +37,28 @@ export function extractTerritoryInfo(state: GameStateResponseDto): Record<string
       owner?.color ||
       (owner?.player?.username && fallbackColor(String(owner.player.username))) ||
       fallbackColor(String(t.ownerId ?? name));
-    info[key] = { color, id: Number(t.id) };
+    const ownerId = t.ownerId != null ? Number(t.ownerId) : null;
+    info[key] = { color, id: Number(t.id), ownerId };
   }
 
   return info;
 }
+export function extractPlayerObjectives(state: GameStateResponseDto): string {
+  // Return the objective description for the currently authenticated user.
+  const authId = useAuthStore.getState().getUserId?.();
+  if (!authId) return "";
 
-export function extractPlayerObjectives(state: GameStateResponseDto): Record<string, string> {
   const players: PlayerGameDto[] = state.playerGames || [];
-  const map: Record<string, string> = {};
+  const pg = players.find((p) => String(p.id) === String(authId));
+  return pg?.objective?.description ?? "";
+}
 
-  for (const pg of players) {
-    const pid = String(pg.id);
-    const obj = pg.objective?.description ?? "";
-    map[pid] = obj;
-  }
-
-  return map;
+// Extract objective for a specific player id and store it in the game store
+export function extractAndStorePlayerObjective(state: GameStateResponseDto, playerId: string): string {
+  const players: PlayerGameDto[] = state.playerGames || [];
+  const pg = players.find((p) => String(p.id) === String(playerId));
+  const obj = pg?.objective?.description ?? "";
+  // persist into game store for UI consumption
+  useGameStore.getState().setPlayerObjective({ id: Number(playerId), objective: obj });
+  return obj;
 }

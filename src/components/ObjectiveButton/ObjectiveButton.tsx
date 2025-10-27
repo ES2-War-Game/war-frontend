@@ -2,9 +2,14 @@ import { useState } from "react";
 import style from "./ObjectiveButton.module.css";
 import objectiveButton from "../../assets/objective.png";
 import objectiveBack from "../../assets/modalBackground.png";
+import { useGameStore } from "../../store/useGameStore";
 
 export default function ObjectiveButton() {
   const [open, setOpen] = useState(false);
+  // get the authenticated user id (reactive)
+  const userObjective = useGameStore((o)=>o.player?.objective.description)
+  // pick the objective description for the authenticated user (reactive)
+ 
   return (
     <div >
       {!open ? (
@@ -17,9 +22,7 @@ export default function ObjectiveButton() {
               <h1>Objetivo</h1>
               <img src={objectiveBack} alt="" />
               <p>
-                sed lacus, leo. tincidunt libero, gravida lacus, enim. urna.
-                elementum ultrices ipsum ex tincidunt odio tincidunt vitae placerat
-                lacus, ipsum in ex Nunc vel{" "}
+                {userObjective}
               </p>
             </div>
             <div onClick={()=>setOpen(!open)} className={style.fundo}></div>

@@ -21,7 +21,7 @@ type LoginFormType = z.infer<typeof loginSchema>;
 const userService = new UsersService();
 
 export default function LoginForm() {
-  const { setToken } = useAuthStore();
+  const { setUser } = useAuthStore();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -58,8 +58,8 @@ export default function LoginForm() {
         username: data.username,
         password: data.password,
       });
-      
-      setToken(response.token);
+      console.log(response)
+      setUser(response)
       
       await checkCurrentGame();
       

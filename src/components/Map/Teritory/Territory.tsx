@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useGameStore } from "../../../store/useGameStore";
 import { useAllocateStore } from "../../../store/useAllocate";
 import AllocateHUD from "../../AllocateHUD/AllocateHUD";
+import { useAuthStore } from "../../../store/useAuthStore";
 
 export interface TerritorySVG {
   nome: string;
@@ -118,6 +119,26 @@ export default function Territory(territorio: TerritorySVG) {
       : territorio.corEscura
   );
 
+  function Alocar() {
+    // ownerId can come from the overrideColor object (populated from territoriesColors)
+    const ownerId = overrideColor && typeof overrideColor === "object" ? (overrideColor as any).ownerId : null;
+    const myId = useAuthStore.getState().getUserId?.();
+
+    // compare as strings to be robust to number/string id shapes
+    if (ownerId != null && String(ownerId) === String(myId)) {
+      // align portal to the current svg if possible
+      if (svgRef.current) {
+        try {
+          setPortalRect(svgRef.current.getBoundingClientRect());
+        } catch (e) {
+          setPortalRect(null);
+        }
+      }
+      setAloca(true);
+      setAllocating(true);
+    }
+  }
+
 
 
   return (
@@ -148,8 +169,7 @@ export default function Territory(territorio: TerritorySVG) {
                   setPortalRect(null);
                 }
               }
-              setAloca(true);
-              setAllocating(true);
+              Alocar() 
             }}
           >
             <path d={territorio.d1} fill={computedFill} />

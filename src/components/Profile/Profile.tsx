@@ -26,7 +26,7 @@ export default function Profile({
   onClose, 
   isOwnProfile = true // Por padrão assume que é o próprio perfil
 }: ProfileProps) {
-  const { token } = useAuthStore();       
+  const { user } = useAuthStore();       
   const navigate = useNavigate();         
   const [isEditing, setIsEditing] = useState(false);  // controla modo de edição
   const [visibleMatches, setVisibleMatches] = useState(2);  // controla quantas partidas mostrar
@@ -39,7 +39,7 @@ export default function Profile({
     partidas: "15",
     vitorias: "8",
   });
-  void token;
+  void user?.token;
   const [formData, setFormData] = useState(userData);
 
   const handleEditToggle = () => {

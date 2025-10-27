@@ -1,16 +1,28 @@
-import {create} from "zustand";
+import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { GameStatus } from "../types/lobby";
 
 interface GameStore {
-  territoriesColors: Record<string, { color: string; id: number }>;
-  setTerritoriesColors: (map: Record<string, { color: string; id: number }>) => void;
+  // map: territoryNameNormalized -> { color, id, ownerId }
+  territoriesColors: Record<
+    string,
+    { color: string; id: number; ownerId: number | null }
+  >;
+  setTerritoriesColors: (
+    map: Record<string, { color: string; id: number; ownerId: number | null }>
+  ) => void;
 
-  playerObjectives: Record<string, string>; // playerId -> objective
-  setPlayerObjective: (playerId: string, objective: string) => void;
-  setPlayerObjectives: (map: Record<string, string>) => void;
+  playerObjective: Record<string, string>; 
+  setPlayerObjective: (payload: { id: number; objective: string }) => void;
 
-  players: PlayerGameDto[];
-  setPlayers: (players: PlayerGameDto[]) => void;
+  player: PlayerGameDto | null;
+  setPlayer: (player: PlayerGameDto | null) => void;
+
+  turnPlayer: number | null;
+  setTurnPlayer: (playerId: number | null) => void;
+
+  gameStatus:GameStatus| null;
+  setGameStatus: (status: GameStatus ) => void;
 
   clearGameState: () => void;
 }
@@ -21,23 +33,35 @@ export const useGameStore = create<GameStore>()(
       territoriesColors: {},
       setTerritoriesColors: (map) => set({ territoriesColors: map }),
 
-      playerObjectives: {},
-      setPlayerObjective: (playerId, objective) =>
-        set((s) => ({ playerObjectives: { ...s.playerObjectives, [playerId]: objective } })),
-      setPlayerObjectives: (map) => set({ playerObjectives: map }),
+      playerObjective: {},
+      setPlayerObjective: (payload) =>
+        set((s) => ({
+          playerObjective: {
+            ...s.playerObjective,
+            [payload.id]: payload.objective,
+          },
+        })),
+      turnPlayer: null,
+      setTurnPlayer: (player) => set({ turnPlayer:player }),
 
-      players: [],
-      setPlayers: (players) => set({ players }),
+      player: null,
+      setPlayer: (player) => set({ player }),
+
+      gameStatus: null,
+      setGameStatus: (status:GameStatus) => set({ gameStatus:status }),
 
       clearGameState: () =>
-        set({ territoriesColors: {}, playerObjectives: {}, players: [] }),
+        set({ territoriesColors: {}, playerObjective: {}, player: null }),
     }),
     {
       name: "game-store", // localStorage key
       partialize: (state) => ({
         territoriesColors: state.territoriesColors,
-        playerObjectives: state.playerObjectives,
-        players: state.players,
+        playerObjective: state.playerObjective,
+        player: state.player,
+        turnPlayer:state.turnPlayer,
+        gameStatus:state.gameStatus,
+        
       }),
     }
   )
