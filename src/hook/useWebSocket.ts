@@ -9,11 +9,12 @@ import type {
   LobbyCreationResponseDto,
   Player,
   GameLobbyDetailsDto,
-  GameState,
 } from "../types/lobby";
 import { useAuthStore } from "../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import { useLobbyStore } from "../store/lobbyStore";
+import { useGameStore } from "../store/useGameStore";
+import { extractTerritoryInfo, extractPlayerObjectives } from "../utils/gameState";
 
 interface UseLobbyWebSocketReturn {
   lobbies: LobbyListResponseDto[];
@@ -168,26 +169,24 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
           try {
             console.log("🎮 RAW Game State message received:", message);
             console.log("🎮 Message body:", message.body);
-            
-            const gameState: GameState = JSON.parse(message.body);
-            console.log("🎮 Game State received:", gameState);
+
+            const gameState: GameStateResponseDto = JSON.parse(message.body);
+            console.log("🎮 Parsed Game State:", gameState);
             console.log("🎮 Game Status:", gameState.status);
 
-            // Quando o jogo inicia (qualquer status diferente de LOBBY)
-            if (gameState.status && gameState.status !== "LOBBY") {
-              console.log("🚀 Game started! Status:", gameState.status);
-              console.log("🚀 Game ID:", gameState.id);
-              console.log("🚀 Players in game:", gameState.playerGames?.length || gameState.players?.length);
-              console.log("🚀 Redirecting to /game...");
-              
-              // Redireciona todos os jogadores para o mapa
-              navigate("/game");
-            } else {
-              console.log("⏸️ Still in lobby, waiting for game to start...");
-            }
+            // Mapeia cores por território (por NOME) e objetivos dos jogadores
+            const territoriesColors = extractTerritoryInfo(gameState);
+            const objectivesMap = extractPlayerObjectives(gameState);
+
+            useGameStore.getState().setTerritoriesColors(territoriesColors);
+            useGameStore.getState().setPlayerObjectives(objectivesMap);
+            useGameStore.getState().setPlayers(gameState.playerGames || []);
+
+            console.log("🎨 Territories colors stored:", territoriesColors);
+            console.log("🏁 Player objectives stored:", objectivesMap);
+            navigate("/game")
           } catch (err) {
             console.error("❌ Error processing game state message:", err);
-            console.error("❌ Error details:", err);
           }
         }
       );
@@ -492,17 +491,26 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
 
       console.log(`🚀 Starting game for lobby ${lobbyId}...`);
 
-      // Chama a API para iniciar a partida
-      const gameState = await gameService.startGame(lobbyId);
+  // Chama a API para iniciar a partida e usa o snapshot inicial
+  const gameState: GameStateResponseDto = await gameService.startGame(lobbyId);
 
       console.log("✅ Game started successfully:", gameState);
       console.log("🎮 Game ID:", gameState.id);
       console.log("🎮 Game Status:", gameState.status);
       console.log("🎮 Players in game:", gameState.playerGames?.length);
 
-      // O WebSocket já está inscrito em /topic/game/{lobbyId}/state
-      // e irá redirecionar automaticamente quando receber a notificação
-      console.log("⏳ Waiting for WebSocket notification to redirect...");
+  // Popula estado inicial para pintar o mapa e objetivos antes dos updates do WS
+  const territoriesColors = extractTerritoryInfo(gameState);
+  const objectivesMap = extractPlayerObjectives(gameState);
+  useGameStore.getState().setTerritoriesColors(territoriesColors);
+  useGameStore.getState().setPlayerObjectives(objectivesMap);
+  useGameStore.getState().setPlayers(gameState.playerGames || []);
+
+  console.log("🎨 Initial territoriesColors stored:", territoriesColors);
+  console.log("🏁 Initial playerObjectives stored:", objectivesMap);
+
+  // O WebSocket continuará enviando atualizações em /topic/game/{lobbyId}/state
+  console.log("⏳ WebSocket will keep streaming updates...");
 
     } catch (err: any) {
       console.error("❌ Error starting game:", err);

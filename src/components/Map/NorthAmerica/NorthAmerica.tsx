@@ -44,6 +44,8 @@ export default function NorthAmerica() {
           top={territorio.top}
           left={territorio.left}
           rigth={territorio.rigth}
+          cx={territorio.cx}
+          cy={territorio.cy}
         />
       ))}
 

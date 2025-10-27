@@ -196,6 +196,8 @@ export default function Oceania() {
           left={territorio.left}
           rigth={territorio.rigth}
           bottom={territorio.bottom}
+          cx={territorio.cx}
+          cy={territorio.cy}
         />
       ))}
     </div>

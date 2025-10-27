@@ -3,6 +3,7 @@ import Map from "../../components/Map/Map";
 import background from "../../assets/Game_background.jpg";
 import GameHUD from "../../components/GameHUD/gameHUD";
 import playerAvatar from "../../assets/player.png";
+import ObjectiveButton from "../../components/ObjectiveButton/ObjectiveButton";
 
 export default function Game() {
   const [pos, setPos] = React.useState({ x: 0, y: 0 });
@@ -18,7 +19,7 @@ export default function Game() {
     const VIEWPORT_WIDTH = window.innerWidth;
     const VIEWPORT_HEIGHT = window.innerHeight;
     const MAP_WIDTH = 2000;
-    const MAP_HEIGHT = 900;
+    const MAP_HEIGHT = 1100;
 
     const maxX = 0;
     const maxY = 0;
@@ -177,6 +178,7 @@ export default function Game() {
           onSkipPhase={handleSkipPhase}
         />
       </div>
+      <ObjectiveButton/>
     </div>
   );
 }

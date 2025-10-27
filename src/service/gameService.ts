@@ -2,8 +2,8 @@ import api from "../interceptor/api";
 import type { GameState } from "../types/lobby";
 
 export const gameService = {
-  async startGame(lobbyId: number): Promise<GameState> {
-    const response = await api.post<GameState>(
+  async startGame(lobbyId: number): Promise<GameStateResponseDto> {
+    const response = await api.post<GameStateResponseDto>(
       `/api/games/start/${lobbyId}`
     );
     

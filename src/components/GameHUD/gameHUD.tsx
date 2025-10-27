@@ -28,7 +28,6 @@ const GameHUD: React.FC<GameHUDProps> = ({
   };
 
   // Determina para quais fases pode pular
-  const canSkipToAttack = false; 
   const canSkipToMove = currentPhase === "attack";
 
   return (
