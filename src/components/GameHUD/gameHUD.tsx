@@ -3,7 +3,7 @@ import styles from "./gameHUD.module.css";
 import gunImage from "../../assets/gun.png";
 import troopsImage from "../../assets/troops.png";
 import setasImage from "../../assets/setas.png";
-import cavaleiro from "../../assets/cavaleiroImage.png"
+import cavaleiro from "../../assets/player.png"
 import { useGameStore } from "../../store/useGameStore";
 import { useAuthStore } from "../../store/useAuthStore";
 
