@@ -75,7 +75,6 @@ export default function Territory(territorio: TerritorySVG) {
       alert("Não possui mais solçdados para alocar")
       return
     }
-    setAlocaFinal(alocaNum);
     // try to resolve the territory id from the persisted territoriesColors map
     const info =
       overrideColor && typeof overrideColor === "object"
