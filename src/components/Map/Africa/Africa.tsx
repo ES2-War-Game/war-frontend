@@ -96,6 +96,7 @@ export default function Africa() {
           bottom={territorio.bottom}
           cx={territorio.cx}
           cy={territorio.cy}
+          fronteiras={territorio.fronteiras}
         />
       ))}
       <svg

@@ -198,6 +198,7 @@ export default function Oceania() {
           bottom={territorio.bottom}
           cx={territorio.cx}
           cy={territorio.cy}
+          fronteiras={territorio.fronteiras}
         />
       ))}
     </div>

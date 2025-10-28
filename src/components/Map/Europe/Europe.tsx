@@ -196,6 +196,7 @@ export default function Europe() {
           rigth={territorio.rigth}
           cx={territorio.cx}
           cy={territorio.cy}
+          fronteiras={territorio.fronteiras}
         />
       ))}
     </div>
