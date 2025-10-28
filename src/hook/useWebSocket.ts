@@ -19,6 +19,7 @@ import {
   extractTerritoryInfo,
   extractAndStorePlayerObjective,
 } from "../utils/gameState";
+import { useAllocateStore } from "../store/useAllocate";
 
 interface UseLobbyWebSocketReturn {
   lobbies: LobbyListResponseDto[];
@@ -182,6 +183,8 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
 
             useGameStore.getState().setGameStatus(gameState.status as GameStatus);
 
+            useGameStore.getState().setGameId(gameState.id);
+
             // Mapeia cores por território (por NOME) e objetivos dos jogadores
             const territoriesColors = extractTerritoryInfo(gameState);
 
@@ -190,6 +193,8 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
               useGameStore.getState().setTurnPlayer(gameState.turnPlayer.id);
             }
 
+            
+
             // as cores dos terrtitorios com map de nome por {id,cor,ownedid}
             useGameStore.getState().setTerritoriesColors(territoriesColors);
 
@@ -197,9 +202,10 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
             const userId = useAuthStore.getState().getUserId?.();
             const playersList = gameState.playerGames || [];
             const myPlayer = userId
-              ? playersList.find((p) => String(p.id) === String(userId)) ?? null
+              ? playersList.find((p) => String(p.player.id) == String(userId)) ?? null
               : null;
             useGameStore.getState().setPlayer(myPlayer);
+            useAllocateStore.getState().setUnallocatedArmies(myPlayer?.unallocatedArmies ?? 0)
 
             // Set objective only when we have a valid player with a description to satisfy strict typing
             if (
@@ -594,6 +600,8 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
       setIsLoading(false);
     }
   };
+
+  
 
   return {
     lobbies,

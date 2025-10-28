@@ -4,10 +4,12 @@ import background from "../../assets/Game_background.jpg";
 import GameHUD from "../../components/GameHUD/gameHUD";
 import ObjectiveButton from "../../components/ObjectiveButton/ObjectiveButton";
 import { useAllocateStore } from "../../store/useAllocate";
+// turn-based info is handled inside HUD and store-connected components
 
 export default function Game() {
   const [pos, setPos] = React.useState({ x: 0, y: 0 });
   const [zoom, setZoom] = React.useState(1);
+  // Removed unused turn/owner checks; HUD handles turn-based messaging
 
   const dragging = React.useRef(false);
   const last = React.useRef({ x: 0, y: 0 });

@@ -1,9 +1,11 @@
 import { useMemo, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useGameStore } from "../../../store/useGameStore";
-import { useAllocateStore } from "../../../store/useAllocate";
-import AllocateHUD from "../../AllocateHUD/AllocateHUD";
-import { useAuthStore } from "../../../store/useAuthStore";
+import { useGameStore } from "../../store/useGameStore";
+import { useAllocateStore } from "../../store/useAllocate";
+import AllocateHUD from "../AllocateHUD/AllocateHUD";
+import { useAuthStore } from "../../store/useAuthStore";
+import { useLobbyStore } from "../../store/lobbyStore";
+import { useGame } from "../../hook/useGame";
 
 export interface TerritorySVG {
   nome: string;
@@ -52,20 +54,66 @@ function getDarkerPlayerColor(color: string): string {
 export default function Territory(territorio: TerritorySVG) {
   const [pais, _setPais] = useState(false);
   const [aloca, setAloca] = useState(false);
-  const [alocaFinal,setAlocaFinal] = useState(1)
+  const [alocaFinal, setAlocaFinal] = useState(1);
   const [alocaNum, setAlocaNum] = useState<number>(1);
   const setAllocating = useAllocateStore.getState().setAllocating;
+  const unallocatedArmies = useAllocateStore((s) => s.unallocatedArmies);
+
+  // Use lightweight game actions to avoid initializing WebSocket per territory
+  const { allocateTroops } = useGame();
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [portalRect, setPortalRect] = useState<DOMRect | null>(null);
 
   // pega o mapa de cores do jogo (persistido)
   const territoriesColors = useGameStore((s) => s.territoriesColors);
+  // get the current lobby/game id from the store (don't call a setter here)
+  const lobbyId = useLobbyStore((s) => s.currentLobbyId);
 
-  function AlocarTropa(){
-    setAlocaFinal(alocaNum)
-    setAloca(false)
-    setAllocating(false)
+  async function AlocarTropa() {
+    if(unallocatedArmies<=0){
+      alert("Não possui mais solçdados para alocar")
+      return
+    }
+    setAlocaFinal(alocaNum);
+    // try to resolve the territory id from the persisted territoriesColors map
+    const info =
+      overrideColor && typeof overrideColor === "object"
+        ? (overrideColor as { id?: number })
+        : territoriesColors[normalizedKey] || territoriesColors[rawKey] || territoriesColors[rawKey.toUpperCase?.()];
+
+    const territoryId = info && typeof info.id !== "undefined" ? Number(info.id) : null;
+
+    if (!territoryId) {
+      console.warn("Não foi possível resolver o id do território para:", territorio.nome);
+      setAloca(false);
+      setAllocating(false);
+      return;
+    }
+
+    if (!lobbyId) {
+      console.warn("Lobby/game id não disponível no store");
+      setAloca(false);
+      setAllocating(false);
+      return;
+    }
+
+    try {
+      await allocateTroops(territoryId,alocaNum)
+      useAllocateStore.getState().setUnallocatedArmies(unallocatedArmies-alocaNum)
+      setAlocaFinal(alocaNum);
+      setAloca(false);
+    } catch (err) {
+      console.error("Erro ao alocar tropas:", err);
+      // show a simple user feedback; keep UI open so user can retry
+      try {
+        alert((err as any)?.response?.data || "Falha ao alocar tropas. Tente novamente.");
+      } catch (e) {
+        // ignore alert failures in non-browser contexts
+      }
+    } finally {
+      setAllocating(false);
+    }
   }
 
   // normaliza chave (remove acentos e deixa minúsculo) para bater com utils
@@ -121,7 +169,10 @@ export default function Territory(territorio: TerritorySVG) {
 
   function Alocar() {
     // ownerId can come from the overrideColor object (populated from territoriesColors)
-    const ownerId = overrideColor && typeof overrideColor === "object" ? (overrideColor as any).ownerId : null;
+    const ownerId =
+      overrideColor && typeof overrideColor === "object"
+        ? (overrideColor as any).ownerId
+        : null;
     const myId = useAuthStore.getState().getUserId?.();
 
     // compare as strings to be robust to number/string id shapes
@@ -138,8 +189,6 @@ export default function Territory(territorio: TerritorySVG) {
       setAllocating(true);
     }
   }
-
-
 
   return (
     <div>
@@ -169,7 +218,7 @@ export default function Territory(territorio: TerritorySVG) {
                   setPortalRect(null);
                 }
               }
-              Alocar() 
+              Alocar();
             }}
           >
             <path d={territorio.d1} fill={computedFill} />
@@ -263,7 +312,6 @@ export default function Territory(territorio: TerritorySVG) {
         createPortal(
           <div
             onClick={() => {
-              
               setAloca(false);
               setAllocating(false);
             }}
@@ -376,7 +424,11 @@ export default function Territory(territorio: TerritorySVG) {
         : null}
       {aloca && portalRect
         ? createPortal(
-            <AllocateHUD AlocarTropa={AlocarTropa} alocaNum={alocaNum} setAlocaNum={setAlocaNum} />,
+            <AllocateHUD
+              AlocarTropa={AlocarTropa}
+              alocaNum={alocaNum}
+              setAlocaNum={setAlocaNum}
+            />,
             document.body
           )
         : null}

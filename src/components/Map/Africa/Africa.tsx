@@ -1,5 +1,5 @@
 import style from "./Africa.module.css";
-import Territory from "../Teritory/Territory";
+import Territory from "../../Teritory/Territory";
 import { AfricaList } from "../../../utils/continents";
 
 export default function Africa() {

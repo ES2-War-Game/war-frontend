@@ -1,6 +1,6 @@
 import style from "./Asia.module.css";
 import { AsiaList } from "../../../utils/continents";
-import Territory from "../Teritory/Territory";
+import Territory from "../../Teritory/Territory";
 
 export default function Asia() {
   

@@ -6,6 +6,8 @@ import setasImage from "../../assets/setas.png";
 import cavaleiro from "../../assets/player.png"
 import { useGameStore } from "../../store/useGameStore";
 import { useAuthStore } from "../../store/useAuthStore";
+import { useAllocateStore } from "../../store/useAllocate";
+import { useGame } from "../../hook/useGame";
 
 const GameHUD: React.FC = ({}) => {
   // Map gameStatus to HUD phase
@@ -14,9 +16,10 @@ const GameHUD: React.FC = ({}) => {
   const turnPlayer = useGameStore((s) => s.turnPlayer);
   const player = useGameStore((s) => s.player);
   const userId = useAuthStore((s) => s.getUserId?.());
+  const unallocatedArmies = useAllocateStore((s) => s.unallocatedArmies);
   const isMyTurn = String(turnPlayer ?? "") == String(userId ?? "");
   const [skipHover, setSkipHover] = React.useState(false);
-
+  const {EndTurn} = useGame()
   // prefer the reactive player color from the store, fallback to prop
   const effectiveColor = player?.color;
 
@@ -38,6 +41,16 @@ const GameHUD: React.FC = ({}) => {
     // fallback: return transparent variant
     return `rgba(0,0,0,${alpha})`;
   };
+
+  async function  handleEndTurn(){
+    if(gameStatus=="REINFORCEMENT" || gameStatus=="SETUP_ALLOCATION"){
+      if(unallocatedArmies>0){
+        alert("Você deve alocar todas suas tropas")
+      }else{
+        await EndTurn()
+      }
+    }
+  }
 
   // If it's not the user's turn, show a centered waiting message only
   if (!isMyTurn) {
@@ -143,7 +156,7 @@ const GameHUD: React.FC = ({}) => {
         >
           <img src={troopsImage} alt="Tropas" className={styles.troopsIcon} />
           <span className={styles.troopsCount}>
-            x{player?.unallocatedArmies}
+            x{unallocatedArmies}
           </span>
         </div>
       </div>
@@ -151,8 +164,9 @@ const GameHUD: React.FC = ({}) => {
       <div
         className={styles.currentPhase}
         style={{ backgroundColor: player?.color }}
+        onClick={(handleEndTurn)}
       >
-        {gameStatus}
+        Finalizar turno
       </div>
     </div>
   );

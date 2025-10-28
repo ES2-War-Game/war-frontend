@@ -1,5 +1,5 @@
 import { OceaniaList } from "../../../utils/continents";
-import Territory from "../Teritory/Territory";
+import Territory from "../../Teritory/Territory";
 import style from "./Oceania.module.css";
 
 export default function Oceania() {

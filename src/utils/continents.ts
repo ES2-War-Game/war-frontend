@@ -1,4 +1,4 @@
-import type { TerritorySVG } from "../components/Map/Teritory/Territory";
+import type { TerritorySVG } from "../components/Teritory/Territory";
 
 
 export const SouthAmericaList: TerritorySVG[] = [

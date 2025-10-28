@@ -1,6 +1,6 @@
 import style from "./Europe.module.css";
 import { EuropeList } from "../../../utils/continents";
-import Territory from "../Teritory/Territory";
+import Territory from "../../Teritory/Territory";
 
 export default function Europe() {
   return (

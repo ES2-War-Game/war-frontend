@@ -1,6 +1,6 @@
 import style from "./NorthAmerica.module.css";
 import { NorthAmericaList } from "../../../utils/continents";
-import Territory from "../Teritory/Territory";
+import Territory from "../../Teritory/Territory";
 
 export default function NorthAmerica() {
   
