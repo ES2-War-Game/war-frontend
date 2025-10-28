@@ -9,10 +9,10 @@ interface GameStore {
   // map: territoryNameNormalized -> { color, id, ownerId }
   territoriesColors: Record<
     string,
-    { color: string; id: number; ownerId: number | null }
+    { color: string; id: number; ownerId: number | null, allocatedArmie:number }
   >;
   setTerritoriesColors: (
-    map: Record<string, { color: string; id: number; ownerId: number | null }>
+    map: Record<string, { color: string; id: number; ownerId: number | null , allocatedArmie: number}>
   ) => void;
 
   playerObjective: Record<string, string>; 

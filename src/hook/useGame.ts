@@ -21,7 +21,9 @@ export const useGame = () => {
       console.log(
         `🚀 Allocating ${count} troops to territory ${territoryId} in game ${gameId}...`
       );
-      await gameService.allocateTroops(gameId, territoryId, count);
+      const response = await gameService.allocateTroops(gameId, territoryId, count);
+
+      console.log("resposta",response)
       
       console.log(
         "✅ Allocation request sent. Aguardando atualização via WebSocket..."

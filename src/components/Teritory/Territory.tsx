@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { useGameStore } from "../../store/useGameStore";
 import { useAllocateStore } from "../../store/useAllocate";
 import AllocateHUD from "../AllocateHUD/AllocateHUD";
-import { useAuthStore } from "../../store/useAuthStore";
 import { useLobbyStore } from "../../store/lobbyStore";
 import { useGame } from "../../hook/useGame";
 
@@ -23,6 +22,7 @@ export interface TerritorySVG {
   d2: string;
   cx: string;
   cy: string;
+  fronteiras:string[]
 }
 
 // Cores base dos jogadores
@@ -54,7 +54,7 @@ function getDarkerPlayerColor(color: string): string {
 export default function Territory(territorio: TerritorySVG) {
   const [pais, _setPais] = useState(false);
   const [aloca, setAloca] = useState(false);
-  const [alocaFinal, setAlocaFinal] = useState(1);
+  // exibição principal usa valor do estado do jogo (allocatedArmies)
   const [alocaNum, setAlocaNum] = useState<number>(1);
   const setAllocating = useAllocateStore.getState().setAllocating;
   const unallocatedArmies = useAllocateStore((s) => s.unallocatedArmies);
@@ -98,9 +98,8 @@ export default function Territory(territorio: TerritorySVG) {
     }
 
     try {
-      await allocateTroops(territoryId,alocaNum)
-      useAllocateStore.getState().setUnallocatedArmies(unallocatedArmies-alocaNum)
-      setAlocaFinal(alocaNum);
+  await allocateTroops(territoryId,alocaNum)
+  useAllocateStore.getState().setUnallocatedArmies(unallocatedArmies-alocaNum)
       setAloca(false);
     } catch (err) {
       console.error("Erro ao alocar tropas:", err);
@@ -165,6 +164,16 @@ export default function Territory(territorio: TerritorySVG) {
       ? territorio.corClara
       : territorio.corEscura
   );
+
+  // Valor atual de exército alocado vindo do estado do jogo (mapa de territoriesColors)
+  const allocatedArmies = useMemo(() => {
+    const oc: any = overrideColor;
+    if (oc && typeof oc === "object" && oc.allocatedArmie != null) {
+      const n = Number(oc.allocatedArmie);
+      return Number.isFinite(n) ? n : 0;
+    }
+    return 0;
+  }, [overrideColor]);
 
   function Alocar() {
     // ownerId can come from the overrideColor object (populated from territoriesColors)
@@ -265,7 +274,7 @@ export default function Territory(territorio: TerritorySVG) {
                 zIndex: "3",
               }}
             >
-              {alocaFinal}
+              {allocatedArmies}
             </text>
           </g>
           {territorio.nome == "BORNEO" ? (
