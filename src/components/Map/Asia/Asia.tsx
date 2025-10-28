@@ -1,12 +1,10 @@
 import style from "./Asia.module.css";
 import { AsiaList } from "../../../utils/continents";
-import Territory from "../Teritory/Territory";
+import Territory from "../../Teritory/Territory";
 
 export default function Asia() {
-  
   return (
     <div className={style.Asia}>
-      
       <div
         style={{
           position: "absolute",
@@ -124,6 +122,7 @@ export default function Asia() {
           bottom={territorio.bottom}
           cx={territorio.cx}
           cy={territorio.cy}
+          fronteiras={territorio.fronteiras}
         />
       ))}
       <div

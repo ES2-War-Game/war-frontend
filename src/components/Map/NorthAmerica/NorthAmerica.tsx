@@ -1,10 +1,8 @@
 import style from "./NorthAmerica.module.css";
 import { NorthAmericaList } from "../../../utils/continents";
-import Territory from "../Teritory/Territory";
+import Territory from "../../Teritory/Territory";
 
 export default function NorthAmerica() {
-  
-
   return (
     <div className={style.NorthAmerica}>
       <div
@@ -46,6 +44,7 @@ export default function NorthAmerica() {
           rigth={territorio.rigth}
           cx={territorio.cx}
           cy={territorio.cy}
+          fronteiras={territorio.fronteiras}
         />
       ))}
 

@@ -19,6 +19,7 @@ import {
   extractTerritoryInfo,
   extractAndStorePlayerObjective,
 } from "../utils/gameState";
+import { useAllocateStore } from "../store/useAllocate";
 
 interface UseLobbyWebSocketReturn {
   lobbies: LobbyListResponseDto[];
@@ -48,6 +49,7 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
   const lobbySubscriptionRef = useRef<any>(null);
   const globalLobbiesSubscriptionRef = useRef<any>(null);
   const gameStateSubscriptionRef = useRef<any>(null); // 🆕 Para game state
+  const gameStateByIdSubscriptionRef = useRef<any>(null); // 🆕 Para /topic/game/{gameId}/state
 
   // Get token from the store
   const token = useAuthStore((state) => state.user?.token);
@@ -182,6 +184,8 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
 
             useGameStore.getState().setGameStatus(gameState.status as GameStatus);
 
+            useGameStore.getState().setGameId(gameState.id);
+
             // Mapeia cores por território (por NOME) e objetivos dos jogadores
             const territoriesColors = extractTerritoryInfo(gameState);
 
@@ -190,6 +194,8 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
               useGameStore.getState().setTurnPlayer(gameState.turnPlayer.id);
             }
 
+            
+
             // as cores dos terrtitorios com map de nome por {id,cor,ownedid}
             useGameStore.getState().setTerritoriesColors(territoriesColors);
 
@@ -197,9 +203,10 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
             const userId = useAuthStore.getState().getUserId?.();
             const playersList = gameState.playerGames || [];
             const myPlayer = userId
-              ? playersList.find((p) => String(p.id) === String(userId)) ?? null
+              ? playersList.find((p) => String(p.player.id) == String(userId)) ?? null
               : null;
             useGameStore.getState().setPlayer(myPlayer);
+            useAllocateStore.getState().setUnallocatedArmies(myPlayer?.unallocatedArmies ?? 0)
 
             // Set objective only when we have a valid player with a description to satisfy strict typing
             if (
@@ -215,6 +222,8 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
             console.log("🎨 Territories colors stored:", territoriesColors);
 
             navigate("/game");
+
+            // Assinatura por gameId é feita num efeito dedicado quando gameId é definido
           } catch (err) {
             console.error("❌ Error processing game state message:", err);
           }
@@ -342,11 +351,70 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
         gameStateSubscriptionRef.current.unsubscribe();
         gameStateSubscriptionRef.current = null;
       }
+      if (gameStateByIdSubscriptionRef.current) {
+        try { gameStateByIdSubscriptionRef.current.unsubscribe(); } catch {}
+        gameStateByIdSubscriptionRef.current = null;
+      }
       if (client.connected) {
         client.deactivate();
       }
     };
   }, [token, backendUrl, currentLobbyId, subscribeToLobby, refreshLobbies]);
+
+  // 🆕 Além da assinatura por lobby, também assina o tópico do jogo por gameId
+  const gameId = useGameStore((s) => s.gameId);
+  useEffect(() => {
+    // Requer conexão ativa e um gameId válido
+    if (!stompClientRef.current || !stompClientRef.current.connected) return;
+    if (!gameId) return;
+
+    // Cancela subscrição anterior (se houver)
+    if (gameStateByIdSubscriptionRef.current) {
+      try {
+        gameStateByIdSubscriptionRef.current.unsubscribe();
+      } catch (_) {}
+      gameStateByIdSubscriptionRef.current = null;
+    }
+
+    const topic = `/topic/game/${gameId}/state`;
+    console.log(`📡 Subscribing to game state by gameId: ${topic}`);
+    gameStateByIdSubscriptionRef.current = stompClientRef.current.subscribe(
+      topic,
+      (message) => {
+        try {
+          const gs: GameStateResponseDto = JSON.parse(message.body);
+          // Atualizações essenciais para refletir allocate/turnos etc.
+          useGameStore.getState().setGameStatus(gs.status as GameStatus);
+          const colors = extractTerritoryInfo(gs);
+          if (gs.turnPlayer) {
+            useGameStore.getState().setTurnPlayer(gs.turnPlayer.id);
+          }
+          useGameStore.getState().setTerritoriesColors(colors);
+          const uid = useAuthStore.getState().getUserId?.();
+          const plist = gs.playerGames || [];
+          const mine = uid
+            ? plist.find((p) => String(p.player.id) == String(uid)) ?? null
+            : null;
+          useGameStore.getState().setPlayer(mine);
+          useAllocateStore.getState().setUnallocatedArmies(
+            mine?.unallocatedArmies ?? 0
+          );
+        } catch (err) {
+          console.error("❌ Error processing /topic/game/{id}/state message:", err);
+        }
+      }
+    );
+
+    return () => {
+      if (gameStateByIdSubscriptionRef.current) {
+        try {
+          gameStateByIdSubscriptionRef.current.unsubscribe();
+        } catch (_) {}
+        gameStateByIdSubscriptionRef.current = null;
+      }
+    };
+  }, [gameId]);
+  
 
   // Create a new lobby
   const createLobby = async (lobbyName: string) => {
@@ -594,6 +662,8 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
       setIsLoading(false);
     }
   };
+
+  
 
   return {
     lobbies,

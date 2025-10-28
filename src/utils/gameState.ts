@@ -20,14 +20,14 @@ const fallbackColor = (identifier: string) => {
 };
 
 
-// Retorna um mapa: nome normalizado do território => { color, id, ownerId }
 export function extractTerritoryInfo(
   state: GameStateResponseDto
-): Record<string, { color: string; id: number; ownerId: number | null }> {
+// Retorna um mapa: nome normalizado do território => { color, id, owne
+): Record<string, { color: string; id: number; ownerId: number | null , allocatedArmie:number}> {
   const players: PlayerGameDto[] = state.playerGames || [];
   const territories: GameTerritoryDto[] = state.gameTerritories || [];
 
-  const info: Record<string, { color: string; id: number; ownerId: number | null }> = {};
+  const info: Record<string, { color: string; id: number; ownerId: number | null, allocatedArmie:number }> = {};
 
   for (const t of territories) {
     const name = t.territory.name ?? "";
@@ -38,9 +38,9 @@ export function extractTerritoryInfo(
       (owner?.player?.username && fallbackColor(String(owner.player.username))) ||
       fallbackColor(String(t.ownerId ?? name));
     const ownerId = t.ownerId != null ? Number(t.ownerId) : null;
-    info[key] = { color, id: Number(t.id), ownerId };
+    info[key] = { color, id: Number(t.territory.id), ownerId , allocatedArmie: t.staticArmies};
   }
-
+  console.log("info final:",info)
   return info;
 }
 export function extractPlayerObjectives(state: GameStateResponseDto): string {

@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { useAllocateStore } from "../../store/useAllocate";
 import style from "./AllocateHUD.module.css";
 
 interface AllocateProps{
@@ -7,8 +9,13 @@ interface AllocateProps{
 }
 
 export default function AllocateHUD({alocaNum,AlocarTropa,setAlocaNum}:AllocateProps) {
+  const armies = useAllocateStore.getState().unallocatedArmies
+  const [max, setMax] = useState(armies)
   const min = 1;
-  const max = 40;
+  useEffect(()=>{
+    setMax(armies)
+  },[armies])
+  
 
   const handleIncrease = () => {
     setAlocaNum((prev) => (prev < max ? prev + 1 : prev));

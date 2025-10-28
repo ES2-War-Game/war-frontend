@@ -3,13 +3,16 @@ import { persist } from "zustand/middleware";
 import type { GameStatus } from "../types/lobby";
 
 interface GameStore {
+
+  gameId:number| null;
+  setGameId: (gameId: number | null) => void;
   // map: territoryNameNormalized -> { color, id, ownerId }
   territoriesColors: Record<
     string,
-    { color: string; id: number; ownerId: number | null }
+    { color: string; id: number; ownerId: number | null, allocatedArmie:number }
   >;
   setTerritoriesColors: (
-    map: Record<string, { color: string; id: number; ownerId: number | null }>
+    map: Record<string, { color: string; id: number; ownerId: number | null , allocatedArmie: number}>
   ) => void;
 
   playerObjective: Record<string, string>; 
@@ -30,6 +33,9 @@ interface GameStore {
 export const useGameStore = create<GameStore>()(
   persist(
     (set) => ({
+      gameId:null,
+      setGameId: (gameId)=> set({gameId:gameId}),
+
       territoriesColors: {},
       setTerritoriesColors: (map) => set({ territoriesColors: map }),
 
@@ -61,7 +67,8 @@ export const useGameStore = create<GameStore>()(
         player: state.player,
         turnPlayer:state.turnPlayer,
         gameStatus:state.gameStatus,
-        
+        gameId:state.gameId
+
       }),
     }
   )
