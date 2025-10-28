@@ -38,7 +38,7 @@ export function extractTerritoryInfo(
       (owner?.player?.username && fallbackColor(String(owner.player.username))) ||
       fallbackColor(String(t.ownerId ?? name));
     const ownerId = t.ownerId != null ? Number(t.ownerId) : null;
-    info[key] = { color, id: Number(t.id), ownerId };
+    info[key] = { color, id: Number(t.territory.id), ownerId };
   }
 
   return info;

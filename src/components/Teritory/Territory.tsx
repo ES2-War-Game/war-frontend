@@ -172,10 +172,11 @@ export default function Territory(territorio: TerritorySVG) {
       overrideColor && typeof overrideColor === "object"
         ? (overrideColor as any).ownerId
         : null;
-    const myId = useAuthStore.getState().getUserId?.();
+    const myId = useGameStore.getState().player?.id
+    console.log(myId)
 
     // compare as strings to be robust to number/string id shapes
-    if (ownerId != null && String(ownerId) === String(myId)) {
+    if (ownerId != null && String(ownerId) == String(myId)) {
       // align portal to the current svg if possible
       if (svgRef.current) {
         try {
