@@ -16,6 +16,7 @@ export default function Home(){
         <div className={style.container}>
             <img src={logo} alt="" />
             <div className={style.buttons}>
+                <button><Link to="/profile">Perfil</Link></button>
                 <button><Link to="/jogadores">SinglePlayer</Link></button>
                 <button><Link to="/hub">MultiPlayer</Link></button>
                 <button onClick={handleLogout}>Logout</button>

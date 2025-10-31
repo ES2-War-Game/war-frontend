@@ -106,7 +106,7 @@ export const useGame = () => {
       console.log(
         `⚔️ Attacking from ${sourceTerritoryId} to ${targetTerritoryId} with ${attackDiceCount} in game ${gameId}...`
       );
-      await gameService.attack(gameId, sourceTerritoryId, targetTerritoryId, attackDiceCount);
+      await gameService.attack(gameId, sourceTerritoryId, targetTerritoryId, attackDiceCount,attackDiceCount);
       console.log(
         "✅ Attack request sent. Aguardando atualização via WebSocket..."
       );

@@ -55,13 +55,22 @@ export const gameService = {
 
   async attack(
     gameId: number,
-    attackerId: number,
-    defenderId: number,
-    count: number
+    sourceTerritoryId: number,
+    targetTerritoryId: number,
+    attackDiceCount: number,
+    troopsToMoveAfterConquest:number
   ): Promise<void> {
     // Segue o mesmo padrão de usar @RequestParam
+    const teste ={
+      gameId,
+      sourceTerritoryId,
+    targetTerritoryId,
+    attackDiceCount,
+    troopsToMoveAfterConquest
+    }
+    console.log("teste de ataque",teste)
     await api.post(`/api/games/${gameId}/attack`, null, {
-      params: { attackerId, defenderId, count },
+      params: { sourceTerritoryId, targetTerritoryId, attackDiceCount,troopsToMoveAfterConquest },
     });
   },
 };
