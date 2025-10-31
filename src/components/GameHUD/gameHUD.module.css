@@ -15,6 +15,22 @@
   overflow: visible;
 }
 
+/* Estado de espera (quando não é o seu turno) */
+.waiting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  width: 100%;
+}
+
+.waitingText {
+  text-align: center;
+  font-weight: 700;
+  font-size: 18px;
+  color: #fff;
+}
+
 /* Banner sobreposto */
 .playerBanner {
   position: absolute;
@@ -190,4 +206,17 @@
   margin-top: 16px;
   border-radius: 8px;
   cursor: pointer;
+}
+
+.currentPhase:hover {
+  filter: brightness(1.05);
+}
+
+.currentPhase:active {
+  transform: translateY(1px);
+}
+
+.currentPhaseDisabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }

@@ -1,4 +1,5 @@
 import api from "../interceptor/api";
+import type { GameStateResponseDto } from "../types/game";
 import type { GameState } from "../types/lobby";
 
 export const gameService = {
@@ -50,5 +51,17 @@ export const gameService = {
 
   async endTrun(gameId: number): Promise<void> {
     await api.post(`/api/games/${gameId}/end-turn`, null, {});
+  },
+
+  async attack(
+    gameId: number,
+    attackerId: number,
+    defenderId: number,
+    count: number
+  ): Promise<void> {
+    // Segue o mesmo padrão de usar @RequestParam
+    await api.post(`/api/games/${gameId}/attack`, null, {
+      params: { attackerId, defenderId, count },
+    });
   },
 };

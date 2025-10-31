@@ -4,6 +4,7 @@ import background from "../../assets/Game_background.jpg";
 import GameHUD from "../../components/GameHUD/gameHUD";
 import ObjectiveButton from "../../components/ObjectiveButton/ObjectiveButton";
 import { useAllocateStore } from "../../store/useAllocate";
+import { useGameStore } from "../../store/useGameStore";
 // turn-based info is handled inside HUD and store-connected components
 
 export default function Game() {
@@ -125,7 +126,7 @@ export default function Game() {
   
 
 
-  const allocating = useAllocateStore.getState().allocating;
+  const gameHUD = useGameStore.getState().gameHud;
 
   return (
     <div
@@ -169,7 +170,7 @@ export default function Game() {
           zIndex: 10,
         }}
       >
-        {!allocating ? <GameHUD /> : null}
+        {gameHUD=="DEFAULT" ? <GameHUD /> : null}
       </div>
       <ObjectiveButton />
     </div>

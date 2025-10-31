@@ -1,5 +1,6 @@
 import { useAuthStore } from "../store/useAuthStore";
 import { useGameStore } from "../store/useGameStore";
+import type { GameStateResponseDto, GameTerritoryDto } from "../types/game";
 
 // Using global ambient DTO interfaces declared in src/types/*.d.ts
 

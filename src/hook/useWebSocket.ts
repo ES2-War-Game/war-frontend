@@ -20,6 +20,7 @@ import {
   extractAndStorePlayerObjective,
 } from "../utils/gameState";
 import { useAllocateStore } from "../store/useAllocate";
+import type { GameStateResponseDto } from "../types/game";
 
 interface UseLobbyWebSocketReturn {
   lobbies: LobbyListResponseDto[];

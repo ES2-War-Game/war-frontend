@@ -87,5 +87,49 @@ export const useGame = () => {
       setIsLoading(false);
     }
   };
-  return { isLoading, error, allocateTroops, EndTurn };
+  const attack = async (
+    sourceTerritoryId: number,
+    targetTerritoryId: number,
+    attackDiceCount: number
+  ) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const gameId = useGameStore.getState().gameId;
+      if (!gameId) {
+        console.warn("⚠️ attack chamado sem gameId no store");
+        setError("Partida não encontrada. Tente novamente.");
+        return;
+      }
+
+      console.log(
+        `⚔️ Attacking from ${sourceTerritoryId} to ${targetTerritoryId} with ${attackDiceCount} in game ${gameId}...`
+      );
+      await gameService.attack(gameId, sourceTerritoryId, targetTerritoryId, attackDiceCount);
+      console.log(
+        "✅ Attack request sent. Aguardando atualização via WebSocket..."
+      );
+    } catch (err: any) {
+      console.error("❌ Error attacking:", err);
+      if (err?.response?.status === 400) {
+        const msg = err.response?.data || "Erro ao atacar";
+        setError(msg);
+        try {
+          alert(msg);
+        } catch {}
+      } else if (
+        err?.response?.status === 401 ||
+        err?.response?.status === 403
+      ) {
+        setError("Sessão expirada. Por favor, faça login novamente.");
+      } else {
+        setError("Falha ao atacar. Tente novamente.");
+      }
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  return { isLoading, error, allocateTroops, EndTurn, attack };
 };

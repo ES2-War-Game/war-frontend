@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { GameStatus } from "../types/lobby";
+import type { gameHUD } from "../types/game";
 
 interface GameStore {
 
@@ -26,6 +27,9 @@ interface GameStore {
 
   gameStatus:GameStatus| null;
   setGameStatus: (status: GameStatus ) => void;
+
+  gameHud:gameHUD
+  setGameHUD: (status: gameHUD ) => void;
 
   clearGameState: () => void;
 }
@@ -56,6 +60,9 @@ export const useGameStore = create<GameStore>()(
       gameStatus: null,
       setGameStatus: (status:GameStatus) => set({ gameStatus:status }),
 
+      gameHud:"DEFAULT",
+      setGameHUD: (status:gameHUD) => set({gameHud:status}),
+
       clearGameState: () =>
         set({ territoriesColors: {}, playerObjective: {}, player: null }),
     }),
@@ -67,7 +74,8 @@ export const useGameStore = create<GameStore>()(
         player: state.player,
         turnPlayer:state.turnPlayer,
         gameStatus:state.gameStatus,
-        gameId:state.gameId
+        gameId:state.gameId,
+        gameHud:state.gameHud
 
       }),
     }

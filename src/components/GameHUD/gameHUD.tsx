@@ -63,16 +63,8 @@ const GameHUD: React.FC = ({}) => {
           {player?.player.username}
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "120px",
-            color:"white"
-          }}
-        >
-          <div style={{ textAlign: "center", fontWeight: 700, fontSize: 18 }}>
+        <div className={styles.waiting}>
+          <div className={styles.waitingText}>
             Esperando turno de outro jogador...
           </div>
         </div>
@@ -162,9 +154,11 @@ const GameHUD: React.FC = ({}) => {
       </div>
 
       <div
-        className={styles.currentPhase}
+        className={`${styles.currentPhase} ${(gameStatus==="REINFORCEMENT" || gameStatus==="SETUP_ALLOCATION") && unallocatedArmies>0 ? styles.currentPhaseDisabled : ""}`}
         style={{ backgroundColor: player?.color }}
         onClick={(handleEndTurn)}
+        title={(gameStatus==="REINFORCEMENT" || gameStatus==="SETUP_ALLOCATION") && unallocatedArmies>0 ? "Alocar todas as tropas antes de finalizar o turno" : "Finalizar turno"}
+        aria-disabled={(gameStatus==="REINFORCEMENT" || gameStatus==="SETUP_ALLOCATION") && unallocatedArmies>0}
       >
         Finalizar turno
       </div>
