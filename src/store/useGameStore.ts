@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { GameStatus } from "../types/lobby";
+import type { GameStatus, PlayerGame } from "../types/lobby";
 import type { gameHUD } from "../types/game";
 
 interface GameStore {
@@ -33,6 +33,13 @@ interface GameStore {
 
   gameHud:gameHUD
   setGameHUD: (status: gameHUD ) => void;
+
+  // Estados do fim do jogo
+  winner: PlayerGame | null;
+  setWinner: (winner: PlayerGame | null) => void;
+  
+  gameEnded: boolean;
+  setGameEnded: (ended: boolean) => void;
 
   clearGameState: () => void;
 }
@@ -69,8 +76,21 @@ export const useGameStore = create<GameStore>()(
       gameHud:"DEFAULT",
       setGameHUD: (status:gameHUD) => set({gameHud:status}),
 
+      // Estados do fim do jogo
+      winner: null,
+      setWinner: (winner) => set({ winner }),
+      
+      gameEnded: false,
+      setGameEnded: (ended) => set({ gameEnded: ended }),
+
       clearGameState: () =>
-        set({ territoriesColors: {}, playerObjective: {}, player: null }),
+        set({ 
+          territoriesColors: {}, 
+          playerObjective: {}, 
+          player: null,
+          winner: null,
+          gameEnded: false
+        }),
     }),
     {
       name: "game-store", // localStorage key
@@ -82,8 +102,9 @@ export const useGameStore = create<GameStore>()(
         isMyTurn: state.isMyTurn,
         gameStatus:state.gameStatus,
         gameId:state.gameId,
-        gameHud:state.gameHud
-
+        gameHud:state.gameHud,
+        winner: state.winner,
+        gameEnded: state.gameEnded
       }),
     }
   )

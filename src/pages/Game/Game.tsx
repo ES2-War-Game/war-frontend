@@ -3,14 +3,79 @@ import Map from "../../components/Map/Map";
 import background from "../../assets/Game_background.jpg";
 import GameHUD from "../../components/GameHUD/gameHUD";
 import ObjectiveButton from "../../components/ObjectiveButton/ObjectiveButton";
-import { useAllocateStore } from "../../store/useAllocate";
+import GameEndModal from "../../components/GameEndModal/GameEndModal";
+import GameEndViewHUD from "../../components/GameEndViewHUD/GameEndViewHUD";
 import { useGameStore } from "../../store/useGameStore";
 import { useLobbyWebSocket } from "../../hook/useWebSocket";
+import { useAuthStore } from "../../store/useAuthStore";
+import { useNavigate } from "react-router-dom";
 // turn-based info is handled inside HUD and store-connected components
 
 export default function Game() {
   // 🔥 CRITICAL: Ativa WebSocket para receber atualizações do jogo
   useLobbyWebSocket();
+  
+  const navigate = useNavigate();
+  const userId = useAuthStore((s) => s.getUserId?.());
+  const winner = useGameStore((s) => s.winner);
+  const gameEnded = useGameStore((s) => s.gameEnded);
+  const gameStatus = useGameStore((s) => s.gameStatus);
+  const gameId = useGameStore((s) => s.gameId);
+  const setGameEnded = useGameStore((s) => s.setGameEnded);
+  const setWinner = useGameStore((s) => s.setWinner);
+  
+  // Estado para controlar se está visualizando o jogo ou mostrando o modal
+  const [isViewingGame, setIsViewingGame] = React.useState(false);
+  
+  // 🔍 Fallback: Se o gameStatus é FINISHED mas gameEnded é false, corrige
+  React.useEffect(() => {
+    if (gameStatus === "FINISHED" && !gameEnded) {
+      console.log("⚠️ FALLBACK: gameStatus é FINISHED mas gameEnded é false. Corrigindo...");
+      setGameEnded(true);
+    }
+  }, [gameStatus, gameEnded, setGameEnded]);
+  
+  // 🔍 Fallback 2: Se o jogo está finalizado mas não tem winner, busca da API
+  React.useEffect(() => {
+    const fetchGameState = async () => {
+      if ((gameEnded || gameStatus === "FINISHED") && !winner && gameId) {
+        console.log("⚠️ FALLBACK 2: Jogo finalizado sem winner. Buscando da API...");
+        
+        try {
+          const { gameService } = await import("../../service/gameService");
+          // Busca o jogo atual do jogador (retorna GameState com winner se finalizado)
+          const currentGame = await gameService.getCurrentGame();
+          
+          console.log("📥 Jogo atual da API:", {
+            hasGame: !!currentGame,
+            gameId: currentGame?.id,
+            status: currentGame?.status,
+            hasWinner: !!currentGame?.winner,
+            winnerName: currentGame?.winner?.player?.username,
+            fullWinner: currentGame?.winner
+          });
+          
+          if (currentGame?.winner) {
+            console.log("✅ Winner encontrado na API! Salvando no store...");
+            setWinner(currentGame.winner);
+            setGameEnded(true);
+          } else {
+            console.log("⚠️ API não retornou winner. Possíveis causas:", {
+              gameExists: !!currentGame,
+              gameStatus: currentGame?.status,
+              suggestion: "O jogo pode ter sido reiniciado ou o backend não salvou o winner"
+            });
+          }
+        } catch (error) {
+          console.error("❌ Erro ao buscar jogo atual:", error);
+        }
+      }
+    };
+    
+    fetchGameState();
+  }, [gameEnded, gameStatus, winner, gameId, setWinner, setGameEnded]);
+
+
   
   const [pos, setPos] = React.useState({ x: 0, y: 0 });
   const [zoom, setZoom] = React.useState(1);
@@ -21,6 +86,65 @@ export default function Game() {
   const targetPos = React.useRef({ x: 0, y: 0 }); // alvo para interpolação
 
   const [spacePressed, setSpacePressed] = React.useState(false);
+
+  // Handler para fechar o modal de fim de jogo e voltar ao lobby
+  const handleCloseEndModal = () => {
+    setGameEnded(false);
+    setWinner(null);
+    setIsViewingGame(false);
+    navigate("/hub");
+  };
+  
+  // Handler para visualizar o estado do jogo
+  const handleViewGameState = () => {
+    setIsViewingGame(true);
+  };
+  
+  // Handler para voltar ao modal de resultado
+  const handleBackToModal = () => {
+    setIsViewingGame(false);
+  };
+  
+  // Verificar se o jogador atual é o vencedor
+  const isCurrentPlayerWinner = winner && userId ? String(winner.player.id) === String(userId) : false;
+
+  // 🔄 Reseta o estado de visualização quando o jogo termina (garante que o modal apareça ao recarregar)
+  React.useEffect(() => {
+    console.log("🔍 Debug Modal - Estado atual:", { gameEnded, winner: winner?.player?.username, isViewingGame });
+    
+    if (gameEnded && winner) {
+      console.log("✅ Jogo terminou! Resetando visualização para mostrar modal");
+      setIsViewingGame(false);
+    }
+  }, [gameEnded, winner, isViewingGame]);
+
+  // 🎭 Log de debug da renderização do modal (só quando valores mudarem)
+  React.useEffect(() => {
+    const isGameFinished = gameEnded || gameStatus === "FINISHED";
+    const shouldShow = isGameFinished && winner && !isViewingGame;
+    
+    console.log("🎭 Renderização Modal:", { 
+      gameEnded,
+      gameStatus,
+      isGameFinished,
+      hasWinner: !!winner, 
+      isViewingGame, 
+      shouldShow 
+    });
+  }, [gameEnded, gameStatus, winner, isViewingGame]);
+
+  // 🐛 Debug: Log quando o componente renderiza
+  React.useEffect(() => {
+    console.log("🎮 Game Component Montado");
+    console.log("📊 Estado inicial:", {
+      gameEnded,
+      hasWinner: !!winner,
+      winnerName: winner?.player?.username,
+      isViewingGame,
+      userId
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function clampPosition(x: number, y: number, zoom: number) {
     const VIEWPORT_WIDTH = window.innerWidth;
@@ -127,10 +251,8 @@ export default function Game() {
     return () => window.removeEventListener("mousedown", onMouseDown, true);
   }, [spacePressed, zoom]);
 
-  
-
-
-  const gameHUD = useGameStore.getState().gameHud;
+  // Pega gameHUD de forma reativa
+  const gameHUD = useGameStore((s) => s.gameHud);
 
   return (
     <div
@@ -177,6 +299,27 @@ export default function Game() {
         {gameHUD=="DEFAULT" ? <GameHUD /> : null}
       </div>
       <ObjectiveButton />
+      
+      {/* Modal de Fim de Jogo - Aparece quando o jogo terminou E não está visualizando */}
+      {(() => {
+        // Verifica se o jogo terminou por gameEnded OU por gameStatus
+        const isGameFinished = gameEnded || gameStatus === "FINISHED";
+        const shouldShow = isGameFinished && winner && !isViewingGame;
+        
+        return shouldShow ? (
+          <GameEndModal
+            winner={winner}
+            isCurrentPlayerWinner={isCurrentPlayerWinner}
+            onClose={handleCloseEndModal}
+            onViewGameState={handleViewGameState}
+          />
+        ) : null;
+      })()}
+      
+      {/* HUD de Visualização - Aparece quando está visualizando o jogo finalizado */}
+      {(gameEnded || gameStatus === "FINISHED") && winner && isViewingGame && (
+        <GameEndViewHUD onBackToModal={handleBackToModal} />
+      )}
     </div>
   );
 }

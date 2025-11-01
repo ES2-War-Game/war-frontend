@@ -458,7 +458,14 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
         (message) => {
         console.log("📨 MESSAGE RECEIVED on /topic/game/${gameId}/state!");
         try {
-          const gs: GameStateResponseDto = JSON.parse(message.body);
+                  const msg = JSON.parse(message.body);
+        console.log("📨 WebSocket recebeu mensagem em /topic/game/{gameId}/state:", {
+          hasWinner: !!msg.winner,
+          status: msg.status,
+          winnerName: msg.winner?.player?.username
+        });
+        
+        const gs: GameStateResponseDto = msg;
           console.log("🔄 WebSocket update received:", gs);
           console.log("📊 playerGames array:", gs.playerGames);
           
@@ -512,22 +519,44 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
             });
           }
           
-          // Verifica se há um vencedor
-          if (gs.winner) {
+          // 🏆 Verifica se há um vencedor (FIM DE JOGO)
+          console.log("🔍 Verificando fim de jogo:", {
+            status: gs.status,
+            statusType: typeof gs.status,
+            hasWinner: !!gs.winner,
+            winnerName: gs.winner?.player?.username,
+            comparison: gs.status === "FINISHED"
+          });
+          
+          if (gs.status === "FINISHED" && gs.winner) {
             console.log("🏆 JOGO FINALIZADO! Vencedor:", {
               username: gs.winner.player.username,
               color: gs.winner.color,
               objective: gs.winner.objective?.description
             });
             
-            // TODO: Mostrar modal de vitória/derrota
             // Verificar se o vencedor é o jogador atual
             const isWinner = String(gs.winner.player.id) === String(uid);
+            
             if (isWinner) {
               console.log("🎉 VOCÊ VENCEU!");
             } else {
               console.log("😢 Você perdeu. Vencedor:", gs.winner.player.username);
             }
+            
+            // Salva informações do vencedor e estado do jogo no store
+            useGameStore.getState().setWinner(gs.winner);
+            useGameStore.getState().setGameEnded(true);
+            
+            console.log("✅ Estado salvo no store:", {
+              gameEnded: useGameStore.getState().gameEnded,
+              hasWinner: !!useGameStore.getState().winner
+            });
+          } else {
+            console.log("⚠️ Condições não atendidas para fim de jogo:", {
+              statusMatch: gs.status === "FINISHED",
+              hasWinner: !!gs.winner
+            });
           }
           
           console.log("�📋 Looking for player in list:", {

@@ -15,6 +15,7 @@ const GameHUD: React.FC = () => {
   const isMyTurn = useGameStore((s) => s.isMyTurn);
   const unallocatedArmies = useAllocateStore((s) => s.unallocatedArmies);
   const gameId = useGameStore((s) => s.gameId);
+  const gameEnded = useGameStore((s) => s.gameEnded);
   
   const [skipHover, setSkipHover] = React.useState(false);
   const {EndTurn} = useGame()
@@ -47,6 +48,11 @@ const GameHUD: React.FC = () => {
 
     fetchCurrentTurn();
   }, [gameId]); // Re-executa se o gameId mudar
+  
+  // 🔒 Se o jogo terminou, não renderiza o HUD
+  if (gameEnded || gameStatus === "FINISHED") {
+    return null;
+  }
 
   const hexToRgba = (hex: string, alpha = 0.2) => {
     if (!hex || typeof hex !== "string") return `rgba(0,0,0,${alpha})`;

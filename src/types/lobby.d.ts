@@ -21,6 +21,7 @@ export interface PlayerGame {
   player: {
     id: number;
     username: string;
+    imageUrl?: string | null;
   };
   turnOrder: number;
   color: string;
@@ -28,6 +29,12 @@ export interface PlayerGame {
   owner?: boolean;
   stillInGame: boolean;
   unallocatedArmies: number;
+  objective?: {
+    id: number;
+    description: string;
+    type: string;
+  };
+  conqueredTerritoryThisTurn?: boolean;
 }
 
 export interface GameState {

@@ -60,6 +60,8 @@ export default function Territory(territorio: TerritorySVG) {
   const gameStatus = useGameStore.getState().gameStatus;
   const gameHUD = useGameStore.getState().gameHud;
   const setGameHUD = useGameStore.getState().setGameHUD;
+  const gameEnded = useGameStore((s) => s.gameEnded);
+  const isGameFinished = gameEnded || gameStatus === "FINISHED";
   
 
   const setAllocating = useAllocateStore.getState().setAllocating;
@@ -107,6 +109,11 @@ export default function Territory(territorio: TerritorySVG) {
   }, [fronteiras, territorio.nome, aloca, ataque]);
 
   function handleAttackClick(territoryId: number) {
+    // 🔒 Bloqueia interação se o jogo terminou
+    if (isGameFinished) {
+      return;
+    }
+    
     console.log("id2:",territoryId)
     if (!atacanteId) {
       console.log(allocatedArmies)
@@ -353,6 +360,11 @@ export default function Territory(territorio: TerritorySVG) {
   }
 
   function Alocar() {
+    // 🔒 Bloqueia interação se o jogo terminou
+    if (isGameFinished) {
+      return;
+    }
+    
     // Verifica se é o turno do jogador
     const isMyTurn = useGameStore.getState().isMyTurn;
     if (!isMyTurn) {
