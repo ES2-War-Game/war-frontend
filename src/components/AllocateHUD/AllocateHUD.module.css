@@ -8,9 +8,10 @@
   color: white;
   font-family: sans-serif;
   z-index: 13;
-  position: absolute;
+  position: fixed;
   bottom: 10px;
-  left:40%;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .titulo {

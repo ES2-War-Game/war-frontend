@@ -5,9 +5,13 @@ import GameHUD from "../../components/GameHUD/gameHUD";
 import ObjectiveButton from "../../components/ObjectiveButton/ObjectiveButton";
 import { useAllocateStore } from "../../store/useAllocate";
 import { useGameStore } from "../../store/useGameStore";
+import { useLobbyWebSocket } from "../../hook/useWebSocket";
 // turn-based info is handled inside HUD and store-connected components
 
 export default function Game() {
+  // 🔥 CRITICAL: Ativa WebSocket para receber atualizações do jogo
+  useLobbyWebSocket();
+  
   const [pos, setPos] = React.useState({ x: 0, y: 0 });
   const [zoom, setZoom] = React.useState(1);
   // Removed unused turn/owner checks; HUD handles turn-based messaging

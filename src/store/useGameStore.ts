@@ -25,6 +25,9 @@ interface GameStore {
   turnPlayer: number | null;
   setTurnPlayer: (playerId: number | null) => void;
 
+  isMyTurn: boolean;
+  setIsMyTurn: (isMyTurn: boolean) => void;
+
   gameStatus:GameStatus| null;
   setGameStatus: (status: GameStatus ) => void;
 
@@ -54,6 +57,9 @@ export const useGameStore = create<GameStore>()(
       turnPlayer: null,
       setTurnPlayer: (player) => set({ turnPlayer:player }),
 
+      isMyTurn: false,
+      setIsMyTurn: (isMyTurn) => set({ isMyTurn }),
+
       player: null,
       setPlayer: (player) => set({ player }),
 
@@ -73,6 +79,7 @@ export const useGameStore = create<GameStore>()(
         playerObjective: state.playerObjective,
         player: state.player,
         turnPlayer:state.turnPlayer,
+        isMyTurn: state.isMyTurn,
         gameStatus:state.gameStatus,
         gameId:state.gameId,
         gameHud:state.gameHud

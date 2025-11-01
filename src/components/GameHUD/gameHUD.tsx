@@ -1,27 +1,52 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "./gameHUD.module.css";
 import gunImage from "../../assets/gun.png";
 import troopsImage from "../../assets/troops.png";
 import setasImage from "../../assets/setas.png";
 import cavaleiro from "../../assets/player.png"
 import { useGameStore } from "../../store/useGameStore";
-import { useAuthStore } from "../../store/useAuthStore";
 import { useAllocateStore } from "../../store/useAllocate";
 import { useGame } from "../../hook/useGame";
+import { gameService } from "../../service/gameService";
 
-const GameHUD: React.FC = ({}) => {
-  // Map gameStatus to HUD phase
+const GameHUD: React.FC = () => {
   const gameStatus = useGameStore((s) => s.gameStatus);
-
-  const turnPlayer = useGameStore((s) => s.turnPlayer);
   const player = useGameStore((s) => s.player);
-  const userId = useAuthStore((s) => s.getUserId?.());
+  const isMyTurn = useGameStore((s) => s.isMyTurn);
   const unallocatedArmies = useAllocateStore((s) => s.unallocatedArmies);
-  const isMyTurn = String(turnPlayer ?? "") == String(userId ?? "");
+  const gameId = useGameStore((s) => s.gameId);
+  
   const [skipHover, setSkipHover] = React.useState(false);
   const {EndTurn} = useGame()
-  // prefer the reactive player color from the store, fallback to prop
+  
   const effectiveColor = player?.color;
+
+  // Busca o turno atual ao montar o componente
+  useEffect(() => {
+    const fetchCurrentTurn = async () => {
+      if (!gameId) {
+        console.warn("⚠️ GameHUD montado sem gameId");
+        return;
+      }
+
+      try {
+        const turnData = await gameService.getCurrentTurn(gameId);
+        console.log("🎮 Turno inicial carregado:", turnData);
+        
+        // Atualiza o estado no store
+        useGameStore.getState().setIsMyTurn(turnData.isMyTurn);
+        
+        // Atualiza também o turnPlayer se disponível
+        if (turnData.currentTurnPlayer) {
+          useGameStore.getState().setTurnPlayer(turnData.currentTurnPlayer.playerGameId);
+        }
+      } catch (error) {
+        console.error("❌ Erro ao buscar turno atual:", error);
+      }
+    };
+
+    fetchCurrentTurn();
+  }, [gameId]); // Re-executa se o gameId mudar
 
   const hexToRgba = (hex: string, alpha = 0.2) => {
     if (!hex || typeof hex !== "string") return `rgba(0,0,0,${alpha})`;
@@ -43,13 +68,21 @@ const GameHUD: React.FC = ({}) => {
   };
 
   async function  handleEndTurn(){
+    // Validação para fase de REFORÇO/ALOCAÇÃO INICIAL
     if(gameStatus=="REINFORCEMENT" || gameStatus=="SETUP_ALLOCATION"){
       if(unallocatedArmies>0){
-        alert("Você deve alocar todas suas tropas")
-      }else{
-        await EndTurn()
+        alert("Você deve alocar todas suas tropas antes de finalizar o turno")
+        return;
       }
     }
+    
+    // Se passou todas as validações, finaliza o turno
+    await EndTurn()
+  }
+
+  async function handleSkipAttack(){
+    // Pula a fase de ataque (vai direto para movimento)
+    await EndTurn()
   }
 
   // If it's not the user's turn, show a centered waiting message only
@@ -113,7 +146,7 @@ const GameHUD: React.FC = ({}) => {
             <button
               type="button"
               className={styles.skipButton}
-              
+              onClick={handleSkipAttack}
               title="Pular para fase de Movimento"
               onMouseEnter={() => setSkipHover(true)}
               onMouseLeave={() => setSkipHover(false)}

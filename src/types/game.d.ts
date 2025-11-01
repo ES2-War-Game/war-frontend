@@ -38,3 +38,22 @@ export interface TerritoryDto {
 }
 
  export type gameHUD = "DEFAULT" | "ALLOCATION" | "ATTACK";
+
+export interface CurrentTurnResponse {
+  gameId: number;
+  gameName: string;
+  gameStatus: string;
+  currentTurnPlayer: {
+    playerGameId: number;
+    username: string;
+    color: string;
+    turnOrder: number;
+    unallocatedArmies: number;
+    conqueredTerritoryThisTurn: boolean;
+    imageUrl: string | null;
+  };
+  isMyTurn: boolean;
+  totalPlayers: number;
+  activePlayers: number;
+}
+

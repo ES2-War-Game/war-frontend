@@ -6,14 +6,40 @@ export const useGame = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Função helper que garante que temos um gameId válido.
+   * Se não tiver no store, tenta buscar o jogo atual do backend.
+   */
+  const ensureGameId = async (): Promise<number | null> => {
+    let gameId = useGameStore.getState().gameId;
+    
+    if (!gameId) {
+      console.log("🔍 gameId não encontrado no store, buscando jogo atual...");
+      try {
+        const currentGame = await gameService.getCurrentGame();
+        if (currentGame && 'id' in currentGame) {
+          gameId = currentGame.id;
+          useGameStore.getState().setGameId(gameId);
+          console.log("✅ gameId recuperado e salvo no store:", gameId);
+        } else {
+          console.warn("⚠️ Nenhum jogo ativo encontrado");
+        }
+      } catch (err) {
+        console.error("❌ Erro ao buscar jogo atual:", err);
+      }
+    }
+    
+    return gameId;
+  };
+
   const allocateTroops = async (territoryId: number, count: number) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const gameId = useGameStore.getState().gameId;
+      const gameId = await ensureGameId();
       if (!gameId) {
-        console.warn("⚠️ allocateTroops chamado sem gameId no store");
+        console.warn("⚠️ allocateTroops: não foi possível obter gameId");
         setError("Partida não encontrada. Tente novamente.");
         return;
       }
@@ -54,9 +80,9 @@ export const useGame = () => {
       setIsLoading(true);
       setError(null);
 
-      const gameId = useGameStore.getState().gameId;
+      const gameId = await ensureGameId();
       if (!gameId) {
-        console.warn("⚠️ EndTurn chamado sem gameId no store");
+        console.warn("⚠️ EndTurn: não foi possível obter gameId");
         setError("Partida não encontrada. Tente novamente.");
         return;
       }
@@ -96,9 +122,9 @@ export const useGame = () => {
       setIsLoading(true);
       setError(null);
 
-      const gameId = useGameStore.getState().gameId;
+      const gameId = await ensureGameId();
       if (!gameId) {
-        console.warn("⚠️ attack chamado sem gameId no store");
+        console.warn("⚠️ attack: não foi possível obter gameId");
         setError("Partida não encontrada. Tente novamente.");
         return;
       }

@@ -1,5 +1,5 @@
 import api from "../interceptor/api";
-import type { GameStateResponseDto } from "../types/game";
+import type { GameStateResponseDto, CurrentTurnResponse } from "../types/game";
 import type { GameState } from "../types/lobby";
 
 export const gameService = {
@@ -53,24 +53,29 @@ export const gameService = {
     await api.post(`/api/games/${gameId}/end-turn`, null, {});
   },
 
+  async getCurrentTurn(gameId: number): Promise<CurrentTurnResponse> {
+    const response = await api.get<CurrentTurnResponse>(
+      `/api/games/${gameId}/current-turn`
+    );
+    return response.data;
+  },
+
   async attack(
     gameId: number,
     sourceTerritoryId: number,
     targetTerritoryId: number,
     attackDiceCount: number,
-    troopsToMoveAfterConquest:number
+    troopsToMoveAfterConquest: number
   ): Promise<void> {
-    // Segue o mesmo padrão de usar @RequestParam
-    const teste ={
-      gameId,
+    const requestBody = {
       sourceTerritoryId,
-    targetTerritoryId,
-    attackDiceCount,
-    troopsToMoveAfterConquest
-    }
-    console.log("teste de ataque",teste)
-    await api.post(`/api/games/${gameId}/attack`, null, {
-      params: { sourceTerritoryId, targetTerritoryId, attackDiceCount,troopsToMoveAfterConquest },
-    });
+      targetTerritoryId,
+      attackDiceCount,
+      troopsToMoveAfterConquest
+    };
+    
+    console.log("🎯 Sending attack request:", { gameId, ...requestBody });
+    
+    await api.post(`/api/games/${gameId}/attack`, requestBody);
   },
 };

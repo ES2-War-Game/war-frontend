@@ -4,7 +4,6 @@ import { useGameStore } from "../../store/useGameStore";
 import { useAllocateStore } from "../../store/useAllocate";
 import AllocateHUD from "../AllocateHUD/AllocateHUD";
 import AttackHUD from "../AttackHUD/AttackHUD";
-import { useLobbyStore } from "../../store/lobbyStore";
 import { useGame } from "../../hook/useGame";
 import { useAttackStore } from "../../store/useAttackStore";
 
@@ -64,7 +63,6 @@ export default function Territory(territorio: TerritorySVG) {
   
 
   const setAllocating = useAllocateStore.getState().setAllocating;
-  const unallocatedArmies = useAllocateStore((s) => s.unallocatedArmies);
 
   const [ataque, setAtaque] = useState(false);
   const [fronteiraDefense, setFronteiraDefense] = useState(false);
@@ -85,8 +83,6 @@ export default function Territory(territorio: TerritorySVG) {
 
   // pega o mapa de cores do jogo (persistido)
   const territoriesColors = useGameStore((s) => s.territoriesColors);
-  // get the current lobby/game id from the store (don't call a setter here)
-  const lobbyId = useLobbyStore((s) => s.currentLobbyId);
 
   // Quando este território estiver na lista de fronteiras, ele deve aparecer acima do fundo (overlay)
   useEffect(() => {
@@ -162,6 +158,12 @@ export default function Territory(territorio: TerritorySVG) {
   async function confirmarAtaque() {
     
     if (!atacanteId || !defensorId) return;
+    
+    console.log("🎯 Confirmando ataque com os seguintes dados:");
+    console.log("  - Território Atacante (seu):", atacanteId);
+    console.log("  - Território Defensor (inimigo):", defensorId);
+    console.log("  - Número de dados de ataque:", ataqueNum);
+    
     try {
       await attack(atacanteId, defensorId, ataqueNum);
       // Após enviar o ataque, limpa seleção e fecha overlay/HUD
@@ -180,8 +182,18 @@ export default function Territory(territorio: TerritorySVG) {
   }
 
   async function AlocarTropa() {
-    if (unallocatedArmies <= 0) {
-      alert("Não possui mais solçdados para alocar");
+    // Pega o valor mais recente do store
+    const currentUnallocatedArmies = useAllocateStore.getState().unallocatedArmies;
+    
+    console.log("🎯 AlocarTropa - Estado:", {
+      currentUnallocatedArmies,
+      alocaNum,
+      territorio: territorio.nome
+    });
+    
+    if (currentUnallocatedArmies <= 0) {
+      alert("Não possui mais soldados para alocar");
+      console.warn("❌ Sem tropas para alocar:", currentUnallocatedArmies);
       return;
     }
     // try to resolve the territory id from the persisted territoriesColors map
@@ -195,6 +207,8 @@ export default function Territory(territorio: TerritorySVG) {
     const territoryId =
       info && typeof info.id !== "undefined" ? Number(info.id) : null;
 
+    console.log("🗺️ Territory ID resolvido:", territoryId);
+
     if (!territoryId) {
       console.warn(
         "Não foi possível resolver o id do território para:",
@@ -202,24 +216,36 @@ export default function Territory(territorio: TerritorySVG) {
       );
       setAloca(false);
       setAllocating(false);
+      setGameHUD("DEFAULT");
+      setPortalRect(null);
       return;
     }
 
-    if (!lobbyId) {
-      console.warn("Lobby/game id não disponível no store");
-      setAloca(false);
-      setAllocating(false);
-      return;
-    }
+    // allocateTroops já pega o gameId internamente do store
+    // e se não tiver, busca automaticamente do backend
 
     try {
+      console.log("📤 Enviando alocação:", { territoryId, alocaNum });
       await allocateTroops(territoryId, alocaNum);
+      
+      const newValue = currentUnallocatedArmies - alocaNum;
+      console.log("✅ Alocação bem-sucedida! Atualizando unallocatedArmies:", {
+        antes: currentUnallocatedArmies,
+        alocado: alocaNum,
+        depois: newValue
+      });
+      
       useAllocateStore
         .getState()
-        .setUnallocatedArmies(unallocatedArmies - alocaNum);
+        .setUnallocatedArmies(newValue);
+      
+      // Limpa todos os estados após sucesso
       setAloca(false);
+      setAllocating(false);
+      setGameHUD("DEFAULT");
+      setPortalRect(null);
     } catch (err) {
-      console.error("Erro ao alocar tropas:", err);
+      console.error("❌ Erro ao alocar tropas:", err);
       // show a simple user feedback; keep UI open so user can retry
       try {
         alert(
@@ -229,8 +255,7 @@ export default function Territory(territorio: TerritorySVG) {
       } catch (e) {
         // ignore alert failures in non-browser contexts
       }
-    } finally {
-      setAllocating(false);
+      // Em caso de erro, NÃO limpa os estados para permitir retry
     }
   }
 
@@ -328,7 +353,19 @@ export default function Territory(territorio: TerritorySVG) {
   }
 
   function Alocar() {
-    setGameHUD("ALLOCATION")
+    // Verifica se é o turno do jogador
+    const isMyTurn = useGameStore.getState().isMyTurn;
+    if (!isMyTurn) {
+      console.log("❌ Não é seu turno, alocação bloqueada");
+      return;
+    }
+
+    // Verifica se está na fase de alocação
+    if (gameStatus !== "REINFORCEMENT" && gameStatus !== "SETUP_ALLOCATION") {
+      console.log("❌ Não está na fase de alocação, bloqueado");
+      return;
+    }
+
     // ownerId can come from the overrideColor object (populated from territoriesColors)
     const ownerId =
       overrideColor && typeof overrideColor === "object"
@@ -339,21 +376,9 @@ export default function Territory(territorio: TerritorySVG) {
 
     // compare as strings to be robust to number/string id shapes
     if (ownerId != null && String(ownerId) == String(myId)) {
-      // Primeiro, verifica fluxo de ataque
-      const info =
-        overrideColor && typeof overrideColor === "object"
-          ? (overrideColor as { id?: number })
-          : territoriesColors[normalizedKey] ||
-            territoriesColors[rawKey] ||
-            territoriesColors[rawKey.toUpperCase?.()];
-      const territoryId = info && typeof info.id !== "undefined" ? Number(info.id) : null;
-      if (territoryId && gameStatus=="ATTACK") {
-        if (!atacanteId || (atacanteId && !defensorId)) {
-          handleAttackClick(territoryId);
-          return;
-        }
-      }
-
+      // ✅ Só muda o HUD se o território pertencer ao jogador
+      setGameHUD("ALLOCATION")
+      
       // Caso contrário, segue com alocação
       if (svgRef.current) {
         try {
@@ -364,6 +389,8 @@ export default function Territory(territorio: TerritorySVG) {
       }
       setAloca(true);
       setAllocating(true);
+    } else {
+      console.log("❌ Território não pertence ao jogador");
     }
   }
 
@@ -653,6 +680,12 @@ export default function Territory(territorio: TerritorySVG) {
               AlocarTropa={AlocarTropa}
               alocaNum={alocaNum}
               setAlocaNum={setAlocaNum}
+              onClose={() => {
+                setGameHUD("DEFAULT");
+                setAloca(false);
+                setAllocating(false);
+                setPortalRect(null);
+              }}
             />,
             document.body
           )
