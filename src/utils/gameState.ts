@@ -4,6 +4,63 @@ import type { GameStateResponseDto, GameTerritoryDto } from "../types/game";
 
 // Using global ambient DTO interfaces declared in src/types/*.d.ts
 
+// Mapeamento de nomes em português (SVG) para nomes em inglês/maiúsculas (Backend)
+const TERRITORY_NAME_MAP: Record<string, string> = {
+  // América do Norte
+  "alaska": "ALASKA",
+  "mackenzie": "MACKENZIE",
+  "vancouver": "VANCOUVER",
+  "ottawa": "OTTAWA",
+  "labrador": "LABRADOR",
+  "california": "CALIFÓRNIA",
+  "nova york": "NOVA YORK",
+  "mexico": "MÉXICO",
+  "groenlandia": "GROENLÂNDIA",
+  
+  // América do Sul
+  "venezuela": "VENEZUELA",
+  "brasil": "BRASIL",
+  "bolivia": "BOLÍVIA",
+  "argentina": "ARGENTINA",
+  
+  // Europa
+  "islandia": "ISLÂNDIA",
+  "inglaterra": "INGLATERRA",
+  "suecia": "SUÉCIA",
+  "polonia": "POLÔNIA",
+  "italia": "ITÁLIA",
+  "espanha": "ESPANHA",
+  "moscou": "MOSCOU",
+  
+  // África
+  "egito": "EGITO",
+  "nigeria": "NIGÉRIA",
+  "sudao": "SUDÃO",
+  "congo": "CONGO",
+  "africa do sul": "ÁFRICA DO SUL",
+  "madagascar": "MADAGASCAR",
+  
+  // Ásia
+  "omsk": "OMSK",
+  "dudinka": "DUDINKA",
+  "siberia": "SIBÉRIA",
+  "vladivostok": "VLADIVOSTOK",
+  "tchita": "TCHITA",
+  "mongolia": "MONGÓLIA",
+  "japao": "JAPÃO",
+  "aral": "ARAL",
+  "china": "CHINA",
+  "india": "ÍNDIA",
+  "vietna": "VIETNÃ",
+  "oriente medio": "ORIENTE MÉDIO",
+  
+  // Oceania
+  "australia": "AUSTRÁLIA",
+  "sumatra": "SUMATRA",
+  "borneo": "BORNEO",
+  "nova guine": "NOVA GUINÉ"
+};
+
 // Normaliza chave de território por nome (sem acentos, caixa baixa)
 const normalize = (s: unknown) =>
   String(s ?? "")
@@ -11,6 +68,12 @@ const normalize = (s: unknown) =>
     .replace(/[\u0300-\u036f]/g, "")
     .trim()
     .toLowerCase();
+
+// Converte nome do SVG (português) para nome do backend (inglês/maiúsculas)
+export function mapSVGNameToBackendName(svgName: string): string {
+  const normalizedKey = normalize(svgName);
+  return TERRITORY_NAME_MAP[normalizedKey] || svgName;
+}
 
 // Determina uma cor fallback determinística a partir de um identificador
 const fallbackColor = (identifier: string) => {
@@ -39,7 +102,16 @@ export function extractTerritoryInfo(
       (owner?.player?.username && fallbackColor(String(owner.player.username))) ||
       fallbackColor(String(t.ownerId ?? name));
     const ownerId = t.ownerId != null ? Number(t.ownerId) : null;
-    info[key] = { color, id: Number(t.territory.id), ownerId , allocatedArmie: t.staticArmies};
+    
+    // ✅ CORREÇÃO: Usar t.territory.id (ID fixo do território) em vez de t.id (GameTerritory.id único por partida)
+    const territoryId = Number(t.territory.id);
+    
+    info[key] = { 
+      color, 
+      id: territoryId,  // ✅ AGORA USA Territory.id (1-42) em vez de GameTerritory.id
+      ownerId, 
+      allocatedArmie: t.staticArmies
+    };
   }
   console.log("info final:",info)
   return info;

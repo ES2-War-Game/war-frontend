@@ -111,7 +111,7 @@ export const SouthAmericaList: TerritorySVG[] = [
     rigth: "34px",
     cx: "130",
     cy: "90",
-    fronteiras: ["VENEZUELA", "BOLÍVIA", "ARGENTINA"],
+    fronteiras: ["VENEZUELA", "BOLÍVIA", "ARGENTINA", "NIGÉRIA"],
   },
   {
     width: "104",
@@ -178,7 +178,7 @@ export const NorthAmericaList: TerritorySVG[] = [
     nome: "ALASKA",
     cx: "60",
     cy: "30",
-    fronteiras: ["MACKENZIE", "CALIFÓRNIA", "VANCOUVER", "VLADIVOSTOK"],
+    fronteiras: ["MACKENZIE", "VANCOUVER", "VLADIVOSTOK"],
   },
   {
     width: "195",
@@ -242,7 +242,7 @@ export const NorthAmericaList: TerritorySVG[] = [
     nome: "OTTAWA",
     cx: "25",
     cy: "35",
-    fronteiras: ["MACKENZIE", "VANCOUVER", "LABRADOR", "NOVA YORK"],
+    fronteiras: ["MACKENZIE", "VANCOUVER", "LABRADOR", "NOVA YORK", "CALIFÓRNIA"],
   },
   {
     width: "98",
@@ -270,11 +270,11 @@ export const NorthAmericaList: TerritorySVG[] = [
     corClara: "#eff167ff",
     corEscura: "#B5B81D",
     x: "50",
-    y: "50",
+    y: "60",
     nome: "CALIFÓRNIA",
-    cx: "50",
-    cy: "70",
-    fronteiras: ["VANCOUVER", "ALASKA", "NOVA YORK", "MÉXICO"],
+    cx: "20",
+    cy: "35",
+    fronteiras: ["VANCOUVER", "OTTAWA", "NOVA YORK", "MÉXICO"],
   },
   {
     width: "159",

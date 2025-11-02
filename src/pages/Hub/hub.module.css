@@ -128,6 +128,64 @@
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
   }
 
+  /* Current lobby card - destaque especial */
+  .currentLobbyCard {
+    background: linear-gradient(135deg, #8b7238 0%, #a68a45 100%);
+    border: 3px solid #f5ca6e;
+    box-shadow: 0 0 20px rgba(245, 202, 110, 0.4), 0 4px 20px rgba(0,0,0,0.3);
+    transform: scale(1.02);
+    position: relative;
+  }
+
+  .currentLobbyCard::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(45deg, #f5ca6e, #bfa640, #f5ca6e);
+    border-radius: 16px;
+    z-index: -1;
+    opacity: 0.6;
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  @keyframes glow {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 0.8; }
+  }
+
+  .currentLobbyCard:hover {
+    transform: scale(1.02) translateY(-2px);
+  }
+
+  /* Badge "Você está aqui" */
+  .currentBadge {
+    display: inline-block;
+    background: linear-gradient(90deg, #4caf50 0%, #66d26a 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-left: 10px;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  /* Player count */
+  .playerCount {
+    margin-top: 5px;
+    font-weight: 600;
+    color: #f5ca6e;
+  }
+
   .roomInfo h3 {
     margin: 0 0 5px 0;
     font-size: 1.4rem;
@@ -163,6 +221,86 @@
     background: linear-gradient(90deg, #66d26a 0%, #4caf50 100%);
     transform: translateY(-2px) scale(1.04);
     box-shadow: 0 8px 24px rgba(42, 37, 212, 0.25);
+  }
+
+  .joinBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: #999;
+  }
+
+  /* Leave button - para sair do lobby atual */
+  .leaveBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 180px;
+    height: 50px;
+    border-radius: 16px;
+    background: linear-gradient(90deg, #dc3545 0%, #c82333 100%);
+    color: #fff;
+    font-family: Inter, sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 16px rgba(220, 53, 69, 0.3);
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+  }
+
+  .leaveBtn:hover {
+    background: linear-gradient(90deg, #c82333 0%, #bd2130 100%);
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 8px 24px rgba(220, 53, 69, 0.4);
+  }
+
+  .leaveBtn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Container de ações do lobby atual */
+  .currentLobbyActions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  /* Botão de voltar ao lobby */
+  .backToLobbyBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 160px;
+    height: 50px;
+    padding: 0 20px;
+    border-radius: 16px;
+    background: linear-gradient(90deg, #2925d4 0%, #6a5af9 100%);
+    color: #fff;
+    font-family: Inter, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 16px rgba(41, 37, 212, 0.3);
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .backToLobbyBtn:hover {
+    background: linear-gradient(90deg, #6a5af9 0%, #2925d4 100%);
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 8px 24px rgba(41, 37, 212, 0.4);
+  }
+
+  /* Ajusta o botão de sair quando está junto com voltar */
+  .currentLobbyActions .leaveBtn {
+    min-width: 120px;
+    width: auto;
+    padding: 0 20px;
   }
   
 
@@ -291,4 +429,88 @@
   .cancelBtn:hover {
     background: #5a6268;
   }
+
+/* Error message */
+.errorMessage {
+  color: red;
+  background: rgba(255, 0, 0, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+  margin: 0 auto 20px auto;
+  max-width: 700px;
+  width: 100%;
+}
+
+/* Current lobby container */
+.currentLobbyContainer {
+  background-color: #776531;
+  padding: 20px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 700px;
+}
+
+.currentLobbyContainer h2 {
+  margin: 0 0 10px 0;
+}
+
+.currentLobbyContainer h3 {
+  margin: 10px 0;
+}
+
+/* Players grid */
+.playersGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.playerCard {
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+/* Empty state messages */
+.emptyState {
+  text-align: center;
+  padding: 30px;
+  background-color: #776531;
+  border-radius: 16px;
+  margin: 0 auto;
+}
+
+/* Create button */
+.createBtn {
+  display: flex;
+  width: 180px;
+  height: 50px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #2925d4 0%, #6a5af9 100%);
+  color: #fff;
+  font-family: Inter, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 16px rgba(42, 37, 212, 0.15);
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+}
+
+.createBtn:hover {
+  background: linear-gradient(90deg, #6a5af9 0%, #2925d4 100%);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(42, 37, 212, 0.25);
+}
+
+.createBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+  
   

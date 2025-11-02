@@ -56,6 +56,29 @@ export const useGame = () => {
       );
     } catch (err: any) {
       console.error("❌ Error allocating troops:", err);
+      
+      // 🚨 TRATAMENTO ESPECIAL PARA HTTP 409 - Fase Inválida
+      if (err?.response?.status === 409) {
+        const msg = err.response?.data || "Ação não permitida nesta fase do jogo.";
+        console.error("⚠️ ERRO DE FASE (HTTP 409):", msg);
+        setError(msg);
+        
+        // Recarregar estado do jogo para sincronizar
+        try {
+          console.log("🔄 Sincronizando estado do jogo após erro 409...");
+          const currentGame = await gameService.getCurrentGame();
+          if (currentGame) {
+            useGameStore.getState().setGameStatus(currentGame.status as any);
+            console.log("✅ Estado sincronizado. Fase atual:", currentGame.status);
+          }
+        } catch (syncErr) {
+          console.error("❌ Erro ao sincronizar estado:", syncErr);
+        }
+        
+        alert(msg);
+        throw err;
+      }
+      
       if (err?.response?.status === 400) {
         const msg = err.response?.data || "Erro ao alocar tropas";
         setError(msg);
@@ -94,6 +117,29 @@ export const useGame = () => {
       );
     } catch (err: any) {
       console.error("❌ Error EndTurn:", err);
+      
+      // 🚨 TRATAMENTO ESPECIAL PARA HTTP 409 - Fase Inválida
+      if (err?.response?.status === 409) {
+        const msg = err.response?.data || "Ação não permitida nesta fase do jogo.";
+        console.error("⚠️ ERRO DE FASE (HTTP 409):", msg);
+        setError(msg);
+        
+        // Recarregar estado do jogo para sincronizar
+        try {
+          console.log("🔄 Sincronizando estado do jogo após erro 409...");
+          const currentGame = await gameService.getCurrentGame();
+          if (currentGame) {
+            useGameStore.getState().setGameStatus(currentGame.status as any);
+            console.log("✅ Estado sincronizado. Fase atual:", currentGame.status);
+          }
+        } catch (syncErr) {
+          console.error("❌ Erro ao sincronizar estado:", syncErr);
+        }
+        
+        alert(msg);
+        throw err;
+      }
+      
       if (err?.response?.status === 400) {
         const msg = err.response?.data || "Erro ao terminar turno";
         setError(msg);
@@ -132,12 +178,42 @@ export const useGame = () => {
       console.log(
         `⚔️ Attacking from ${sourceTerritoryId} to ${targetTerritoryId} with ${attackDiceCount} in game ${gameId}...`
       );
-      await gameService.attack(gameId, sourceTerritoryId, targetTerritoryId, attackDiceCount,attackDiceCount);
+      
+      // troopsToMoveAfterConquest deve ser pelo menos 1 e no máximo attackDiceCount
+      // No War, você move as tropas que atacaram após conquistar o território
+      const troopsToMove = Math.min(attackDiceCount, 3); // Máximo 3 tropas movem
+      
+      console.log(`📦 Tropas a mover após conquista: ${troopsToMove}`);
+      
+      await gameService.attack(gameId, sourceTerritoryId, targetTerritoryId, attackDiceCount, troopsToMove);
       console.log(
         "✅ Attack request sent. Aguardando atualização via WebSocket..."
       );
     } catch (err: any) {
       console.error("❌ Error attacking:", err);
+      
+      // 🚨 TRATAMENTO ESPECIAL PARA HTTP 409 - Fase Inválida
+      if (err?.response?.status === 409) {
+        const msg = err.response?.data || "Ação não permitida nesta fase do jogo.";
+        console.error("⚠️ ERRO DE FASE (HTTP 409):", msg);
+        setError(msg);
+        
+        // Recarregar estado do jogo para sincronizar
+        try {
+          console.log("🔄 Sincronizando estado do jogo após erro 409...");
+          const currentGame = await gameService.getCurrentGame();
+          if (currentGame) {
+            useGameStore.getState().setGameStatus(currentGame.status as any);
+            console.log("✅ Estado sincronizado. Fase atual:", currentGame.status);
+          }
+        } catch (syncErr) {
+          console.error("❌ Erro ao sincronizar estado:", syncErr);
+        }
+        
+        alert(msg);
+        throw err;
+      }
+      
       if (err?.response?.status === 400) {
         const msg = err.response?.data || "Erro ao atacar";
         setError(msg);

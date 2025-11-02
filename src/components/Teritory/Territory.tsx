@@ -6,6 +6,8 @@ import AllocateHUD from "../AllocateHUD/AllocateHUD";
 import AttackHUD from "../AttackHUD/AttackHUD";
 import { useGame } from "../../hook/useGame";
 import { useAttackStore } from "../../store/useAttackStore";
+import { gameService } from "../../service/gameService";
+import { extractTerritoryInfo } from "../../utils/gameState";
 
 export interface TerritorySVG {
   nome: string;
@@ -114,28 +116,47 @@ export default function Territory(territorio: TerritorySVG) {
       return;
     }
     
-    console.log("id2:",territoryId)
+    console.log("🖱️ Clique em território - ID:", territoryId, "Nome:", territorio.nome);
+    
     if (!atacanteId) {
-      console.log(allocatedArmies)
+      console.log("📍 Tentando selecionar ATACANTE");
+      console.log("  - Tropas no território:", allocatedArmies);
+      
       if (allocatedArmies > 1) {
-        console.log("oioi:",territoryId,territorio.fronteiras)
+        console.log("✅ Tropas suficientes para atacar");
+        
         // Verifica se o território clicado pertence ao jogador antes de selecioná-lo como atacante
         const myId = useGameStore.getState().player?.id;
         const ownerId =
           overrideColor && typeof overrideColor === "object"
             ? (overrideColor as any).ownerId
             : null;
+        
+        console.log("🔍 Validação de OWNERSHIP na seleção:");
+        console.log("  - Meu player.id:", myId);
+        console.log("  - Owner do território:", ownerId);
+        console.log("  - overrideColor completo:", overrideColor);
+        console.log("  - Match?:", String(ownerId) === String(myId));
+        
         if (ownerId == null || String(ownerId) !== String(myId)) {
+          console.error("❌ Território não pertence ao jogador!");
           alert("Deve selecionar um território dominado por você");
           return;
         }
+        
+        console.log("✅ Território confirmado como SEU! Selecionando como atacante...");
         setAtacanteId(territoryId);
+        console.log("💾 atacanteId salvo no store:", territoryId);
+        
         // Filtra apenas fronteiras inimigas comparando ownerId com o jogador atual
         const enemyBorders = (territorio.fronteiras || []).filter((borderName) => {
           const info: any = resolveTerritoryInfoByName(borderName);
           const ownerId = info && typeof info.ownerId !== "undefined" ? info.ownerId : null;
           return ownerId == null || String(ownerId) !== String(myId);
         });
+        
+        console.log("🗡️ Fronteiras inimigas encontradas:", enemyBorders);
+        
         if (enemyBorders.length === 0) {
           alert("Não há territórios inimigos adjacentes para atacar.");
           resetAttack();
@@ -145,6 +166,7 @@ export default function Territory(territorio: TerritorySVG) {
         
         setAtaque(true)
       } else {
+        console.warn("⚠️ Tropas insuficientes:", allocatedArmies);
         alert("O território deve haver ao menos 2 tropas para realizar um ataque");
       }
       return;
@@ -152,11 +174,19 @@ export default function Territory(territorio: TerritorySVG) {
 
     // Seleção do defensor (somente se for fronteira)
     if (atacanteId && !defensorId) {
+      console.log("📍 Tentando selecionar DEFENSOR");
       const isBorder = fronteiras?.includes?.(territorio.nome);
+      console.log("  - É fronteira?:", isBorder);
+      console.log("  - Lista de fronteiras:", fronteiras);
+      
       if (isBorder) {
+        console.log("✅ Território válido como defensor!");
         setDefensorId(territoryId);
+        console.log("💾 defensorId salvo no store:", territoryId);
         setGameHUD("ATTACK");
         // AttackHUD será exibido quando defensorId estiver definido
+      } else {
+        console.warn("⚠️ Território não é adjacente ao atacante");
       }
       return;
     }
@@ -166,10 +196,71 @@ export default function Territory(territorio: TerritorySVG) {
     
     if (!atacanteId || !defensorId) return;
     
-    console.log("🎯 Confirmando ataque com os seguintes dados:");
-    console.log("  - Território Atacante (seu):", atacanteId);
-    console.log("  - Território Defensor (inimigo):", defensorId);
-    console.log("  - Número de dados de ataque:", ataqueNum);
+    // 🔍 VALIDAÇÃO: Verificar se o território atacante realmente pertence ao jogador
+    const myId = useGameStore.getState().player?.id;
+    let territoriesColors = useGameStore.getState().territoriesColors;
+    
+    console.log("🔍 ===== DEBUG COMPLETO DO ATAQUE =====");
+    console.log("📊 Meu ID de jogador:", myId);
+    console.log("⚔️ Território Atacante ID:", atacanteId);
+    console.log("🛡️ Território Defensor ID:", defensorId);
+    console.log("🎲 Número de dados:", ataqueNum);
+    console.log("🗺️ Mapa completo de territórios (territoriesColors):", territoriesColors);
+    
+    // 🔄 ATUALIZAÇÃO: Buscar estado mais recente do jogo antes de atacar
+    console.log("🔄 Buscando estado atualizado do jogo...");
+    try {
+      const currentGame = await gameService.getCurrentGame();
+      if (currentGame && currentGame.gameTerritories) {
+        console.log("✅ Estado do jogo atualizado recebido:", currentGame);
+        const updatedColors = extractTerritoryInfo(currentGame as any);
+        useGameStore.getState().setTerritoriesColors(updatedColors);
+        territoriesColors = updatedColors;
+        console.log("🆕 Mapa de territórios atualizado:", territoriesColors);
+      }
+    } catch (e) {
+      console.warn("⚠️ Não foi possível atualizar o estado do jogo, continuando com dados locais");
+    }
+    
+    // Encontrar informações do território atacante no mapa
+    let atacanteInfo = null;
+    let atacanteKey = null;
+    
+    for (const [key, value] of Object.entries(territoriesColors)) {
+      if (value.id === atacanteId) {
+        atacanteInfo = value;
+        atacanteKey = key;
+        break;
+      }
+    }
+    
+    console.log("🗺️ Informações do atacante encontradas:");
+    console.log("  - Chave:", atacanteKey);
+    console.log("  - Info completa:", atacanteInfo);
+    console.log("  - Owner ID:", atacanteInfo?.ownerId);
+    console.log("  - É meu?:", atacanteInfo?.ownerId === myId);
+    
+    // Validação CRÍTICA antes de enviar ao backend
+    if (!atacanteInfo) {
+      console.error("❌ ERRO: Território atacante não encontrado no mapa!");
+      alert("Erro: Território atacante não identificado. Tente novamente.");
+      resetAttack();
+      setAtaque(false);
+      return;
+    }
+    
+    if (atacanteInfo.ownerId !== myId) {
+      console.error("❌ ERRO DE OWNERSHIP:");
+      console.error("  - Owner real do território:", atacanteInfo.ownerId);
+      console.error("  - Meu ID:", myId);
+      console.error("  - Território:", atacanteKey);
+      alert(`Este território não pertence a você!\nDono: ${atacanteInfo.ownerId}, Você: ${myId}`);
+      resetAttack();
+      setAtaque(false);
+      return;
+    }
+    
+    console.log("✅ Validação OK! Território pertence ao jogador. Enviando ataque...");
     
     try {
       await attack(atacanteId, defensorId, ataqueNum);
@@ -251,6 +342,7 @@ export default function Territory(territorio: TerritorySVG) {
       setAllocating(false);
       setGameHUD("DEFAULT");
       setPortalRect(null);
+      setAlocaNum(1); // Reseta o valor de alocação para o valor inicial
     } catch (err) {
       console.error("❌ Erro ao alocar tropas:", err);
       // show a simple user feedback; keep UI open so user can retry
@@ -356,6 +448,9 @@ export default function Territory(territorio: TerritorySVG) {
     const territoryId = info && typeof (info as any).id !== "undefined"
       ? Number((info as any).id)
       : null;
+    
+    // Log removido - causava flood no console pois getId() é chamado em todo render
+    
     return Number.isFinite(territoryId as number) ? (territoryId as number) : null;
   }
 

@@ -413,7 +413,8 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
   // 🆕 Além da assinatura por lobby, também assina o tópico do jogo por gameId
   const gameId = useGameStore((s) => s.gameId);
   
-  console.log("🎲 useLobbyWebSocket - gameId from store:", gameId);
+  // Removido log que poluía o console (executava a cada segundo)
+  // console.log("🎲 useLobbyWebSocket - gameId from store:", gameId);
   
   useEffect(() => {
     console.log("🔍 useEffect gameId subscription check:", {
@@ -477,6 +478,20 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
           useGameStore.getState().setGameStatus(gs.status as GameStatus);
           const colors = extractTerritoryInfo(gs);
           console.log("🎨 Territories colors extracted:", colors);
+          
+          // Log específico para detectar atualizações de ataque
+          if (gs.status === "ATTACK" && gs.gameTerritories) {
+            console.log("⚔️ ATAQUE - Territórios atualizados via WebSocket:", {
+              totalTerritories: gs.gameTerritories.length,
+              sampleTerritories: gs.gameTerritories.slice(0, 3).map(gt => ({
+                gameTerritoryId: gt.id,
+                territoryId: gt.territory.id,
+                territoryName: gt.territory.name,
+                ownerId: gt.ownerId,
+                staticArmies: gt.staticArmies
+              }))
+            });
+          }
           
           if (gs.turnPlayer) {
             useGameStore.getState().setTurnPlayer(gs.turnPlayer.id);

@@ -9,6 +9,7 @@ import { useGameStore } from "../../store/useGameStore";
 import { useLobbyWebSocket } from "../../hook/useWebSocket";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
+import type { GameStatus } from "../../types/lobby";
 // turn-based info is handled inside HUD and store-connected components
 
 export default function Game() {
@@ -23,9 +24,71 @@ export default function Game() {
   const gameId = useGameStore((s) => s.gameId);
   const setGameEnded = useGameStore((s) => s.setGameEnded);
   const setWinner = useGameStore((s) => s.setWinner);
+  const setGameHUD = useGameStore((s) => s.setGameHUD);
   
   // Estado para controlar se está visualizando o jogo ou mostrando o modal
   const [isViewingGame, setIsViewingGame] = React.useState(false);
+  
+  // 🔧 Reset gameHud ao montar o componente (fix para quando recarrega a página)
+  React.useEffect(() => {
+    console.log("🔄 Resetando gameHud para DEFAULT ao montar Game.tsx");
+    setGameHUD("DEFAULT");
+  }, [setGameHUD]); // Executa ao montar (setGameHUD é estável do Zustand)
+  
+  // � Sincroniza gameStatus com backend ao montar (fix para quando recarrega a página)
+  const hasSyncedStatus = React.useRef(false);
+  React.useEffect(() => {
+    const syncGameStatus = async () => {
+      if (hasSyncedStatus.current || !gameId) return;
+      
+      console.log("🔄 Sincronizando gameStatus com backend ao montar Game.tsx", {
+        gameId,
+        currentGameStatus: gameStatus
+      });
+      
+      try {
+        const { gameService } = await import("../../service/gameService");
+        const currentGame = await gameService.getCurrentGame();
+        
+        if (currentGame && currentGame.status !== gameStatus) {
+          console.log("⚠️ GameStatus desatualizado! Atualizando...", {
+            localStorage: gameStatus,
+            backend: currentGame.status
+          });
+          useGameStore.getState().setGameStatus(currentGame.status as GameStatus);
+        } else {
+          console.log("✅ GameStatus está sincronizado:", currentGame?.status);
+        }
+      } catch (error) {
+        console.error("❌ Erro ao sincronizar gameStatus:", error);
+      }
+      
+      hasSyncedStatus.current = true;
+    };
+    
+    syncGameStatus();
+  }, [gameId, gameStatus]);
+  
+  // 🔧 Limpa estados de jogo anterior ao montar (fix para quando abandona e entra em novo jogo)
+  const hasClearedOnMount = React.useRef(false);
+  React.useEffect(() => {
+    if (hasClearedOnMount.current) return;
+    
+    console.log("🧹 Verificando se precisa limpar estado de jogo anterior ao montar Game.tsx", {
+      gameEnded,
+      winner: winner?.player?.username,
+      gameId
+    });
+    
+    // Se há winner ou gameEnded do jogo anterior, limpa ao montar
+    if (gameEnded || winner) {
+      console.log("⚠️ Detectado estado de jogo anterior! Limpando winner e gameEnded...");
+      setGameEnded(false);
+      setWinner(null);
+    }
+    
+    hasClearedOnMount.current = true;
+  }, [gameEnded, winner, gameId, setGameEnded, setWinner]); // Executa apenas ao montar
   
   // 🔍 Fallback: Se o gameStatus é FINISHED mas gameEnded é false, corrige
   React.useEffect(() => {
@@ -35,7 +98,7 @@ export default function Game() {
     }
   }, [gameStatus, gameEnded, setGameEnded]);
   
-  // 🔍 Fallback 2: Se o jogo está finalizado mas não tem winner, busca da API
+  //  Fallback 2: Se o jogo está finalizado mas não tem winner, busca da API
   React.useEffect(() => {
     const fetchGameState = async () => {
       if ((gameEnded || gameStatus === "FINISHED") && !winner && gameId) {
@@ -107,16 +170,6 @@ export default function Game() {
   
   // Verificar se o jogador atual é o vencedor
   const isCurrentPlayerWinner = winner && userId ? String(winner.player.id) === String(userId) : false;
-
-  // 🔄 Reseta o estado de visualização quando o jogo termina (garante que o modal apareça ao recarregar)
-  React.useEffect(() => {
-    console.log("🔍 Debug Modal - Estado atual:", { gameEnded, winner: winner?.player?.username, isViewingGame });
-    
-    if (gameEnded && winner) {
-      console.log("✅ Jogo terminou! Resetando visualização para mostrar modal");
-      setIsViewingGame(false);
-    }
-  }, [gameEnded, winner, isViewingGame]);
 
   // 🎭 Log de debug da renderização do modal (só quando valores mudarem)
   React.useEffect(() => {
