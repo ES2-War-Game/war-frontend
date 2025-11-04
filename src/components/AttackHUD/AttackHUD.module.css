@@ -136,3 +136,15 @@
 .botaoAzul:hover {
 	filter: brightness(1.06);
 }
+
+/* Estados disabled para todos os botões */
+.botaoRed:disabled,
+.botaoGreen:disabled,
+.botaoCinza:disabled,
+.botaoAzul:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	filter: grayscale(0.3);
+	pointer-events: none;
+}
+

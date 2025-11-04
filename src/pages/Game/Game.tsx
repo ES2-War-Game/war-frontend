@@ -5,7 +5,9 @@ import GameHUD from "../../components/GameHUD/gameHUD";
 import ObjectiveButton from "../../components/ObjectiveButton/ObjectiveButton";
 import GameEndModal from "../../components/GameEndModal/GameEndModal";
 import GameEndViewHUD from "../../components/GameEndViewHUD/GameEndViewHUD";
+// import AttackAnimation from "../../components/AttackAnimation/AttackAnimation";
 import { useGameStore } from "../../store/useGameStore";
+import { useMapStore } from "../../store/useMapStore";
 import { useLobbyWebSocket } from "../../hook/useWebSocket";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
@@ -259,6 +261,11 @@ export default function Game() {
     return () => cancelAnimationFrame(anim);
   }, []);
 
+  // Sincroniza posição e zoom do mapa com o MapStore para uso na animação
+  React.useEffect(() => {
+    useMapStore.getState().setTransform(pos, zoom);
+  }, [pos, zoom]);
+
   // Detecta espaço e zoom
   React.useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -349,6 +356,9 @@ export default function Game() {
           : undefined,
       }}
     >
+      {/* Attack Animation Layer - DESATIVADO TEMPORARIAMENTE */}
+      {/* <AttackAnimation /> */}
+      
       <div
         style={{
           position: "absolute",

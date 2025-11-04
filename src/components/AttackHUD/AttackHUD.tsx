@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import style from "./AttackHUD.module.css";
 
 interface AllocateProps{
@@ -7,14 +7,14 @@ interface AllocateProps{
     setAtaqueNum: React.Dispatch<React.SetStateAction<number>>
     Atacar: ()=>void
     cancelarAtaque(): void
+    isLoading?: boolean
 }
 
-export default function AttackHUD({ataqueNum,allocatedArmies,Atacar,setAtaqueNum,cancelarAtaque}:AllocateProps) {
+export default function AttackHUD({ataqueNum,allocatedArmies,Atacar,setAtaqueNum,cancelarAtaque,isLoading=false}:AllocateProps) {
+  const getArmies = useCallback(():number => Math.min(allocatedArmies, 3), [allocatedArmies]);
   const [max, setMax] = useState(getArmies)
   const min = 1;
-  function getArmies():number{
-    return Math.min(allocatedArmies, 3);
-  }
+  
   useEffect(()=>{
     const newMax = getArmies();
     setMax(newMax);
@@ -24,7 +24,7 @@ export default function AttackHUD({ataqueNum,allocatedArmies,Atacar,setAtaqueNum
       if (prev > newMax) return newMax;
       return prev;
     });
-  },[allocatedArmies, setAtaqueNum])
+  },[allocatedArmies, setAtaqueNum, getArmies])
   
 
   const handleIncrease = () => {
@@ -42,10 +42,10 @@ export default function AttackHUD({ataqueNum,allocatedArmies,Atacar,setAtaqueNum
     <div className={style.fortificarContainer}>
       <div className={style.titulo}>Atacar</div>
       <div className={style.botoesLinha}>
-        <button className={style.botaoRed} onClick={cancelarAtaque}>✖</button>
+        <button className={style.botaoRed} onClick={cancelarAtaque} disabled={isLoading}>✖</button>
 
         <div className={style.controle}>
-          <button className={style.botaoCinza} onClick={handleDecrease}>−</button>
+          <button className={style.botaoCinza} onClick={handleDecrease} disabled={isLoading}>−</button>
 
           <div className={style.carrossel}>
             <span className={style.numFade}>{prevValue}</span>
@@ -53,10 +53,12 @@ export default function AttackHUD({ataqueNum,allocatedArmies,Atacar,setAtaqueNum
             <span className={style.numFade}>{nextValue}</span>
           </div>
 
-          <button className={style.botaoAzul} onClick={handleIncrease}>+</button>
+          <button className={style.botaoAzul} onClick={handleIncrease} disabled={isLoading}>+</button>
         </div>
 
-        <button onClick={Atacar} className={style.botaoGreen}>✔</button>
+        <button onClick={Atacar} className={style.botaoGreen} disabled={isLoading}>
+          {isLoading ? "⏳" : "✔"}
+        </button>
       </div>
     </div>
   );

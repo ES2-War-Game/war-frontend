@@ -7,9 +7,10 @@ interface AllocateProps{
     setAlocaNum: React.Dispatch<React.SetStateAction<number>>
     AlocarTropa: ()=>void
     onClose?: ()=>void
+    isLoading?: boolean
 }
 
-export default function AllocateHUD({alocaNum,AlocarTropa,setAlocaNum,onClose}:AllocateProps) {
+export default function AllocateHUD({alocaNum,AlocarTropa,setAlocaNum,onClose,isLoading=false}:AllocateProps) {
   // Usa o hook corretamente para reagir a mudanças no store
   const armies = useAllocateStore((s) => s.unallocatedArmies);
   const [max, setMax] = useState(armies)
@@ -38,10 +39,10 @@ export default function AllocateHUD({alocaNum,AlocarTropa,setAlocaNum,onClose}:A
     <div className={style.fortificarContainer}>
       <div className={style.titulo}>Fortificar</div>
       <div className={style.botoesLinha}>
-        <button className={style.botaoRed} onClick={onClose}>✖</button>
+        <button className={style.botaoRed} onClick={onClose} disabled={isLoading}>✖</button>
 
         <div className={style.controle}>
-          <button className={style.botaoCinza} onClick={handleDecrease}>−</button>
+          <button className={style.botaoCinza} onClick={handleDecrease} disabled={isLoading}>−</button>
 
           <div className={style.carrossel}>
             <span className={style.numfade}>{prevValue}</span>
@@ -49,10 +50,12 @@ export default function AllocateHUD({alocaNum,AlocarTropa,setAlocaNum,onClose}:A
             <span className={style.numFade}>{nextValue}</span>
           </div>
 
-          <button className={style.botaoAzul} onClick={handleIncrease}>+</button>
+          <button className={style.botaoAzul} onClick={handleIncrease} disabled={isLoading}>+</button>
         </div>
 
-        <button onClick={AlocarTropa} className={style.botaoGreen}>✔</button>
+        <button onClick={AlocarTropa} className={style.botaoGreen} disabled={isLoading}>
+          {isLoading ? "⏳" : "✔"}
+        </button>
       </div>
     </div>
   );
