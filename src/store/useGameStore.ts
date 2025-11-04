@@ -2,21 +2,20 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { GameStatus, PlayerGame } from "../types/lobby";
 import type { gameHUD } from "../types/game";
+import type { TerritoryInfo } from "../utils/gameState";
+
+interface PlayerObjectiveMap {
+  [playerId: string]: string;
+}
 
 interface GameStore {
-
-  gameId:number| null;
+  gameId: number | null;
   setGameId: (gameId: number | null) => void;
-  // map: territoryNameNormalized -> { color, id, ownerId }
-  territoriesColors: Record<
-    string,
-    { color: string; id: number; ownerId: number | null, allocatedArmie:number }
-  >;
-  setTerritoriesColors: (
-    map: Record<string, { color: string; id: number; ownerId: number | null , allocatedArmie: number}>
-  ) => void;
 
-  playerObjective: Record<string, string>; 
+  territoriesColors: Record<string, TerritoryInfo>;
+  setTerritoriesColors: (map: Record<string, TerritoryInfo>) => void;
+
+  playerObjective: PlayerObjectiveMap;
   setPlayerObjective: (payload: { id: number; objective: string }) => void;
 
   player: PlayerGameDto | null;
@@ -28,13 +27,12 @@ interface GameStore {
   isMyTurn: boolean;
   setIsMyTurn: (isMyTurn: boolean) => void;
 
-  gameStatus:GameStatus| null;
-  setGameStatus: (status: GameStatus ) => void;
+  gameStatus: GameStatus | null;
+  setGameStatus: (status: GameStatus) => void;
 
-  gameHud:gameHUD
-  setGameHUD: (status: gameHUD ) => void;
+  gameHud: gameHUD;
+  setGameHUD: (status: gameHUD) => void;
 
-  // Estados do fim do jogo
   winner: PlayerGame | null;
   setWinner: (winner: PlayerGame | null) => void;
   
@@ -47,8 +45,8 @@ interface GameStore {
 export const useGameStore = create<GameStore>()(
   persist(
     (set) => ({
-      gameId:null,
-      setGameId: (gameId)=> set({gameId:gameId}),
+      gameId: null,
+      setGameId: (gameId) => set({ gameId }),
 
       territoriesColors: {},
       setTerritoriesColors: (map) => set({ territoriesColors: map }),
@@ -61,8 +59,9 @@ export const useGameStore = create<GameStore>()(
             [payload.id]: payload.objective,
           },
         })),
+
       turnPlayer: null,
-      setTurnPlayer: (player) => set({ turnPlayer:player }),
+      setTurnPlayer: (player) => set({ turnPlayer: player }),
 
       isMyTurn: false,
       setIsMyTurn: (isMyTurn) => set({ isMyTurn }),
@@ -71,12 +70,11 @@ export const useGameStore = create<GameStore>()(
       setPlayer: (player) => set({ player }),
 
       gameStatus: null,
-      setGameStatus: (status:GameStatus) => set({ gameStatus:status }),
+      setGameStatus: (status: GameStatus) => set({ gameStatus: status }),
 
-      gameHud:"DEFAULT",
-      setGameHUD: (status:gameHUD) => set({gameHud:status}),
+      gameHud: "DEFAULT",
+      setGameHUD: (status: gameHUD) => set({ gameHud: status }),
 
-      // Estados do fim do jogo
       winner: null,
       setWinner: (winner) => set({ winner }),
       
@@ -93,16 +91,16 @@ export const useGameStore = create<GameStore>()(
         }),
     }),
     {
-      name: "game-store", // localStorage key
+      name: "game-store",
       partialize: (state) => ({
         territoriesColors: state.territoriesColors,
         playerObjective: state.playerObjective,
         player: state.player,
-        turnPlayer:state.turnPlayer,
+        turnPlayer: state.turnPlayer,
         isMyTurn: state.isMyTurn,
-        gameStatus:state.gameStatus,
-        gameId:state.gameId,
-        gameHud:state.gameHud,
+        gameStatus: state.gameStatus,
+        gameId: state.gameId,
+        gameHud: state.gameHud,
         winner: state.winner,
         gameEnded: state.gameEnded
       }),

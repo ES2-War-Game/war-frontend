@@ -48,16 +48,39 @@ export default function Game() {
       
       try {
         const { gameService } = await import("../../service/gameService");
+        const { extractTerritoryInfo } = await import("../../utils/gameState");
         const currentGame = await gameService.getCurrentGame();
         
-        if (currentGame && currentGame.status !== gameStatus) {
-          console.log("⚠️ GameStatus desatualizado! Atualizando...", {
-            localStorage: gameStatus,
-            backend: currentGame.status
+        if (currentGame) {
+          console.log("📥 Jogo carregado ao recarregar página:", {
+            status: currentGame.status,
+            totalTerritories: currentGame.gameTerritories?.length,
+            hasTerritoryData: !!currentGame.gameTerritories
           });
-          useGameStore.getState().setGameStatus(currentGame.status as GameStatus);
-        } else {
-          console.log("✅ GameStatus está sincronizado:", currentGame?.status);
+          
+          // Atualiza o status do jogo
+          if (currentGame.status !== gameStatus) {
+            console.log("⚠️ GameStatus desatualizado! Atualizando...", {
+              localStorage: gameStatus,
+              backend: currentGame.status
+            });
+            useGameStore.getState().setGameStatus(currentGame.status as GameStatus);
+          } else {
+            console.log("✅ GameStatus está sincronizado:", currentGame.status);
+          }
+          
+          // 🔥 CRÍTICO: Extrai e persiste informações dos territórios (incluindo staticArmies e movedInArmies)
+          if (currentGame.gameTerritories && currentGame.gameTerritories.length > 0) {
+            console.log("🗺️ Extraindo informações dos territórios ao recarregar...");
+            // Cast para o tipo esperado pela função
+            const gameData = currentGame as unknown as import("../../types/game").GameStateResponseDto;
+            const territoriesColors = extractTerritoryInfo(gameData);
+            useGameStore.getState().setTerritoriesColors(territoriesColors);
+            console.log("✅ Territórios atualizados ao recarregar:", {
+              totalTerritories: Object.keys(territoriesColors).length,
+              sampleTerritory: Object.values(territoriesColors)[0]
+            });
+          }
         }
       } catch (error) {
         console.error("❌ Erro ao sincronizar gameStatus:", error);

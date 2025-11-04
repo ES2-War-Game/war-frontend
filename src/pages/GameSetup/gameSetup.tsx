@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { useLobbyStore } from "../../store/lobbyStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { gameService } from "../../service/gameService";
+import type { Player } from "../../types/lobby";
 
 // Helper function to decode JWT token
 const decodeJWT = (token: string) => {
@@ -80,7 +81,8 @@ const GameSetupPage: React.FC = () => {
           hasGame: !!currentGame,
           gameId: currentGame?.id,
           gameName: currentGame?.name,
-          status: currentGame?.status
+          status: currentGame?.status,
+          players: currentGame?.players || currentGame?.playerGames
         });
         
         if (!currentGame) {
@@ -101,6 +103,58 @@ const GameSetupPage: React.FC = () => {
         console.log("✅ GameSetup: Player is in lobby:", currentGame.id);
         useLobbyStore.getState().setCurrentLobbyId(currentGame.id);
         console.log("✅ GameSetup: LobbyId salvo no store:", currentGame.id);
+
+        // Recupera e salva os jogadores do lobby
+        const playersData = currentGame.playerGames || currentGame.players || [];
+        console.log("🔍 GameSetup: playersData bruto:", playersData);
+        
+        if (playersData.length > 0) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const players: Player[] = playersData.map((pg: any) => {
+            console.log("🔍 Processando jogador:", pg);
+            
+            // Caso 1: Já é um Player (tem username direto)
+            if (pg.username && typeof pg.username === 'string') {
+              console.log("✅ Jogador já está no formato Player");
+              return {
+                id: pg.id,
+                username: pg.username,
+                color: pg.color,
+                owner: pg.owner ?? pg.isOwner,
+                isOwner: pg.isOwner ?? pg.owner,
+                imageUrl: pg.imageUrl || null
+              };
+            }
+            
+            // Caso 2: É PlayerGameDto ou PlayerGame (tem objeto 'player' nested)
+            if (pg.player && pg.player.username) {
+              const mapped = {
+                id: pg.id,
+                username: pg.player.username,
+                color: pg.color,
+                owner: pg.isOwner ?? false,
+                isOwner: pg.isOwner ?? false,
+                imageUrl: pg.player.imageUrl || null
+              };
+              console.log("✅ Mapeado de PlayerGameDto/PlayerGame:", mapped);
+              return mapped;
+            }
+            
+            // Caso 3: Fallback - estrutura desconhecida
+            console.warn("⚠️ Estrutura de jogador desconhecida:", pg);
+            return {
+              id: pg.id || 0,
+              username: 'Jogador desconhecido',
+              color: pg.color || 'gray',
+              owner: false,
+              isOwner: false,
+              imageUrl: null
+            };
+          });
+
+          console.log("✅ GameSetup: Salvando jogadores do lobby:", players);
+          useLobbyStore.getState().setCurrentLobbyPlayers(players);
+        }
       } catch (error) {
         console.error("❌ GameSetup: Error checking current lobby:", error);
         navigate("/hub");

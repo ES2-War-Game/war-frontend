@@ -2,7 +2,14 @@ import { useAuthStore } from "../store/useAuthStore";
 import { useGameStore } from "../store/useGameStore";
 import type { GameStateResponseDto, GameTerritoryDto } from "../types/game";
 
-// Using global ambient DTO interfaces declared in src/types/*.d.ts
+export interface TerritoryInfo {
+  color: string;
+  id: number;
+  ownerId: number | null;
+  allocatedArmie: number;
+  staticArmies: number;
+  movedInArmies: number;
+}
 
 // Mapeamento de nomes em português (SVG) para nomes em inglês/maiúsculas (Backend)
 const TERRITORY_NAME_MAP: Record<string, string> = {
@@ -86,12 +93,11 @@ const fallbackColor = (identifier: string) => {
 
 export function extractTerritoryInfo(
   state: GameStateResponseDto
-// Retorna um mapa: nome normalizado do território => { color, id, owne
-): Record<string, { color: string; id: number; ownerId: number | null , allocatedArmie:number}> {
+): Record<string, TerritoryInfo> {
   const players: PlayerGameDto[] = state.playerGames || [];
   const territories: GameTerritoryDto[] = state.gameTerritories || [];
 
-  const info: Record<string, { color: string; id: number; ownerId: number | null, allocatedArmie:number }> = {};
+  const info: Record<string, TerritoryInfo> = {};
 
   for (const t of territories) {
     const name = t.territory.name ?? "";
@@ -102,22 +108,33 @@ export function extractTerritoryInfo(
       (owner?.player?.username && fallbackColor(String(owner.player.username))) ||
       fallbackColor(String(t.ownerId ?? name));
     const ownerId = t.ownerId != null ? Number(t.ownerId) : null;
-    
-    // ✅ CORREÇÃO: Usar t.territory.id (ID fixo do território) em vez de t.id (GameTerritory.id único por partida)
     const territoryId = Number(t.territory.id);
+    const totalArmies = (t.staticArmies || 0) + (t.movedInArmies || 0);
+    
+    // Log detalhado para debug
+    if (name.toLowerCase().includes("brasil")) {
+      console.log("🔍 DEBUG extractTerritoryInfo - BRASIL:", {
+        name,
+        staticArmies_backend: t.staticArmies,
+        movedInArmies_backend: t.movedInArmies,
+        totalArmies_calculated: totalArmies,
+        rawTerritory: t
+      });
+    }
     
     info[key] = { 
       color, 
-      id: territoryId,  // ✅ AGORA USA Territory.id (1-42) em vez de GameTerritory.id
+      id: territoryId,
       ownerId, 
-      allocatedArmie: t.staticArmies
+      allocatedArmie: totalArmies,
+      staticArmies: t.staticArmies || 0,
+      movedInArmies: t.movedInArmies || 0
     };
   }
-  console.log("info final:",info)
+
   return info;
 }
 export function extractPlayerObjectives(state: GameStateResponseDto): string {
-  // Return the objective description for the currently authenticated user.
   const authId = useAuthStore.getState().getUserId?.();
   if (!authId) return "";
 
@@ -126,12 +143,11 @@ export function extractPlayerObjectives(state: GameStateResponseDto): string {
   return pg?.objective?.description ?? "";
 }
 
-// Extract objective for a specific player id and store it in the game store
 export function extractAndStorePlayerObjective(state: GameStateResponseDto, playerId: string): string {
   const players: PlayerGameDto[] = state.playerGames || [];
   const pg = players.find((p) => String(p.id) === String(playerId));
   const obj = pg?.objective?.description ?? "";
-  // persist into game store for UI consumption
+  
   useGameStore.getState().setPlayerObjective({ id: Number(playerId), objective: obj });
   return obj;
 }
