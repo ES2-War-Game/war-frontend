@@ -59,10 +59,12 @@ const Hub: React.FC = () => {
     }
   };
 
-  // Encontrar o lobby atual na lista para exibir detalhes
-  const currentLobby = currentLobbyId 
-    ? lobbies.find(lobby => lobby.id === currentLobbyId)
-    : null;
+  // Separa lobbies: atual primeiro, depois os outros
+  const sortedLobbies = [...lobbies].sort((a, b) => {
+    if (a.id === currentLobbyId) return -1;
+    if (b.id === currentLobbyId) return 1;
+    return 0;
+  });
 
   return (
     <div className={styles.hubContainer}>
@@ -71,86 +73,59 @@ const Hub: React.FC = () => {
       </h1>
 
       {error && (
-        <div style={{ 
-          color: 'red', 
-          background: 'rgba(255,0,0,0.1)', 
-          padding: '10px', 
-          borderRadius: '8px',
-          margin: '0 auto 20px auto',
-          maxWidth: '700px',
-          width: '100%'
-        }}>
+        <div className={styles.errorMessage}>
           {error}
         </div>
       )}
 
-      {currentLobbyId ? (
-        // Exibir detalhes do lobby atual
-        <div style={{ 
-          backgroundColor: '#776531', 
-          padding: '20px', 
-          borderRadius: '16px',
-          width: '100%',
-          maxWidth: '700px'
-        }}>
-          <h2>Lobby: {currentLobby?.name}</h2>
-          <h3>Jogadores ({currentLobbyPlayers.length}):</h3>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', 
-            gap: '10px',
-            marginTop: '10px',
-            marginBottom: '20px'
-          }}>
-            {currentLobbyPlayers.map(player => (
-              <div key={player.id} style={{ 
-                backgroundColor: 'rgba(0,0,0,0.2)', 
-                padding: '10px', 
-                borderRadius: '8px' 
-              }}>
-                {player.username}
-              </div>
-            ))}
+      <div className={styles.roomList}>
+        {isLoading && lobbies.length === 0 ? (
+          <div className={styles.emptyState}>
+            Carregando lobbies...
           </div>
-          <button 
-            className={`${styles.btn} ${styles["btn-voltar"]}`}
-            onClick={handleLeaveLobby}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Saindo...' : 'Sair do Lobby'}
-          </button>
-        </div>
-      ) : (
-        // Exibir lista de lobbies
-        <>
-          <div className={styles.roomList}>
-            {isLoading && lobbies.length === 0 ? (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '30px', 
-                backgroundColor: '#776531',
-                borderRadius: '16px',
-                margin: '0 auto'
-              }}>
-                Carregando lobbies...
-              </div>
-            ) : lobbies.length === 0 ? (
-              <div style={{ 
-                textAlign: 'center', 
-                padding: '30px', 
-                backgroundColor: '#776531',
-                borderRadius: '16px',
-                margin: '0 auto'
-              }}>
-                Nenhum lobby disponível
-              </div>
-            ) : (
-              lobbies.map((lobby) => (
-                <div key={lobby.id} className={styles.roomCard}>
-                  <div className={styles.roomInfo}>
-                    <h3>{lobby.name}</h3>
-                    <p>Status: {lobby.status}</p>
+        ) : lobbies.length === 0 ? (
+          <div className={styles.emptyState}>
+            Nenhum lobby disponível
+          </div>
+        ) : (
+          sortedLobbies.map((lobby) => {
+            const isCurrentLobby = lobby.id === currentLobbyId;
+            
+            return (
+              <div 
+                key={lobby.id} 
+                className={`${styles.roomCard} ${isCurrentLobby ? styles.currentLobbyCard : ''}`}
+              >
+                <div className={styles.roomInfo}>
+                  <h3>
+                    {lobby.name}
+                    {isCurrentLobby && <span className={styles.currentBadge}> 🎮 Você está aqui</span>}
+                  </h3>
+                  <p>Status: {lobby.status}</p>
+                  {isCurrentLobby && (
+                    <p className={styles.playerCount}>
+                      Jogadores: {currentLobbyPlayers.length}
+                    </p>
+                  )}
+                </div>
+                
+                {isCurrentLobby ? (
+                  <div className={styles.currentLobbyActions}>
+                    <Link 
+                      to="/jogadores"
+                      className={styles.backToLobbyBtn}
+                    >
+                      ↩️ Voltar ao Lobby
+                    </Link>
+                    <button
+                      className={styles.leaveBtn}
+                      onClick={handleLeaveLobby}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Saindo...' : '🚪 Sair'}
+                    </button>
                   </div>
+                ) : (
                   <button
                     className={styles.joinBtn}
                     onClick={() => handleJoin(lobby.id)}
@@ -158,25 +133,25 @@ const Hub: React.FC = () => {
                   >
                     {lobby.status !== "LOBBY" ? "Em jogo" : isLoading ? "Entrando..." : "Entrar"}
                   </button>
-                </div>
-              ))
-            )}
-          </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
 
-          <div className={styles.buttons}>
-            <Link to="/" className={`${styles.btn} ${styles["btn-voltar"]}`}>
-              Voltar
-            </Link>
-            <button 
-              className={styles.createBtn} 
-              onClick={handleCreate}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Criando...' : 'Criar Sala'}
-            </button>
-          </div>
-        </>
-      )}
+      <div className={styles.buttons}>
+        <Link to="/" className={`${styles.btn} ${styles["btn-voltar"]}`}>
+          Voltar
+        </Link>
+        <button 
+          className={styles.createBtn} 
+          onClick={handleCreate}
+          disabled={isLoading}
+        >
+          {isLoading ? 'Criando...' : 'Criar Sala'}
+        </button>
+      </div>
 
       {isModalOpen && (
         <div className={styles.modalOverlay}>

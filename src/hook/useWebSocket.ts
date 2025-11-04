@@ -20,6 +20,7 @@ import {
   extractAndStorePlayerObjective,
 } from "../utils/gameState";
 import { useAllocateStore } from "../store/useAllocate";
+import type { GameStateResponseDto } from "../types/game";
 
 interface UseLobbyWebSocketReturn {
   lobbies: LobbyListResponseDto[];
@@ -189,19 +190,54 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
             // Mapeia cores por território (por NOME) e objetivos dos jogadores
             const territoriesColors = extractTerritoryInfo(gameState);
 
+            // Pega o userId uma única vez
+            const userId = useAuthStore.getState().getUserId?.();
+
             // coloca no storage qual jogador que esta jogando
             if (gameState.turnPlayer) {
               useGameStore.getState().setTurnPlayer(gameState.turnPlayer.id);
+              
+              // Calcula se é o turno do jogador atual
+              // Compara o player.id (userId) do turnPlayer com o userId atual
+              const isMyTurn = String(gameState.turnPlayer.player.id) === String(userId);
+              useGameStore.getState().setIsMyTurn(isMyTurn);
+              console.log("🎮 Turno atualizado via WebSocket:", {
+                turnPlayerGameId: gameState.turnPlayer.id,
+                turnPlayerUserId: gameState.turnPlayer.player.id,
+                currentUserId: userId,
+                isMyTurn
+              });
             }
-
-            
 
             // as cores dos terrtitorios com map de nome por {id,cor,ownedid}
             useGameStore.getState().setTerritoriesColors(territoriesColors);
 
-            // Store only the authenticated player's PlayerGameDto in the game store
-            const userId = useAuthStore.getState().getUserId?.();
+            // 🤖 Detecta jogadores que saíram da partida (preparado para IA futura)
             const playersList = gameState.playerGames || [];
+            const playersWhoLeft = playersList.filter(p => !p.stillInGame);
+            
+            if (playersWhoLeft.length > 0) {
+              console.log("🚪 Jogadores que abandonaram (lobby subscription):", playersWhoLeft.map(p => ({
+                username: p.player.username,
+                color: p.color,
+                stillInGame: p.stillInGame
+              })));
+              
+              // TODO: Futuramente, substituir por IA
+              playersWhoLeft.forEach(p => {
+                console.log(`⚠️ Jogador ${p.player.username} (${p.color}) saiu - Preparado para IA`);
+              });
+            }
+            
+            // Verifica se há um vencedor
+            if (gameState.winner) {
+              console.log("🏆 JOGO FINALIZADO! Vencedor:", {
+                username: gameState.winner.player.username,
+                color: gameState.winner.color
+              });
+            }
+
+            // Store only the authenticated player's PlayerGameDto in the game store
             const myPlayer = userId
               ? playersList.find((p) => String(p.player.id) == String(userId)) ?? null
               : null;
@@ -242,6 +278,19 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
     if (!token) {
       console.warn("Attempted to connect WebSocket without token");
       return;
+    }
+
+    // Prevent multiple connections - if already connected or connecting, don't create a new one
+    if (stompClientRef.current) {
+      if (stompClientRef.current.connected) {
+        console.log("WebSocket already connected, skipping initialization");
+        setIsConnected(true);
+        return;
+      }
+      if (stompClientRef.current.active) {
+        console.log("WebSocket already connecting, skipping initialization");
+        return;
+      }
     }
 
     console.log("Initializing WebSocket connection");
@@ -363,14 +412,39 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
 
   // 🆕 Além da assinatura por lobby, também assina o tópico do jogo por gameId
   const gameId = useGameStore((s) => s.gameId);
+  
+  // Removido log que poluía o console (executava a cada segundo)
+  // console.log("🎲 useLobbyWebSocket - gameId from store:", gameId);
+  
   useEffect(() => {
+    console.log("🔍 useEffect gameId subscription check:", {
+      gameId,
+      hasStompClient: !!stompClientRef.current,
+      isConnected
+    });
+    
     // Requer conexão ativa e um gameId válido
-    if (!stompClientRef.current || !stompClientRef.current.connected) return;
-    if (!gameId) return;
+    if (!isConnected || !stompClientRef.current) {
+      console.warn("⚠️ WebSocket not connected, skipping gameId subscription. isConnected:", isConnected, "hasClient:", !!stompClientRef.current);
+      return;
+    }
+    if (!gameId) {
+      console.warn("⚠️ No gameId, skipping subscription");
+      return;
+    }
+
+    console.log("✅ All conditions met, proceeding with subscription");
+
+    // Verifica se o cliente está realmente conectado antes de tentar se inscrever
+    if (!stompClientRef.current.connected) {
+      console.error("❌ Client exists but is not connected! Aborting subscription.");
+      return;
+    }
 
     // Cancela subscrição anterior (se houver)
     if (gameStateByIdSubscriptionRef.current) {
       try {
+        console.log("🔄 Unsubscribing from previous gameId subscription");
         gameStateByIdSubscriptionRef.current.unsubscribe();
       } catch (_) {}
       gameStateByIdSubscriptionRef.current = null;
@@ -378,34 +452,194 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
 
     const topic = `/topic/game/${gameId}/state`;
     console.log(`📡 Subscribing to game state by gameId: ${topic}`);
-    gameStateByIdSubscriptionRef.current = stompClientRef.current.subscribe(
-      topic,
-      (message) => {
+    
+    try {
+      gameStateByIdSubscriptionRef.current = stompClientRef.current.subscribe(
+        topic,
+        (message) => {
+        console.log("📨 MESSAGE RECEIVED on /topic/game/${gameId}/state!");
         try {
-          const gs: GameStateResponseDto = JSON.parse(message.body);
+                  const msg = JSON.parse(message.body);
+        console.log("📨 WebSocket recebeu mensagem em /topic/game/{gameId}/state:", {
+          hasWinner: !!msg.winner,
+          status: msg.status,
+          winnerName: msg.winner?.player?.username
+        });
+        
+        const gs: GameStateResponseDto = msg;
+          console.log("🔄 WebSocket update received:", gs);
+          console.log("📊 playerGames array:", gs.playerGames);
+          
+          // Pega o userId uma única vez
+          const uid = useAuthStore.getState().getUserId?.();
+          console.log("👤 Current userId:", uid);
+          
           // Atualizações essenciais para refletir allocate/turnos etc.
           useGameStore.getState().setGameStatus(gs.status as GameStatus);
           const colors = extractTerritoryInfo(gs);
+          console.log("🎨 Territories colors extracted:", colors);
+          
+          // Log específico para detectar atualizações de ataque
+          if (gs.status === "ATTACK" && gs.gameTerritories) {
+            console.log("⚔️ ATAQUE - Territórios atualizados via WebSocket:", {
+              totalTerritories: gs.gameTerritories.length,
+              sampleTerritories: gs.gameTerritories.slice(0, 3).map(gt => ({
+                gameTerritoryId: gt.id,
+                territoryId: gt.territory.id,
+                territoryName: gt.territory.name,
+                ownerId: gt.ownerId,
+                staticArmies: gt.staticArmies
+              }))
+            });
+          }
+          
           if (gs.turnPlayer) {
             useGameStore.getState().setTurnPlayer(gs.turnPlayer.id);
+            
+            // Calcula se é o turno do jogador atual
+            // Compara o player.id (userId) do turnPlayer com o userId atual
+            const isMyTurn = String(gs.turnPlayer.player.id) === String(uid);
+            useGameStore.getState().setIsMyTurn(isMyTurn);
+            console.log("🎮 Turno atualizado via WebSocket (gameId):", {
+              turnPlayerGameId: gs.turnPlayer.id,
+              turnPlayerUserId: gs.turnPlayer.player.id,
+              currentUserId: uid,
+              isMyTurn
+            });
           }
+          
           useGameStore.getState().setTerritoriesColors(colors);
-          const uid = useAuthStore.getState().getUserId?.();
+          console.log("✅ Territories colors updated in store");
+          
+          // 🤖 Detecta jogadores que saíram da partida (preparado para IA futura)
           const plist = gs.playerGames || [];
+          const playersWhoLeft = plist.filter(p => !p.stillInGame);
+          
+          if (playersWhoLeft.length > 0) {
+            console.log("� Jogadores que abandonaram a partida:", playersWhoLeft.map(p => ({
+              username: p.player.username,
+              color: p.color,
+              stillInGame: p.stillInGame
+            })));
+            
+            // TODO: Futuramente, substituir por IA
+            // Para cada jogador que saiu, poderia:
+            // 1. Criar uma instância de IA para assumir o controle
+            // 2. Marcar visualmente no mapa que é controlado por IA
+            // 3. Implementar lógica de decisão automática para turnos da IA
+            
+            // Por enquanto, apenas logamos a informação
+            playersWhoLeft.forEach(p => {
+              console.log(`⚠️ Jogador ${p.player.username} (${p.color}) saiu - Preparado para IA`);
+            });
+          }
+          
+          // 🏆 Verifica se há um vencedor (FIM DE JOGO)
+          console.log("🔍 Verificando fim de jogo:", {
+            status: gs.status,
+            statusType: typeof gs.status,
+            hasWinner: !!gs.winner,
+            winnerName: gs.winner?.player?.username,
+            comparison: gs.status === "FINISHED"
+          });
+          
+          if (gs.status === "FINISHED" && gs.winner) {
+            console.log("🏆 JOGO FINALIZADO! Vencedor:", {
+              username: gs.winner.player.username,
+              color: gs.winner.color,
+              objective: gs.winner.objective?.description
+            });
+            
+            // Verificar se o vencedor é o jogador atual
+            const isWinner = String(gs.winner.player.id) === String(uid);
+            
+            if (isWinner) {
+              console.log("🎉 VOCÊ VENCEU!");
+            } else {
+              console.log("😢 Você perdeu. Vencedor:", gs.winner.player.username);
+            }
+            
+            // Salva informações do vencedor e estado do jogo no store
+            useGameStore.getState().setWinner(gs.winner);
+            useGameStore.getState().setGameEnded(true);
+            
+            console.log("✅ Estado salvo no store:", {
+              gameEnded: useGameStore.getState().gameEnded,
+              hasWinner: !!useGameStore.getState().winner
+            });
+          } else {
+            console.log("⚠️ Condições não atendidas para fim de jogo:", {
+              statusMatch: gs.status === "FINISHED",
+              hasWinner: !!gs.winner
+            });
+          }
+          
+          console.log("�📋 Looking for player in list:", {
+            uid,
+            totalPlayers: plist.length,
+            activePlayers: plist.filter(p => p.stillInGame).length,
+            players: plist.map(p => ({ 
+              id: p.player?.id, 
+              username: p.player?.username, 
+              unallocatedArmies: p.unallocatedArmies,
+              stillInGame: p.stillInGame 
+            }))
+          });
+          
           const mine = uid
             ? plist.find((p) => String(p.player.id) == String(uid)) ?? null
             : null;
+          
+          console.log("🎯 My player found:", mine);
+          console.log("🪖 Unallocated armies from backend:", mine?.unallocatedArmies);
+          
           useGameStore.getState().setPlayer(mine);
-          useAllocateStore.getState().setUnallocatedArmies(
-            mine?.unallocatedArmies ?? 0
-          );
+          
+          const armiesValue = mine?.unallocatedArmies ?? 0;
+          console.log("📤 Setting unallocatedArmies to:", armiesValue);
+          useAllocateStore.getState().setUnallocatedArmies(armiesValue);
+          
+          // Verifica se realmente foi setado
+          const verificacao = useAllocateStore.getState().unallocatedArmies;
+          console.log("✅ Verificação - valor no store agora:", verificacao);
+          
+          console.log("👤 Player info updated:", {
+            player: mine,
+            unallocatedArmies: armiesValue
+          });
         } catch (err) {
           console.error("❌ Error processing /topic/game/{id}/state message:", err);
         }
       }
     );
+    
+    console.log("✅ Successfully subscribed to game state by gameId:", {
+      topic,
+      subscriptionActive: !!gameStateByIdSubscriptionRef.current
+    });
+    
+    // Fetch initial game state via HTTP to populate unallocatedArmies
+    console.log("🔄 Fetching initial game state via HTTP...");
+    gameService.getCurrentTurn(gameId)
+      .then((turnData) => {
+        console.log("📥 Initial turn data received:", turnData);
+        if (turnData.currentTurnPlayer) {
+          const armies = turnData.currentTurnPlayer.unallocatedArmies ?? 0;
+          console.log(`🎯 Setting initial unallocatedArmies to: ${armies}`);
+          useAllocateStore.getState().setUnallocatedArmies(armies);
+        }
+      })
+      .catch((err) => {
+        console.error("❌ Error fetching initial game state:", err);
+      });
+    
+    } catch (err) {
+      console.error("❌ Error creating subscription:", err);
+      return;
+    }
 
     return () => {
+      console.log("🧹 Cleaning up gameId subscription for gameId:", gameId);
       if (gameStateByIdSubscriptionRef.current) {
         try {
           gameStateByIdSubscriptionRef.current.unsubscribe();
@@ -413,7 +647,7 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
         gameStateByIdSubscriptionRef.current = null;
       }
     };
-  }, [gameId]);
+  }, [gameId, isConnected]); // 🔥 Adiciona isConnected como dependência!
   
 
   // Create a new lobby

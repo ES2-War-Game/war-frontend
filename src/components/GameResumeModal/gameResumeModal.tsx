@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import type { GameState } from "../../types/lobby";
 import { gameService } from "../../service/gameService";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useLobbyStore } from "../../store/lobbyStore";
+import { useGameStore } from "../../store/useGameStore";
 import style from "./gameResumeModal.module.css";
 
 interface GameResumeModalProps {
@@ -9,9 +11,37 @@ interface GameResumeModalProps {
   onClose: () => void;
 }
 
-const GameResumeModal: React.FC<GameResumeModalProps> = ({ game, onClose }) => {
+const GameResumeModal: React.FC<GameResumeModalProps> = ({ game: initialGame, onClose }) => {
   const navigate = useNavigate();
   const [isLeaving, setIsLeaving] = useState(false);
+  const [game, setGame] = useState<GameState>(initialGame);
+  
+  // Stores para salvar IDs antes de navegar
+  const setCurrentLobbyId = useLobbyStore((s) => s.setCurrentLobbyId);
+  const setGameId = useGameStore((s) => s.setGameId);
+  const clearGameState = useGameStore((s) => s.clearGameState);
+  const setWinner = useGameStore((s) => s.setWinner);
+  const setGameEnded = useGameStore((s) => s.setGameEnded);
+
+  // Busca dados atualizados do backend se o nome estiver undefined
+  useEffect(() => {
+    const fetchGameData = async () => {
+      if (!game.name || game.name === "undefined") {
+        console.log("⚠️ GameResumeModal: Nome do jogo undefined. Buscando do backend...");
+        try {
+          const updatedGame = await gameService.getCurrentGame();
+          if (updatedGame) {
+            console.log("✅ GameResumeModal: Dados atualizados do backend:", updatedGame);
+            setGame(updatedGame);
+          }
+        } catch (error) {
+          console.error("❌ GameResumeModal: Erro ao buscar dados do jogo:", error);
+        }
+      }
+    };
+
+    fetchGameData();
+  }, [game.name]);
 
   const isLobby = game.status === 'LOBBY';
   const players = game.players || game.playerGames || [];
@@ -27,18 +57,38 @@ const GameResumeModal: React.FC<GameResumeModalProps> = ({ game, onClose }) => {
   };
 
   const handleResume = () => {
+    console.log("🎮 GameResumeModal: Retomando jogo/lobby", {
+      id: game.id,
+      name: game.name,
+      status: game.status,
+      isLobby
+    });
+    
+    // 🔧 Limpa estados de jogo anterior antes de entrar em novo jogo
+    console.log("🧹 Limpando estado de jogo anterior antes de continuar");
+    setWinner(null);
+    setGameEnded(false);
+    
     if (isLobby) {
-      navigate(`/game-setup`);
+      // Salva o lobbyId no store antes de navegar
+      setCurrentLobbyId(game.id);
+      console.log("✅ LobbyId salvo no store:", game.id);
+      navigate(`/jogadores`);
     } else {
+      // Salva o gameId no store antes de navegar
+      setGameId(game.id);
+      console.log("✅ GameId salvo no store:", game.id);
       navigate(`/game`);
     }
     onClose();
   };
 
   const handleLeave = async () => {
+    const gameName = game.name || "este jogo";
+    
     if (isLobby) {
       const confirmed = window.confirm(
-        `Tem certeza que deseja sair do lobby "${game.name}"?`
+        `Tem certeza que deseja sair do lobby "${gameName}"?`
       );
       if (!confirmed) return;
     } else {
@@ -58,6 +108,14 @@ const GameResumeModal: React.FC<GameResumeModalProps> = ({ game, onClose }) => {
         await gameService.leaveGame(game.id);
         alert('Você abandonou o jogo. Seus territórios foram redistribuídos.');
       }
+      
+      // 🔧 Limpa o estado do jogo anterior (winner, gameEnded, etc.)
+      console.log("🧹 Limpando estado do jogo anterior após sair/abandonar");
+      clearGameState();
+      setWinner(null);
+      setGameEnded(false);
+      setGameId(null);
+      
       onClose();
       navigate('/hub');
     } catch (error) {
@@ -77,7 +135,7 @@ const GameResumeModal: React.FC<GameResumeModalProps> = ({ game, onClose }) => {
 
         <div className={style.content}>
           <div className={style.info}>
-            <p><strong>Nome:</strong> {game.name}</p>
+            <p><strong>Nome:</strong> {game.name || "Carregando..."}</p>
             <p><strong>Status:</strong> {statusText[game.status] || game.status}</p>
             {isLobby ? (
               <p><strong>Jogadores:</strong> {players.length}/{game.maxPlayers || 6}</p>

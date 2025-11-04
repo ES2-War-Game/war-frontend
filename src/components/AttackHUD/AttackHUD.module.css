@@ -1,0 +1,150 @@
+/* Container principal do HUD de Ataque */
+.fortificarContainer {
+	position: fixed;
+	left: 50%;
+	bottom: max(16px, env(safe-area-inset-bottom));
+	transform: translateX(-50%);
+	z-index: 1100;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 14px 16px;
+	min-width: 260px;
+	max-width: calc(100vw - 24px);
+	border-radius: 14px;
+	background: linear-gradient(135deg, #202225 0%, #2b2f36 100%);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+	color: #fff;
+}
+
+.titulo {
+	font-weight: 800;
+	font-size: 16px;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	text-align: center;
+}
+
+/* Linha com botões: cancelar | controle | confirmar */
+.botoesLinha {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+/* Controle central: [-] [carrossel] [+] */
+.controle {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	background: rgba(255, 255, 255, 0.06);
+	padding: 8px 10px;
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.carrossel {
+	min-width: 56px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+    gap:12px;
+	line-height: 1.1;
+}
+
+.numAtual {
+	font-size: 28px;
+	font-weight: 900;
+}
+
+.numFade {
+	font-size: 14px;
+	opacity: 0.5;
+}
+
+/* Botões base */
+/* Botões: estilo base compartilhado */
+.botaoRed,
+.botaoGreen,
+.botaoCinza,
+.botaoAzul {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+	font-size: 20px;
+	font-weight: 800;
+	border: none;
+	cursor: pointer;
+	transition: transform 0.08s ease, filter 0.2s ease, background 0.2s ease;
+	user-select: none;
+}
+
+.botaoRed:active,
+.botaoGreen:active,
+.botaoCinza:active,
+.botaoAzul:active {
+	transform: translateY(1px) scale(0.98);
+}
+
+.botaoRed:focus-visible,
+.botaoGreen:focus-visible,
+.botaoCinza:focus-visible,
+.botaoAzul:focus-visible {
+	outline: 2px solid rgba(255, 255, 255, 0.35);
+	outline-offset: 2px;
+}
+
+/* Variantes de botões */
+.botaoRed {
+	background: linear-gradient(180deg, #ff5a5a 0%, #e44242 100%);
+	box-shadow: 0 6px 16px rgba(228, 66, 66, 0.35);
+}
+
+.botaoRed:hover {
+	filter: brightness(1.05);
+}
+
+.botaoGreen {
+	background: linear-gradient(180deg, #4caf50 0%, #2e7d32 100%);
+	box-shadow: 0 6px 16px rgba(76, 175, 80, 0.35);
+}
+
+.botaoGreen:hover {
+	filter: brightness(1.05);
+}
+
+.botaoCinza {
+	background: linear-gradient(180deg, #9e9e9e 0%, #757575 100%);
+	color: #101010;
+}
+
+.botaoCinza:hover {
+	filter: brightness(1.05);
+}
+
+.botaoAzul {
+	background: linear-gradient(180deg, #64b5f6 0%, #1e88e5 100%);
+	box-shadow: 0 6px 16px rgba(30, 136, 229, 0.35);
+}
+
+.botaoAzul:hover {
+	filter: brightness(1.06);
+}
+
+/* Estados disabled para todos os botões */
+.botaoRed:disabled,
+.botaoGreen:disabled,
+.botaoCinza:disabled,
+.botaoAzul:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	filter: grayscale(0.3);
+	pointer-events: none;
+}
+

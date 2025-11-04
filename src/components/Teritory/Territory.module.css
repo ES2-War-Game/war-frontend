@@ -1,0 +1,10 @@
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.8;
+    stroke-width: 4;
+  }
+  50% {
+    opacity: 1;
+    stroke-width: 5;
+  }
+}

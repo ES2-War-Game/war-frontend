@@ -1,10 +1,26 @@
-import { useMemo, useState, useRef } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useGameStore } from "../../store/useGameStore";
 import { useAllocateStore } from "../../store/useAllocate";
 import AllocateHUD from "../AllocateHUD/AllocateHUD";
-import { useLobbyStore } from "../../store/lobbyStore";
+import AttackHUD from "../AttackHUD/AttackHUD";
 import { useGame } from "../../hook/useGame";
+import { useAttackStore } from "../../store/useAttackStore";
+import { useAttackAnimationStore } from "../../store/useAttackAnimationStore";
+import { useMapStore } from "../../store/useMapStore";
+import { gameService } from "../../service/gameService";
+import { extractTerritoryInfo } from "../../utils/gameState";
+import type { GameStateResponseDto } from "../../types/game";
+import type { TerritoryInfo } from "../../utils/gameState";
+import { 
+  SouthAmericaList, 
+  NorthAmericaList, 
+  EuropeList, 
+  AsiaList, 
+  AfricaList, 
+  OceaniaList 
+} from "../../utils/continents";
+import "./Territory.module.css";
 
 export interface TerritorySVG {
   nome: string;
@@ -22,7 +38,7 @@ export interface TerritorySVG {
   d2: string;
   cx: string;
   cy: string;
-  fronteiras:string[]
+  fronteiras: string[];
 }
 
 // Cores base dos jogadores
@@ -51,66 +67,452 @@ function getDarkerPlayerColor(color: string): string {
   return "#222";
 }
 
+// Combine all territories from all continents
+const ALL_TERRITORIES = [
+  ...SouthAmericaList,
+  ...NorthAmericaList,
+  ...EuropeList,
+  ...AsiaList,
+  ...AfricaList,
+  ...OceaniaList,
+];
+
 export default function Territory(territorio: TerritorySVG) {
-  const [pais, _setPais] = useState(false);
+  const [pais] = useState(false);
   const [aloca, setAloca] = useState(false);
   // exibição principal usa valor do estado do jogo (allocatedArmies)
   const [alocaNum, setAlocaNum] = useState<number>(1);
+  const gameStatus = useGameStore.getState().gameStatus;
+  const gameHUD = useGameStore.getState().gameHud;
+  const setGameHUD = useGameStore.getState().setGameHUD;
+  const gameEnded = useGameStore((s) => s.gameEnded);
+  const isGameFinished = gameEnded || gameStatus === "FINISHED";
+  
+  // Estados de loading para bloquear ações durante requisições
+  const [isAttacking, setIsAttacking] = useState(false);
+  const [isAllocating, setIsAllocating] = useState(false);
+
   const setAllocating = useAllocateStore.getState().setAllocating;
-  const unallocatedArmies = useAllocateStore((s) => s.unallocatedArmies);
+
+  const [ataque, setAtaque] = useState(false);
+  const [fronteiraDefense, setFronteiraDefense] = useState(false);
+  const setFronteiras = useAttackStore.getState().setFronteiras;
+  const fronteiras = useAttackStore.getState().fronteiras;
+  const atacanteId = useAttackStore.getState().atacanteId;
+  const defensorId = useAttackStore.getState().defensorId;
+  const setAtacanteId = useAttackStore.getState().setAtacanteId;
+  const setDefensorId = useAttackStore.getState().setDefensorId;
+  const resetAttack = useAttackStore.getState().resetAttack;
 
   // Use lightweight game actions to avoid initializing WebSocket per territory
-  const { allocateTroops } = useGame();
+  const { allocateTroops, attack } = useGame();
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [portalRect, setPortalRect] = useState<DOMRect | null>(null);
+  const [ataqueNum, setAtaqueNum] = useState<number>(1);
 
   // pega o mapa de cores do jogo (persistido)
   const territoriesColors = useGameStore((s) => s.territoriesColors);
-  // get the current lobby/game id from the store (don't call a setter here)
-  const lobbyId = useLobbyStore((s) => s.currentLobbyId);
+
+  // Quando este território estiver na lista de fronteiras, ele deve aparecer acima do fundo (overlay)
+  useEffect(() => {
+    const isBorder = !!fronteiras?.find((f) => f === territorio.nome);
+    setFronteiraDefense(isBorder);
+
+    if (isBorder) {
+      // Garante que teremos o retângulo para renderizar a cópia em portal acima do overlay
+      if (svgRef.current) {
+        try {
+          setPortalRect(svgRef.current.getBoundingClientRect());
+        } catch {
+          setPortalRect(null);
+        }
+      }
+    } else {
+      // Se não está em fronteira e não estamos em outros overlays, podemos liberar o rect
+      if (!aloca && !ataque) {
+        setPortalRect(null);
+      }
+    }
+  }, [fronteiras, territorio.nome, aloca, ataque]);
+
+  function handleAttackClick(territoryId: number) {
+    // 🔒 Bloqueia interação se o jogo terminou
+    if (isGameFinished) {
+      return;
+    }
+    
+    console.log("🖱️ Clique em território - ID:", territoryId, "Nome:", territorio.nome);
+    console.log("🔍 DEBUG overrideColor RAW:", {
+      overrideColor,
+      allocatedArmie: overrideColor?.allocatedArmie,
+      staticArmies_raw: overrideColor?.staticArmies,
+      movedInArmies_raw: overrideColor?.movedInArmies
+    });
+    
+    if (!atacanteId) {
+      console.log("📍 Tentando selecionar ATACANTE");
+      console.log("  - Tropas totais:", allocatedArmies);
+      console.log("  - Tropas estáticas (podem atacar):", staticArmies);
+      console.log("  - Tropas movidas (não podem atacar):", movedInArmies);
+      
+      // Se tem tropas movidas (≥1), pode atacar com qualquer quantidade de static
+      // Se não tem tropas movidas, precisa de static > 1 (para deixar 1 no território)
+      const canAttack = movedInArmies >= 1 ? staticArmies >= 1 : staticArmies > 1;
+      
+      if (canAttack) {
+        console.log("✅ Pode atacar:", {
+          staticArmies,
+          movedInArmies,
+          reason: movedInArmies >= 1 
+            ? "Tem tropas movidas (garantem ocupação)" 
+            : "Tropas estáticas suficientes (>1)"
+        });
+        
+        const myId = useGameStore.getState().player?.id;
+        const ownerId = overrideColor?.ownerId ?? null;
+        
+        console.log("🔍 Validação de OWNERSHIP na seleção:");
+        console.log("  - Meu player.id:", myId);
+        console.log("  - Owner do território:", ownerId);
+        console.log("  - overrideColor completo:", overrideColor);
+        console.log("  - Match?:", String(ownerId) === String(myId));
+        
+        if (ownerId == null || String(ownerId) !== String(myId)) {
+          console.error("❌ Território não pertence ao jogador!");
+          alert("Deve selecionar um território dominado por você");
+          return;
+        }
+        
+        console.log("✅ Território confirmado como SEU! Selecionando como atacante...");
+        setAtacanteId(territoryId);
+        console.log("💾 atacanteId salvo no store:", territoryId);
+        
+        // Filtra apenas fronteiras inimigas comparando ownerId com o jogador atual
+        const enemyBorders = (territorio.fronteiras || []).filter((borderName) => {
+          const info = resolveTerritoryInfoByName(borderName);
+          const borderOwnerId = info?.ownerId ?? null;
+          return borderOwnerId == null || String(borderOwnerId) !== String(myId);
+        });
+        
+        console.log("🗡️ Fronteiras inimigas encontradas:", enemyBorders);
+        
+        if (enemyBorders.length === 0) {
+          alert("Não há territórios inimigos adjacentes para atacar.");
+          resetAttack();
+          return;
+        }
+        setFronteiras(enemyBorders);
+        
+        setAtaque(true)
+      } else {
+        console.warn("⚠️ Não pode atacar:", {
+          staticArmies,
+          movedInArmies,
+          reason: movedInArmies >= 1 
+            ? "Precisa de pelo menos 1 static army" 
+            : "Precisa de mais de 1 static army (para deixar 1 no território)"
+        });
+        alert(
+          movedInArmies >= 1
+            ? "Você precisa de pelo menos 1 tropa estática para atacar"
+            : "Você precisa de mais de 1 tropa estática para atacar (deve deixar 1 no território)"
+        );
+      }
+      return;
+    }
+
+    // Seleção do defensor (somente se for fronteira)
+    if (atacanteId && !defensorId) {
+      console.log("📍 Tentando selecionar DEFENSOR");
+      const isBorder = fronteiras?.includes?.(territorio.nome);
+      console.log("  - É fronteira?:", isBorder);
+      console.log("  - Lista de fronteiras:", fronteiras);
+      
+      if (isBorder) {
+        console.log("✅ Território válido como defensor!");
+        setDefensorId(territoryId);
+        console.log("💾 defensorId salvo no store:", territoryId);
+        setGameHUD("ATTACK");
+        // AttackHUD será exibido quando defensorId estiver definido
+      } else {
+        console.warn("⚠️ Território não é adjacente ao atacante");
+      }
+      return;
+    }
+  }
+
+  async function confirmarAtaque() {
+    
+    if (!atacanteId || !defensorId) return;
+    
+    // Bloqueia múltiplos cliques
+    if (isAttacking) {
+      console.log("⏳ Ataque já em andamento, aguarde...");
+      return;
+    }
+    
+    setIsAttacking(true);
+    
+    // 🔍 VALIDAÇÃO: Verificar se o território atacante realmente pertence ao jogador
+    const myId = useGameStore.getState().player?.id;
+    let territoriesColors = useGameStore.getState().territoriesColors;
+    
+    console.log("🔍 ===== DEBUG COMPLETO DO ATAQUE =====");
+    console.log("📊 Meu ID de jogador:", myId);
+    console.log("⚔️ Território Atacante ID:", atacanteId);
+    console.log("🛡️ Território Defensor ID:", defensorId);
+    console.log("🎲 Número de dados:", ataqueNum);
+    console.log("🗺️ Mapa completo de territórios (territoriesColors):", territoriesColors);
+    
+    // 🔄 ATUALIZAÇÃO: Buscar estado mais recente do jogo antes de atacar
+    console.log("🔄 Buscando estado atualizado do jogo...");
+    try {
+      const currentGame = await gameService.getCurrentGame();
+      if (currentGame && currentGame.gameTerritories) {
+        console.log("✅ Estado do jogo atualizado recebido:", currentGame);
+        const updatedColors = extractTerritoryInfo(currentGame as GameStateResponseDto);
+        useGameStore.getState().setTerritoriesColors(updatedColors);
+        territoriesColors = updatedColors;
+        console.log("🆕 Mapa de territórios atualizado:", territoriesColors);
+      }
+    } catch {
+      console.warn("⚠️ Não foi possível atualizar o estado do jogo, continuando com dados locais");
+    }
+    
+    // Encontrar informações do território atacante no mapa
+    let atacanteInfo = null;
+    let atacanteKey = null;
+    
+    for (const [key, value] of Object.entries(territoriesColors)) {
+      if (value.id === atacanteId) {
+        atacanteInfo = value;
+        atacanteKey = key;
+        break;
+      }
+    }
+    
+    console.log("🗺️ Informações do atacante encontradas:");
+    console.log("  - Chave:", atacanteKey);
+    console.log("  - Info completa:", atacanteInfo);
+    console.log("  - Owner ID:", atacanteInfo?.ownerId);
+    console.log("  - É meu?:", atacanteInfo?.ownerId === myId);
+    
+    // Validação CRÍTICA antes de enviar ao backend
+    if (!atacanteInfo) {
+      console.error("❌ ERRO: Território atacante não encontrado no mapa!");
+      alert("Erro: Território atacante não identificado. Tente novamente.");
+      resetAttack();
+      setAtaque(false);
+      setIsAttacking(false);
+      return;
+    }
+    
+    if (atacanteInfo.ownerId !== myId) {
+      console.error("❌ ERRO DE OWNERSHIP:");
+      console.error("  - Owner real do território:", atacanteInfo.ownerId);
+      console.error("  - Meu ID:", myId);
+      console.error("  - Território:", atacanteKey);
+      alert(`Este território não pertence a você!\nDono: ${atacanteInfo.ownerId}, Você: ${myId}`);
+      resetAttack();
+      setAtaque(false);
+      setIsAttacking(false);
+      return;
+    }
+    
+    console.log("✅ Validação OK! Território pertence ao jogador. Enviando ataque...");
+    
+    // 🎬 Trigger attack animation
+    console.log("🎬 ========== STARTING ATTACK ANIMATION SETUP ==========");
+    console.log("🎬 IDs:", { atacanteId, defensorId });
+    console.log("🎬 Attacker key:", atacanteKey);
+    
+    try {
+      // Find defender territory info
+      let defensorInfo = null;
+      let defensorKey = null;
+      
+      console.log("🔍 Searching for defender in territoriesColors...");
+      for (const [key, value] of Object.entries(territoriesColors)) {
+        if (value.id === defensorId) {
+          defensorInfo = value;
+          defensorKey = key;
+          console.log("✅ Defender found:", { key, value });
+          break;
+        }
+      }
+      
+      console.log("🔍 Defender search result:", { defensorInfo, defensorKey });
+      
+      if (defensorInfo && defensorKey) {
+        console.log("🔍 Searching for SVG data...");
+        console.log("🔍 ALL_TERRITORIES count:", ALL_TERRITORIES.length);
+        console.log("🔍 Looking for atacante:", atacanteKey);
+        console.log("🔍 Looking for defensor:", defensorKey);
+        
+        // Helper function to normalize territory names for comparison
+        const normalizeForComparison = (name: string) => {
+          return name
+            .toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Remove acentos
+            .replace(/\s+/g, ""); // Remove espaços
+        };
+        
+        // Find SVG data for both territories by their normalized names
+        const atacanteSVG = ALL_TERRITORIES.find(
+          t => normalizeForComparison(t.nome) === normalizeForComparison(atacanteKey || "")
+        );
+        const defensorSVG = ALL_TERRITORIES.find(
+          t => normalizeForComparison(t.nome) === normalizeForComparison(defensorKey)
+        );
+        
+        console.log("🔍 SVG search result:", { 
+          atacanteSVG: atacanteSVG ? atacanteSVG.nome : null, 
+          defensorSVG: defensorSVG ? defensorSVG.nome : null 
+        });
+        
+        if (atacanteSVG && defensorSVG) {
+          // Convert cx/cy strings to numbers and ADD to x/y base position
+          const startPos = {
+            x: parseFloat(atacanteSVG.x) + parseFloat(atacanteSVG.cx),
+            y: parseFloat(atacanteSVG.y) + parseFloat(atacanteSVG.cy)
+          };
+          const endPos = {
+            x: parseFloat(defensorSVG.x) + parseFloat(defensorSVG.cx),
+            y: parseFloat(defensorSVG.y) + parseFloat(defensorSVG.cy)
+          };
+          
+          console.log("📍 Positions extracted:", { startPos, endPos });
+          
+          // Get current map transform
+          const mapTransform = useMapStore.getState();
+          
+          console.log("🗺️ Map transform:", mapTransform);
+          
+          // Trigger animation with map transform
+          console.log("🚀 Calling startAttackAnimation...");
+          useAttackAnimationStore.getState().startAttackAnimation(
+            startPos, 
+            endPos, 
+            { x: mapTransform.position.x, y: mapTransform.position.y, zoom: mapTransform.zoom }
+          );
+          console.log("🎬 ✅ Animation triggered successfully!");
+        } else {
+          console.warn("⚠️ SVG data not found for animation:", { atacanteSVG: !!atacanteSVG, defensorSVG: !!defensorSVG });
+        }
+      } else {
+        console.warn("⚠️ Defender info not found:", { defensorId, defensorInfo, defensorKey });
+      }
+    } catch (animError) {
+      console.warn("⚠️ Failed to trigger animation:", animError);
+      // Continue with attack even if animation fails
+    }
+    
+    try {
+      await attack(atacanteId, defensorId, ataqueNum);
+      // Após enviar o ataque, limpa seleção e fecha overlay/HUD
+      setAtaque(false);
+      resetAttack();
+      setFronteiraDefense(false);
+    } catch {
+      // erro já tratado no hook; mantém HUD aberto para tentar novamente
+    } finally {
+      setIsAttacking(false);
+    }
+  }
+
+  function cancelarAtaque(){
+    resetAttack()
+    setGameHUD("DEFAULT")
+    setAtaque(false)
+  }
 
   async function AlocarTropa() {
-    if(unallocatedArmies<=0){
-      alert("Não possui mais solçdados para alocar")
-      return
+    // Bloqueia múltiplos cliques
+    if (isAllocating) {
+      console.log("⏳ Alocação já em andamento, aguarde...");
+      return;
     }
-    // try to resolve the territory id from the persisted territoriesColors map
-    const info =
-      overrideColor && typeof overrideColor === "object"
-        ? (overrideColor as { id?: number })
-        : territoriesColors[normalizedKey] || territoriesColors[rawKey] || territoriesColors[rawKey.toUpperCase?.()];
+    
+    setIsAllocating(true);
+    
+    // Pega o valor mais recente do store
+    const currentUnallocatedArmies = useAllocateStore.getState().unallocatedArmies;
+    
+    console.log("🎯 AlocarTropa - Estado:", {
+      currentUnallocatedArmies,
+      alocaNum,
+      territorio: territorio.nome
+    });
+    
+    if (currentUnallocatedArmies <= 0) {
+      alert("Não possui mais soldados para alocar");
+      console.warn("❌ Sem tropas para alocar:", currentUnallocatedArmies);
+      setIsAllocating(false);
+      return;
+    }
+    const info = overrideColor ||
+      territoriesColors[normalizedKey] ||
+      territoriesColors[rawKey] ||
+      territoriesColors[rawKey.toUpperCase?.()];
 
-    const territoryId = info && typeof info.id !== "undefined" ? Number(info.id) : null;
+    const territoryId = info?.id != null ? Number(info.id) : null;
+
+    console.log("🗺️ Territory ID resolvido:", territoryId);
 
     if (!territoryId) {
-      console.warn("Não foi possível resolver o id do território para:", territorio.nome);
+      console.warn(
+        "Não foi possível resolver o id do território para:",
+        territorio.nome
+      );
       setAloca(false);
       setAllocating(false);
+      setGameHUD("DEFAULT");
+      setPortalRect(null);
+      setIsAllocating(false);
       return;
     }
 
-    if (!lobbyId) {
-      console.warn("Lobby/game id não disponível no store");
-      setAloca(false);
-      setAllocating(false);
-      return;
-    }
+    // allocateTroops já pega o gameId internamente do store
+    // e se não tiver, busca automaticamente do backend
 
     try {
-  await allocateTroops(territoryId,alocaNum)
-  useAllocateStore.getState().setUnallocatedArmies(unallocatedArmies-alocaNum)
+      console.log("📤 Enviando alocação:", { territoryId, alocaNum });
+      await allocateTroops(territoryId, alocaNum);
+      
+      const newValue = currentUnallocatedArmies - alocaNum;
+      console.log("✅ Alocação bem-sucedida! Atualizando unallocatedArmies:", {
+        antes: currentUnallocatedArmies,
+        alocado: alocaNum,
+        depois: newValue
+      });
+      
+      useAllocateStore
+        .getState()
+        .setUnallocatedArmies(newValue);
+      
+      // Limpa todos os estados após sucesso
       setAloca(false);
+      setAllocating(false);
+      setGameHUD("DEFAULT");
+      setPortalRect(null);
+      setAlocaNum(1); // Reseta o valor de alocação para o valor inicial
     } catch (err) {
-      console.error("Erro ao alocar tropas:", err);
+      console.error("❌ Erro ao alocar tropas:", err);
       // show a simple user feedback; keep UI open so user can retry
       try {
-        alert((err as any)?.response?.data || "Falha ao alocar tropas. Tente novamente.");
-      } catch (e) {
+        const errorMessage = err instanceof Error 
+          ? err.message 
+          : typeof err === 'object' && err !== null && 'response' in err
+          ? (err as { response?: { data?: string } }).response?.data
+          : "Falha ao alocar tropas. Tente novamente.";
+        alert(errorMessage || "Falha ao alocar tropas. Tente novamente.");
+      } catch {
         // ignore alert failures in non-browser contexts
       }
+      // Em caso de erro, NÃO limpa os estados para permitir retry
     } finally {
-      setAllocating(false);
+      setIsAllocating(false);
     }
   }
 
@@ -150,10 +552,10 @@ export default function Territory(territorio: TerritorySVG) {
   }, [territoriesColors, rawKey, normalizedKey]);
 
   // Ensure computedFill is always a string (extract color if object)
-  const getFillColor = (fill: any): string =>
+  const getFillColor = (fill: string | TerritoryInfo | null): string =>
     typeof fill === "string"
       ? fill
-      : fill && typeof fill.color === "string"
+      : fill && typeof fill === "object" && typeof fill.color === "string"
       ? fill.color
       : territorio.corEscura;
 
@@ -167,41 +569,118 @@ export default function Territory(territorio: TerritorySVG) {
 
   // Valor atual de exército alocado vindo do estado do jogo (mapa de territoriesColors)
   const allocatedArmies = useMemo(() => {
-    const oc: any = overrideColor;
-    if (oc && typeof oc === "object" && oc.allocatedArmie != null) {
-      const n = Number(oc.allocatedArmie);
-      return Number.isFinite(n) ? n : 0;
-    }
-    return 0;
+    if (!overrideColor?.allocatedArmie) return 0;
+    const n = Number(overrideColor.allocatedArmie);
+    return Number.isFinite(n) ? n : 0;
   }, [overrideColor]);
 
-  function Alocar() {
-    // ownerId can come from the overrideColor object (populated from territoriesColors)
-    const ownerId =
-      overrideColor && typeof overrideColor === "object"
-        ? (overrideColor as any).ownerId
-        : null;
-    const myId = useGameStore.getState().player?.id
-    console.log(myId)
+  // Tropas estáticas (que podem atacar)
+  const staticArmies = useMemo(() => {
+    if (!overrideColor?.staticArmies) return 0;
+    const n = Number(overrideColor.staticArmies);
+    return Number.isFinite(n) ? n : 0;
+  }, [overrideColor]);
 
-    // compare as strings to be robust to number/string id shapes
+  // Tropas movidas (que NÃO podem atacar)
+  const movedInArmies = useMemo(() => {
+    if (!overrideColor?.movedInArmies) return 0;
+    const n = Number(overrideColor.movedInArmies);
+    return Number.isFinite(n) ? n : 0;
+  }, [overrideColor]);
+
+  // Tropas disponíveis para USAR NO ATAQUE
+  // Se tem movedInArmies ≥ 1: pode usar TODAS as staticArmies
+  // Se não tem movedInArmies: pode usar staticArmies - 1 (precisa deixar 1)
+  const availableForAttack = useMemo(() => {
+    if (movedInArmies >= 1) {
+      return staticArmies; // Pode usar todas
+    }
+    return Math.max(0, staticArmies - 1); // Precisa deixar 1 no território
+  }, [staticArmies, movedInArmies]);
+
+  // Verifica se este território é o atacante ou defensor selecionado
+  // IMPORTANTE: Deve vir DEPOIS de overrideColor ser definido
+  const myTerritoryId = getId();
+  const isAttacker = atacanteId != null && myTerritoryId === atacanteId;
+  const isDefender = defensorId != null && myTerritoryId === defensorId;
+  const isBattleParticipant = isAttacker || isDefender;
+  const bothSelected = atacanteId != null && defensorId != null;
+
+    // Resolve informações do território a partir do nome usando a mesma estratégia de normalização
+  function resolveTerritoryInfoByName(name: string): TerritoryInfo | undefined {
+    const keyRaw = (name && String(name).trim()) || "";
+    const keyNorm = normalize(keyRaw);
+    if (territoriesColors[keyNorm]) return territoriesColors[keyNorm];
+    if (territoriesColors[keyRaw]) return territoriesColors[keyRaw];
+    const keyUpper = keyRaw.toUpperCase();
+    if (keyUpper && territoriesColors[keyUpper]) return territoriesColors[keyUpper];
+
+    for (const k in territoriesColors) {
+      const kn = normalize(k);
+      if (kn === keyNorm) return territoriesColors[k];
+      if (kn.includes(keyNorm) || keyNorm.includes(kn)) return territoriesColors[k];
+    }
+    return undefined;
+  }
+
+
+  function getId(): number | null {
+    // Resolve o id do território deste componente usando o mapa persistido
+    const info: TerritoryInfo | null =
+      (overrideColor && typeof overrideColor === "object"
+        ? (overrideColor as TerritoryInfo)
+        : territoriesColors[normalizedKey] ||
+          territoriesColors[rawKey] ||
+          territoriesColors[rawKey.toUpperCase()]) || null;
+
+    const territoryId = info?.id != null ? Number(info.id) : null;
+    
+    return Number.isFinite(territoryId as number) ? (territoryId as number) : null;
+  }
+
+  function Alocar() {
+    // 🔒 Bloqueia interação se o jogo terminou
+    if (isGameFinished) {
+      return;
+    }
+    
+    // Verifica se é o turno do jogador
+    const isMyTurn = useGameStore.getState().isMyTurn;
+    if (!isMyTurn) {
+      console.log("❌ Não é seu turno, alocação bloqueada");
+      return;
+    }
+
+    // Verifica se está na fase de alocação
+    if (gameStatus !== "REINFORCEMENT" && gameStatus !== "SETUP_ALLOCATION") {
+      console.log("❌ Não está na fase de alocação, bloqueado");
+      return;
+    }
+
+    const ownerId = overrideColor?.ownerId ?? null;
+    const myId = useGameStore.getState().player?.id;
+    console.log(myId);
+
     if (ownerId != null && String(ownerId) == String(myId)) {
-      // align portal to the current svg if possible
+      setGameHUD("ALLOCATION")
+      
       if (svgRef.current) {
         try {
           setPortalRect(svgRef.current.getBoundingClientRect());
-        } catch (e) {
+        } catch {
           setPortalRect(null);
         }
       }
       setAloca(true);
       setAllocating(true);
+    } else {
+      console.log("❌ Território não pertence ao jogador");
     }
   }
 
   return (
     <div>
-      <div style={{ zIndex: !aloca ? 5 : 1 }}>
+  <div style={{ zIndex:44 }}>
         <svg
           ref={svgRef}
           width={territorio.width}
@@ -212,7 +691,7 @@ export default function Territory(territorio: TerritorySVG) {
             top: `${territorio.top}`,
             right: `${territorio.rigth}`,
             left: `${territorio.left}`,
-            zIndex: aloca ? 5 : 1,
+            zIndex: 44,
             // hide original while portal copy is visible to avoid duplicate visuals
             visibility: aloca ? "hidden" : "visible",
           }}
@@ -223,11 +702,17 @@ export default function Territory(territorio: TerritorySVG) {
               if (svgRef.current) {
                 try {
                   setPortalRect(svgRef.current.getBoundingClientRect());
-                } catch (e) {
+                } catch {
                   setPortalRect(null);
                 }
               }
-              Alocar();
+              if(gameStatus=="REINFORCEMENT" || gameStatus=="SETUP_ALLOCATION"){
+                  Alocar();
+              }else if(gameStatus=="ATTACK"){
+                const id = getId();
+                console.log("id:",id)
+                if (id != null) handleAttackClick(id);
+              }
             }}
           >
             <path d={territorio.d1} fill={computedFill} />
@@ -241,6 +726,38 @@ export default function Territory(territorio: TerritorySVG) {
                 fill={computedFill}
               />
             ) : null}
+            
+            {/* Destaque quando ambos territórios estão selecionados */}
+            {bothSelected && isBattleParticipant && (
+              <>
+                <path 
+                  d={territorio.d1} 
+                  fill="none"
+                  stroke={isAttacker ? "#FFD700" : "#FF4444"}
+                  strokeWidth="4"
+                  strokeDasharray="10,5"
+                  opacity="0.8"
+                  style={{
+                    animation: "pulse 1.5s ease-in-out infinite",
+                    filter: "drop-shadow(0 0 8px currentColor)"
+                  }}
+                />
+                {territorio.d2 && (
+                  <path 
+                    d={territorio.d2} 
+                    fill="none"
+                    stroke={isAttacker ? "#FFD700" : "#FF4444"}
+                    strokeWidth="4"
+                    strokeDasharray="10,5"
+                    opacity="0.8"
+                    style={{
+                      animation: "pulse 1.5s ease-in-out infinite",
+                      filter: "drop-shadow(0 0 8px currentColor)"
+                    }}
+                  />
+                )}
+              </>
+            )}
           </g>
 
           {/* Esfera de soldados */}
@@ -323,6 +840,29 @@ export default function Territory(territorio: TerritorySVG) {
             onClick={() => {
               setAloca(false);
               setAllocating(false);
+              resetAttack()
+            }}
+            style={{
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              zIndex: 5,
+              width: "100vw",
+              height: "100vh",
+              position: "fixed",
+              top: 0,
+              left: 0,
+            }}
+          ></div>,
+          document.body
+        )}
+
+      {/* Overlay de ataque */}
+      {ataque &&
+        createPortal(
+          <div
+            onClick={() => {
+              setAtaque(false);
+              resetAttack();
+              setFronteiraDefense(false);
             }}
             style={{
               backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -338,7 +878,7 @@ export default function Territory(territorio: TerritorySVG) {
         )}
 
       {/* Portal copy of the clicked SVG so it stays above the overlay */}
-      {aloca && portalRect
+      {(aloca || ataque || fronteiraDefense) && portalRect
         ? createPortal(
             <div
               style={{
@@ -349,14 +889,20 @@ export default function Territory(territorio: TerritorySVG) {
                 height: portalRect.height + "px",
                 // allow interaction with the clicked SVG while overlay is visible
                 pointerEvents: "auto",
-                zIndex: 6,
+                zIndex: 44,
               }}
             >
               <svg
                 width={portalRect.width}
                 height={portalRect.height}
                 viewBox={`0 0 ${portalRect.width} ${portalRect.height}`}
-                style={{ display: "block" }}
+                style={{ display: "block", cursor: "pointer" }}
+                onClick={() => {
+                  if (gameStatus === "ATTACK") {
+                    const id = getId();
+                    if (id != null) handleAttackClick(id);
+                  }
+                }}
                 aria-hidden
               >
                 <g>
@@ -371,6 +917,38 @@ export default function Territory(territorio: TerritorySVG) {
                       fill={computedFill}
                     />
                   ) : null}
+                  
+                  {/* Destaque quando ambos territórios estão selecionados (Portal) */}
+                  {bothSelected && isBattleParticipant && (
+                    <>
+                      <path 
+                        d={territorio.d1} 
+                        fill="none"
+                        stroke={isAttacker ? "#FFD700" : "#FF4444"}
+                        strokeWidth="4"
+                        strokeDasharray="10,5"
+                        opacity="0.8"
+                        style={{
+                          animation: "pulse 1.5s ease-in-out infinite",
+                          filter: "drop-shadow(0 0 8px currentColor)"
+                        }}
+                      />
+                      {territorio.d2 && (
+                        <path 
+                          d={territorio.d2} 
+                          fill="none"
+                          stroke={isAttacker ? "#FFD700" : "#FF4444"}
+                          strokeWidth="4"
+                          strokeDasharray="10,5"
+                          opacity="0.8"
+                          style={{
+                            animation: "pulse 1.5s ease-in-out infinite",
+                            filter: "drop-shadow(0 0 8px currentColor)"
+                          }}
+                        />
+                      )}
+                    </>
+                  )}
                 </g>
 
                 <g>
@@ -401,7 +979,7 @@ export default function Territory(territorio: TerritorySVG) {
                       filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))",
                     }}
                   >
-                    {alocaNum}
+                    {allocatedArmies}
                   </text>
                 </g>
                 {territorio.nome != "MADAGASCAR" ? (
@@ -431,12 +1009,33 @@ export default function Territory(territorio: TerritorySVG) {
             document.body
           )
         : null}
-      {aloca && portalRect
+      {/* Attack HUD: renderiza apenas no território atacante selecionado e quando já há defensor */}
+      {gameHUD==="ATTACK" && atacanteId != null && getId() === atacanteId
+        ? createPortal(
+            <AttackHUD
+            allocatedArmies={availableForAttack}
+              ataqueNum={ataqueNum}
+              setAtaqueNum={setAtaqueNum}
+              Atacar={confirmarAtaque}
+              cancelarAtaque={cancelarAtaque}
+              isLoading={isAttacking}
+            />,
+            document.body
+          )
+        : null}
+      {gameHUD=="ALLOCATION" && portalRect
         ? createPortal(
             <AllocateHUD
               AlocarTropa={AlocarTropa}
               alocaNum={alocaNum}
               setAlocaNum={setAlocaNum}
+              isLoading={isAllocating}
+              onClose={() => {
+                setGameHUD("DEFAULT");
+                setAloca(false);
+                setAllocating(false);
+                setPortalRect(null);
+              }}
             />,
             document.body
           )
