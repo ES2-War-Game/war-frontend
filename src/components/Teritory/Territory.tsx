@@ -108,19 +108,19 @@ export default function Territory(territorio: TerritorySVG) {
   const setDefensorId = useAttackStore.getState().setDefensorId;
   const resetAttack = useAttackStore.getState().resetAttack;
 
-  const setMoveCount = useMovementStore.getState().setMoveCount
-  const [movement,setMove] = useState(false)
-  const fronteirasMove = useMovementStore.getState().fronteiras
-  const setfronteirasMove= useMovementStore.getState().setFronteiras
-  const sourceTerritoryId = useMovementStore.getState().sourceTerritoryId
-  const targetTerritoryId = useMovementStore.getState().targetTerritoryId
-  const moveCount = useMovementStore.getState().moveCount
+  const setMoveCount = useMovementStore.getState().setMoveCount;
+  const [movement, setMove] = useState(false);
+  const fronteirasMove = useMovementStore.getState().fronteiras;
+  const setfronteirasMove = useMovementStore.getState().setFronteiras;
+  const sourceTerritoryId = useMovementStore.getState().sourceTerritoryId;
+  const targetTerritoryId = useMovementStore.getState().targetTerritoryId;
+  const moveCount = useMovementStore.getState().moveCount;
   const setSourceId = useMovementStore.getState().setSourceId;
   const setTargetId = useMovementStore.getState().setTargetId;
   const resetMove = useMovementStore.getState().resetMove;
 
   // Use lightweight game actions to avoid initializing WebSocket per territory
-  const { allocateTroops, attack,move } = useGame();
+  const { allocateTroops, attack, move } = useGame();
 
   const svgRef = useRef<SVGSVGElement | null>(null);
   const [portalRect, setPortalRect] = useState<DOMRect | null>(null);
@@ -130,9 +130,9 @@ export default function Territory(territorio: TerritorySVG) {
   // pega o mapa de cores do jogo (persistido)
   const territoriesColors = useGameStore((s) => s.territoriesColors);
 
-  useEffect(()=>{
-    setMoveCount(moveNum)
-  },[moveNum])
+  useEffect(() => {
+    setMoveCount(moveNum);
+  }, [moveNum]);
 
   // Quando este território estiver na lista de fronteiras, ele deve aparecer acima do fundo (overlay)
   useEffect(() => {
@@ -160,7 +160,7 @@ export default function Territory(territorio: TerritorySVG) {
     const isBorderMove = !!fronteirasMove?.find((f) => f === territorio.nome);
     setFronteiraDefenseMove(isBorderMove);
 
-    if ( isBorderMove) {
+    if (isBorderMove) {
       // Garante que teremos o retângulo para renderizar a cópia em portal acima do overlay
       if (svgRef.current) {
         try {
@@ -424,7 +424,7 @@ export default function Territory(territorio: TerritorySVG) {
         );
         useGameStore.getState().setTerritoriesColors(updatedColors);
         territoriesColors = updatedColors;
-        setGameHUD("DEFAULT")
+        setGameHUD("DEFAULT");
         console.log("🆕 Mapa de territórios atualizado:", territoriesColors);
       }
     } catch {
@@ -598,7 +598,7 @@ export default function Territory(territorio: TerritorySVG) {
     setAtaque(false);
   }
 
-  function handleMoveClick(territoryId: number){
+  function handleMoveClick(territoryId: number) {
     if (isGameFinished) {
       return;
     }
@@ -618,9 +618,7 @@ export default function Territory(territorio: TerritorySVG) {
 
       // Se tem tropas movidas (≥1), pode atacar com qualquer quantidade de static
       // Se não tem tropas movidas, precisa de static > 1 (para deixar 1 no território)
-      const canMove =
-        movedInArmies >= 1 ? staticArmies >= 1 : staticArmies > 1;
-
+      const canMove = movedInArmies >= 1 ? staticArmies >= 1 : staticArmies > 1;
 
       if (canMove) {
         console.log("✅ Pode atacar:", {
@@ -709,12 +707,12 @@ export default function Territory(territorio: TerritorySVG) {
       }
       return;
     }
-    
   }
 
-  async function confirmarMove(){
+  async function confirmarMove() {
     if (!sourceTerritoryId || !targetTerritoryId) return;
-
+    console.log("chegoun aquo");
+    console.log(isMoving);
     // Bloqueia múltiplos cliques
     if (isMoving) {
       console.log("⏳ Movimento já em andamento, aguarde...");
@@ -726,10 +724,9 @@ export default function Territory(territorio: TerritorySVG) {
     // 🔍 VALIDAÇÃO: Verificar se o território atacante realmente pertence ao jogador
     const myId = useGameStore.getState().player?.id;
     let territoriesColors = useGameStore.getState().territoriesColors;
-    if(!moveCount){
-      setMoveCount(moveNum)
+    if (!moveCount) {
+      setMoveCount(moveNum);
     }
-    
 
     console.log("🔍 ===== DEBUG COMPLETO DO MOVIMENTO =====");
     console.log("📊 Meu ID de jogador:", myId);
@@ -783,7 +780,7 @@ export default function Territory(territorio: TerritorySVG) {
       console.error("❌ ERRO: Território origem não encontrado no mapa!");
       alert("Erro: Território origem não identificado. Tente novamente.");
       resetMove();
-      setGameHUD("DEFAULT")
+      setGameHUD("DEFAULT");
       setAtaque(false);
       setIsAttacking(false);
       return;
@@ -800,7 +797,7 @@ export default function Territory(territorio: TerritorySVG) {
       resetAttack();
       setAtaque(false);
       setIsAttacking(false);
-      setGameHUD("DEFAULT")
+      setGameHUD("DEFAULT");
       return;
     }
 
@@ -909,21 +906,21 @@ export default function Territory(territorio: TerritorySVG) {
     }
 
     try {
-      if(!moveCount){
-        return
+      if (!moveCount) {
+        return;
       }
       await move(sourceTerritoryId, targetTerritoryId, moveCount);
       // Após enviar o ataque, limpa seleção e fecha overlay/HUD
       setMove(false);
       resetMove();
       setFronteiraDefense(false);
-      setMoveNum(1)
+      setMoveNum(1);
+      setIsMoving(false);
     } catch {
       // erro já tratado no hook; mantém HUD aberto para tentar novamente
     } finally {
       setIsAttacking(false);
     }
-
   }
 
   function cancelarMove() {
@@ -1100,6 +1097,7 @@ export default function Territory(territorio: TerritorySVG) {
   return (
     <div>
       <div style={{ zIndex: 44 }}>
+        
         <svg
           ref={svgRef}
           width={territorio.width}
@@ -1134,7 +1132,7 @@ export default function Territory(territorio: TerritorySVG) {
                 const id = getId();
                 console.log("id:", id);
                 if (id != null) handleAttackClick(id);
-              } else if (gameStatus=="MOVEMENT"){
+              } else if (gameStatus == "MOVEMENT") {
                 const id = getId();
                 console.log("id:", id);
                 if (id != null) handleMoveClick(id);
@@ -1249,6 +1247,7 @@ export default function Territory(territorio: TerritorySVG) {
               style={{
                 pointerEvents: "none",
                 userSelect: "none",
+
                 paintOrder: "stroke", // desenha o contorno primeiro
                 stroke: "black", // cor do contorno
                 strokeWidth: "2px", // espessura do contorno
@@ -1259,6 +1258,7 @@ export default function Territory(territorio: TerritorySVG) {
             </text>
           ) : null}
         </svg>
+        
       </div>
       {aloca &&
         createPortal(
@@ -1290,8 +1290,8 @@ export default function Territory(territorio: TerritorySVG) {
               setAtaque(false);
               resetAttack();
               setFronteiraDefense(false);
-              setMove(false)
-              resetMove()
+              setMove(false);
+              resetMove();
               setGameHUD("DEFAULT");
             }}
             style={{
@@ -1308,7 +1308,12 @@ export default function Territory(territorio: TerritorySVG) {
         )}
 
       {/* Portal copy of the clicked SVG so it stays above the overlay */}
-      {(aloca || ataque || movement || fronteiraDefense || fronteiraDefenseMove) && portalRect
+      {(aloca ||
+        ataque ||
+        movement ||
+        fronteiraDefense ||
+        fronteiraDefenseMove) &&
+      portalRect
         ? createPortal(
             <div
               style={{
@@ -1322,6 +1327,7 @@ export default function Territory(territorio: TerritorySVG) {
                 zIndex: 44,
               }}
             >
+              
               <svg
                 width={portalRect.width}
                 height={portalRect.height}
@@ -1438,6 +1444,7 @@ export default function Territory(territorio: TerritorySVG) {
                   </text>
                 ) : null}
               </svg>
+              
             </div>,
             document.body
           )
@@ -1456,7 +1463,9 @@ export default function Territory(territorio: TerritorySVG) {
             document.body
           )
         : null}
-        {gameHUD === "MOVEMENT" && sourceTerritoryId != null && getId() === sourceTerritoryId
+      {gameHUD === "MOVEMENT" &&
+      sourceTerritoryId != null &&
+      getId() === sourceTerritoryId
         ? createPortal(
             <MoveHUD
               allocatedArmies={availableForAttack}
@@ -1464,7 +1473,6 @@ export default function Territory(territorio: TerritorySVG) {
               cancelarMove={cancelarMove}
               moveNum={moveNum}
               setMoveNum={setMoveNum}
-
             />,
             document.body
           )
