@@ -5,6 +5,7 @@ import GameHUD from "../../components/GameHUD/gameHUD";
 import ObjectiveButton from "../../components/ObjectiveButton/ObjectiveButton";
 import GameEndModal from "../../components/GameEndModal/GameEndModal";
 import GameEndViewHUD from "../../components/GameEndViewHUD/GameEndViewHUD";
+import ContinentInfo from "../../components/ContinentInfo/ContinentInfo";
 // import AttackAnimation from "../../components/AttackAnimation/AttackAnimation";
 import { useGameStore } from "../../store/useGameStore";
 import { useMapStore } from "../../store/useMapStore";
@@ -436,6 +437,7 @@ export default function Game() {
         {gameHUD == "DEFAULT" ? <GameHUD /> : null}
       </div>
       <ObjectiveButton />
+      <ContinentInfo />
 
       {/* Modal de Fim de Jogo - Aparece quando o jogo terminou E não está visualizando */}
       {(() => {

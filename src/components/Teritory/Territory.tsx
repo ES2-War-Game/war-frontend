@@ -916,6 +916,7 @@ export default function Territory(territorio: TerritorySVG) {
       setFronteiraDefense(false);
       setMoveNum(1);
       setIsMoving(false);
+      setGameHUD("DEFAULT")
     } catch {
       // erro já tratado no hook; mantém HUD aberto para tentar novamente
     } finally {

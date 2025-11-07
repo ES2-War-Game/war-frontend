@@ -1,4 +1,55 @@
+/* Animações */
+@keyframes formSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes logoFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes inputFocus {
+  0% {
+    box-shadow: 0 0 0 rgba(245, 202, 110, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 3px rgba(245, 202, 110, 0.3);
+  }
+}
+
+@keyframes buttonPulse {
+  0%, 100% {
+    box-shadow: 0 6px 20px rgba(31, 155, 95, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 8px 30px rgba(31, 155, 95, 0.6),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+}
+
+@keyframes linkGlow {
+  0%, 100% {
+    text-shadow: 0 0 10px rgba(245, 202, 110, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 20px rgba(245, 202, 110, 0.6);
+  }
+}
+
 .register {
+  position: relative;
   display: flex;
   padding: 64px;
   margin: 64px 0px;
@@ -8,20 +59,52 @@
   gap: 56px;
   border-radius: 32px;
   width: 30%;
-  background: linear-gradient(175deg, #3a3535 4.32%, #585656 96.67%);
+  background: linear-gradient(135deg, #2a2d31 0%, #3a3d42 50%, #2a2d31 100%);
+  border: 3px solid rgba(191, 166, 64, 0.5);
+  box-shadow: 0 0 40px rgba(191, 166, 64, 0.3),
+              0 20px 60px rgba(0, 0, 0, 0.6),
+              inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  animation: formSlideIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
+.register::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 32px;
+  background: linear-gradient(135deg, 
+    rgba(245, 202, 110, 0.1) 0%, 
+    transparent 50%, 
+    rgba(191, 166, 64, 0.1) 100%);
+  pointer-events: none;
+}
+
 .register img {
   width: 80%;
+  filter: drop-shadow(0 4px 15px rgba(245, 202, 110, 0.4));
+  animation: logoFloat 3s ease-in-out infinite;
+  transition: transform 0.3s ease;
 }
+
+.register img:hover {
+  transform: scale(1.05);
+}
+
 .inputs {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   width: 100%;
-
   gap: 32px;
+  position: relative;
+  z-index: 1;
 }
+
 .inputs input {
   display: flex;
   width: calc(100% - 20px);
@@ -29,32 +112,106 @@
   padding: 16px 0px 16px 22px;
   align-items: center;
   border-radius: 12px;
-  background: #dad9d9;
+  background: linear-gradient(135deg, #e8e8e8 0%, #dad9d9 100%);
   color: #000;
   font-family: Inter;
   font-size: 14px;
   font-style: normal;
   font-weight: 600;
+  border: 2px solid transparent;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2),
+              inset 0 2px 4px rgba(255, 255, 255, 0.5);
+}
+
+.inputs input:focus {
+  outline: none;
+  border-color: rgba(245, 202, 110, 0.8);
+  background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+  animation: inputFocus 0.3s ease;
+  box-shadow: 0 0 0 3px rgba(245, 202, 110, 0.3),
+              0 6px 16px rgba(0, 0, 0, 0.3),
+              inset 0 2px 4px rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+.inputs input:hover {
+  background: linear-gradient(135deg, #f0f0f0 0%, #e0e0e0 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25),
+              inset 0 2px 4px rgba(255, 255, 255, 0.5);
+}
+
+.inputs input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(0.4);
 }
 
 .inputs button {
+  position: relative;
+  overflow: hidden;
   display: flex;
-  padding: 14px 24px;
+  padding: 14px 32px;
   justify-content: center;
   align-items: center;
   align-self: flex-end;
   border-radius: 12px;
-  background: var(--secondary-400, #1f9b5f);
+  background: linear-gradient(135deg, #43a047 0%, #2e7d32 50%, #1b5e20 100%);
   color: #f0effe;
   font-family: Inter;
   font-size: 16px;
   font-style: normal;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 24px;
-  letter-spacing: -0.196px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
   border: 0px;
   cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 6px 20px rgba(31, 155, 95, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: buttonPulse 2s ease-in-out infinite;
 }
+
+.inputs button::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.5s ease;
+}
+
+.inputs button:hover::before {
+  transform: translate(-50%, -50%) scale(2.5);
+  opacity: 0;
+}
+
+.inputs button:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 30px rgba(31, 155, 95, 0.6),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.inputs button:active {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 15px rgba(31, 155, 95, 0.5),
+              inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.inputs button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+  transform: none !important;
+  animation: none;
+}
+
 .register a {
   font-family: Inter;
   color: #fff;
@@ -62,9 +219,69 @@
   font-style: normal;
   font-weight: 600;
   line-height: 24px;
-  letter-spacing: -0.196px;
+  letter-spacing: 0.5px;
   text-decoration: none;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
+
+.register a:hover {
+  transform: translateY(-2px);
+  animation: linkGlow 1.5s ease-in-out infinite;
+}
+
 .register a span {
-  color: #1ec033;
+  color: #f5ca6e;
+  font-weight: 700;
+  text-shadow: 0 0 10px rgba(245, 202, 110, 0.5);
+  transition: all 0.3s ease;
+}
+
+.register a:hover span {
+  color: #bfa640;
+  text-shadow: 0 0 20px rgba(245, 202, 110, 0.8);
+}
+
+/* Responsividade */
+@media (max-width: 1200px) {
+  .register {
+    width: 40%;
+  }
+}
+
+@media (max-width: 900px) {
+  .register {
+    width: 60%;
+    padding: 48px;
+    gap: 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .register {
+    width: 85%;
+    padding: 32px;
+    gap: 32px;
+    margin: 32px 0px;
+  }
+
+  .register img {
+    width: 90%;
+  }
+
+  .inputs {
+    gap: 24px;
+  }
+
+  .inputs button {
+    align-self: stretch;
+    padding: 12px 24px;
+  }
+
+  .register a {
+    font-size: 14px;
+    text-align: center;
+  }
 }

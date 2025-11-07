@@ -2,14 +2,993 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 64px;
+    gap: 48px;
     background-image: url("../../assets/battle-bg.jpg");
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-attachment: fixed;
     padding: 20px;
     min-height: 100vh;
+    position: relative;
+    overflow: hidden;
   }
+
+  /* Overlay escuro para melhor contraste */
+  .hubContainer::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(ellipse at top, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.7) 100%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .hubContainer > * {
+    position: relative;
+    z-index: 2;
+  }
+  
+
+  .hubContainer h1 {
+    margin-top: 40px;
+    color: #f5ca6e;
+    font-family: "Hermeneus One", Impact, sans-serif;
+    font-size: 56px;
+    font-style: normal;
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow:
+      0 2px 8px #000,
+      0 0 0.5px #bfa640,
+      2px 2px 0 #bfa640,
+      0 4px 24px #3a2d00,
+      0 8px 48px rgba(191, 166, 64, 0.3);
+    padding: 16px 40px;
+    border-radius: 16px;
+    border: 3px solid #bfa640;
+    background: linear-gradient(135deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 100%);
+    box-shadow: 
+      0 8px 32px rgba(60, 40, 10, 0.4),
+      inset 0 2px 8px rgba(255, 255, 255, 0.1);
+    animation: titleGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes titleGlow {
+    0%, 100% {
+      box-shadow: 
+        0 8px 32px rgba(60, 40, 10, 0.4),
+        inset 0 2px 8px rgba(255, 255, 255, 0.1);
+    }
+    50% {
+      box-shadow: 
+        0 12px 40px rgba(191, 166, 64, 0.6),
+        inset 0 2px 8px rgba(255, 255, 255, 0.15);
+    }
+  }
+  
+
+  .roomList {
+    width: 100%;
+    max-width: 750px;
+    max-height: 520px;
+    overflow: visible;
+    overflow-y: auto; 
+    overflow-x: hidden; 
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 16px;
+    border: none;
+    background: linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.2) 100%);
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+
+
+.roomList {
+    scrollbar-width: thin;                
+    scrollbar-color: #bfa640 rgba(211, 211, 211, 0.2);       
+  }
+  
+
+  .roomList::-webkit-scrollbar {
+    width: 12px;                         
+  }
+  
+  .roomList::-webkit-scrollbar-track {
+    background: rgba(211, 211, 211, 0.2);
+    border-radius: 10px;
+  }
+  
+  .roomList::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #bfa640 0%, #8a782a 100%);
+    border-radius: 10px;
+    border: 2px solid rgba(211, 211, 211, 0.2);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  }
+
+  .roomList::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #f5ca6e 0%, #bfa640 100%);
+  }
+  
+
+  .roomList::-webkit-scrollbar-button:single-button:vertical:decrement {
+    background: linear-gradient(180deg, #bfa640 0%, #8a782a 100%);
+    height: 14px;
+    display: block;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 8px;
+    border-radius: 10px 10px 0 0;
+    background-image: 
+      linear-gradient(to top left, transparent 50%, white 50%),
+      linear-gradient(to top right, transparent 50%, white 50%);
+    background-position: 4px 6px, 6px 6px;
+    background-size: 6px 6px;
+  }
+  
+
+  .roomList::-webkit-scrollbar-button:single-button:vertical:increment {
+    background: linear-gradient(180deg, #8a782a 0%, #bfa640 100%);
+    height: 14px;
+    display: block;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 8px;
+    border-radius: 0 0 10px 10px;
+    background-image: 
+      linear-gradient(to bottom left, transparent 50%, white 50%),
+      linear-gradient(to bottom right, transparent 50%, white 50%);
+    background-position: 4px 2px, 6px 2px;
+    background-size: 6px 6px;
+  }
+  
+  
+  
+
+  .roomCard {
+    width: 100%; 
+    min-height: 90px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #8b7238 0%, #776531 100%);
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2rem;
+    border: 2px solid rgba(191, 166, 64, 0.3);
+    box-sizing: border-box;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border-radius: 16px;
+    box-shadow: 
+      0 4px 16px rgba(0,0,0,0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+    animation: slideIn 0.4s ease-out backwards;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .roomCard:nth-child(1) { animation-delay: 0.05s; }
+  .roomCard:nth-child(2) { animation-delay: 0.1s; }
+  .roomCard:nth-child(3) { animation-delay: 0.15s; }
+  .roomCard:nth-child(4) { animation-delay: 0.2s; }
+  .roomCard:nth-child(5) { animation-delay: 0.25s; }
+
+  /* Efeito de brilho sutil */
+  .roomCard::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transition: left 0.5s;
+  }
+
+  .roomCard:hover::before {
+    left: 100%;
+  }
+
+  .roomCard:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 
+      0 8px 32px rgba(0,0,0,0.4),
+      0 0 20px rgba(191, 166, 64, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    border-color: rgba(191, 166, 64, 0.6);
+  }
+
+  /* Current lobby card - destaque especial */
+  .currentLobbyCard {
+    background: linear-gradient(135deg, #a68a45 0%, #8b7238 50%, #a68a45 100%);
+    border: 3px solid #f5ca6e;
+    box-shadow: 
+      0 0 30px rgba(245, 202, 110, 0.5),
+      0 8px 32px rgba(0,0,0,0.4),
+      inset 0 2px 8px rgba(255, 255, 255, 0.2);
+    transform: scale(1.03);
+    position: relative;
+    animation: currentLobbyPulse 2s ease-in-out infinite;
+  }
+
+  @keyframes currentLobbyPulse {
+    0%, 100% {
+      box-shadow: 
+        0 0 30px rgba(245, 202, 110, 0.5),
+        0 8px 32px rgba(0,0,0,0.4),
+        inset 0 2px 8px rgba(255, 255, 255, 0.2);
+    }
+    50% {
+      box-shadow: 
+        0 0 40px rgba(245, 202, 110, 0.7),
+        0 12px 40px rgba(0,0,0,0.5),
+        inset 0 2px 8px rgba(255, 255, 255, 0.25);
+    }
+  }
+
+  .currentLobbyCard::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(45deg, #f5ca6e, #bfa640, #f5ca6e, #bfa640);
+    background-size: 300% 300%;
+    border-radius: 16px;
+    z-index: -1;
+    opacity: 0.6;
+    animation: gradientShift 3s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .currentLobbyCard:hover {
+    transform: scale(1.03) translateY(-4px);
+  }
+
+  /* Badge "Você está aqui" */
+  .currentBadge {
+    display: inline-block;
+    background: linear-gradient(135deg, #4caf50 0%, #66d26a 100%);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-left: 10px;
+    box-shadow: 
+      0 4px 12px rgba(76, 175, 80, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    animation: badgePulse 2s ease-in-out infinite;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+  }
+
+  @keyframes badgePulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.9; }
+  }
+
+  /* Player count */
+  .playerCount {
+    margin-top: 8px;
+    font-weight: 700;
+    color: #f5ca6e;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    font-size: 1.05rem;
+  }
+
+  .roomInfo h3 {
+    margin: 0 0 8px 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    letter-spacing: 0.5px;
+  }
+  
+  .roomInfo p {
+    margin: 4px 0;
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.9);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+  }
+  
+
+  .joinBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 150px;
+    height: 55px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #4caf50 0%, #66d26a 100%);
+    color: #fff;
+    font-family: Inter, sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    box-shadow: 
+      0 6px 20px rgba(76, 175, 80, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .joinBtn::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+  }
+
+  .joinBtn:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .joinBtn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+      0 10px 30px rgba(76, 175, 80, 0.5),
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .joinBtn:active {
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  .joinBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #999 0%, #777 100%);
+    transform: none;
+  }
+
+  .joinBtn:disabled:hover {
+    transform: none;
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.2);
+  }
+
+  /* Leave button - para sair do lobby atual */
+  .leaveBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 140px;
+    height: 55px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: #fff;
+    font-family: Inter, sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    box-shadow: 
+      0 6px 20px rgba(220, 53, 69, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .leaveBtn::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+  }
+
+  .leaveBtn:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .leaveBtn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+      0 10px 30px rgba(220, 53, 69, 0.5),
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .leaveBtn:active {
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  .leaveBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Container de ações do lobby atual */
+  .currentLobbyActions {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+
+  /* Botão de voltar ao lobby */
+  .backToLobbyBtn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 180px;
+    height: 55px;
+    padding: 0 22px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #2925d4 0%, #6a5af9 100%);
+    color: #fff;
+    font-family: Inter, sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    box-shadow: 
+      0 6px 20px rgba(41, 37, 212, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-decoration: none;
+    white-space: nowrap;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .backToLobbyBtn::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+  }
+
+  .backToLobbyBtn:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  .backToLobbyBtn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+      0 10px 30px rgba(41, 37, 212, 0.5),
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .backToLobbyBtn:active {
+    transform: translateY(-1px) scale(1.02);
+  }
+
+  /* Ajusta o botão de sair quando está junto com voltar */
+  .currentLobbyActions .leaveBtn {
+    min-width: 140px;
+    width: auto;
+    padding: 0 22px;
+  }
+  
+
+  .buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 10px;
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .buttons button,
+  .buttons .btn {
+    display: flex;
+    width: 190px;
+    height: 55px;
+    justify-content: center;
+    align-items: center;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #2925d4 0%, #6a5af9 100%);
+    color: #fff;
+    font-family: Inter, sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    box-shadow: 
+      0 6px 20px rgba(42, 37, 212, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-decoration: none;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .buttons button::before,
+  .buttons .btn::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+  }
+
+  .buttons button:hover::before,
+  .buttons .btn:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .buttons .btn:hover,
+  .buttons button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+      0 10px 30px rgba(42, 37, 212, 0.5),
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .buttons .btn:active,
+  .buttons button:active {
+    transform: translateY(-1px) scale(1.02);
+  }
+  
+  .buttons .btn-voltar {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    box-shadow: 
+      0 6px 20px rgba(108, 117, 125, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  }
+  
+  .buttons .btn-voltar:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #4e555b 100%);
+    box-shadow: 
+      0 10px 30px rgba(108, 117, 125, 0.5),
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  }
+
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+
+  .modal {
+    background: linear-gradient(135deg, #3a342b 0%, #2e2b24 100%);
+    padding: 35px 45px;
+    border-radius: 20px;
+    box-shadow: 
+      0 16px 64px rgba(0,0,0,0.6),
+      0 0 40px rgba(191, 166, 64, 0.2),
+      inset 0 2px 8px rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    min-width: 380px;
+    max-width: 450px;
+    color: #f5ca6e;
+    font-family: "Inter", sans-serif;
+    border: 3px solid #bfa640;
+    animation: modalSlideIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-50px) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .modal h2 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 800;
+    text-align: center;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+    letter-spacing: 1px;
+  }
+
+  .modal label {
+    font-size: 16px;
+    font-weight: 600;
+    color: #f5ca6e;
+  }
+  
+
+  .modal input {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 2px solid rgba(191, 166, 64, 0.3);
+    background: rgba(0, 0, 0, 0.3);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 500;
+    margin-top: 8px;
+    transition: all 0.3s;
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  .modal input:focus {
+    outline: none;
+    border-color: #f5ca6e;
+    background: rgba(0, 0, 0, 0.4);
+    box-shadow: 
+      inset 0 2px 8px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(245, 202, 110, 0.3);
+  }
+
+  .modal input::placeholder {
+    color: rgba(255, 255, 255, 0.4);
+  }
+  
+  .modalButtons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  
+
+  .confirmBtn {
+    flex: 1;
+    background: linear-gradient(135deg, #4caf50 0%, #66d26a 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 14px;
+    padding: 14px 0;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 
+      0 6px 20px rgba(76, 175, 80, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .confirmBtn::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+  }
+
+  .confirmBtn:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .confirmBtn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 
+      0 10px 30px rgba(76, 175, 80, 0.5),
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .confirmBtn:active {
+    transform: translateY(-1px) scale(1.01);
+  }
+
+  .confirmBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+  
+  /* Cancelar */
+  .cancelBtn {
+    flex: 1;
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    color: white;
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 14px;
+    padding: 14px 0;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 
+      0 6px 20px rgba(108, 117, 125, 0.4),
+      inset 0 1px 2px rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cancelBtn::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    transform: translate(-50%, -50%);
+    transition: width 0.5s, height 0.5s;
+  }
+
+  .cancelBtn:hover::before {
+    width: 300px;
+    height: 300px;
+  }
+  
+  .cancelBtn:hover {
+    transform: translateY(-3px) scale(1.03);
+    background: linear-gradient(135deg, #5a6268 0%, #4e555b 100%);
+    box-shadow: 
+      0 10px 30px rgba(108, 117, 125, 0.5),
+      inset 0 1px 2px rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.4);
+  }
+
+  .cancelBtn:active {
+    transform: translateY(-1px) scale(1.01);
+  }
+
+/* Error message */
+.errorMessage {
+  color: #ff6b6b;
+  background: linear-gradient(135deg, rgba(255, 0, 0, 0.2) 0%, rgba(200, 0, 0, 0.1) 100%);
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 107, 107, 0.5);
+  margin: 0 auto 20px auto;
+  max-width: 750px;
+  width: 100%;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 
+    0 4px 16px rgba(255, 0, 0, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.1);
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-10px); }
+  75% { transform: translateX(10px); }
+}
+
+/* Empty state messages */
+.emptyState {
+  text-align: center;
+  padding: 40px 30px;
+  background: linear-gradient(135deg, rgba(119, 101, 49, 0.4) 0%, rgba(119, 101, 49, 0.2) 100%);
+  border-radius: 16px;
+  margin: 0 auto;
+  color: #f5ca6e;
+  font-size: 18px;
+  font-weight: 600;
+  border: 2px solid rgba(191, 166, 64, 0.3);
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Create button */
+.createBtn {
+  display: flex;
+  width: 190px;
+  height: 55px;
+  justify-content: center;
+  align-items: center;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #2925d4 0%, #6a5af9 100%);
+  color: #fff;
+  font-family: Inter, sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  box-shadow: 
+    0 6px 20px rgba(42, 37, 212, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+  overflow: hidden;
+}
+
+.createBtn::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.5s, height 0.5s;
+}
+
+.createBtn:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.createBtn:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 
+    0 10px 30px rgba(42, 37, 212, 0.5),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.createBtn:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.createBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.createBtn:disabled:hover {
+  transform: none;
+  box-shadow: 0 6px 20px rgba(42, 37, 212, 0.2);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .hubContainer {
+    gap: 32px;
+  }
+
+  .hubContainer h1 {
+    font-size: 42px;
+    padding: 12px 28px;
+  }
+
+  .roomList {
+    max-width: 95vw;
+    max-height: 450px;
+  }
+
+  .roomCard {
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+  }
+
+  .currentLobbyActions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .currentLobbyActions .leaveBtn,
+  .backToLobbyBtn {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .joinBtn,
+  .leaveBtn {
+    width: 100%;
+  }
+
+  .modal {
+    min-width: 90vw;
+    max-width: 90vw;
+    padding: 28px 24px;
+  }
+
+  .buttons {
+    flex-direction: column;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .buttons button,
+  .buttons .btn,
+  .createBtn {
+    width: 100%;
+  }
+}
   
 
   .hubContainer h1 {

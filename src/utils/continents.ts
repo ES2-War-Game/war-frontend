@@ -1,101 +1,5 @@
 import type { TerritorySVG } from "../components/Teritory/Territory";
 
-export const paises = [
-  // EUROPA (Azul claro)
-  {
-    nome: "INGLATERRA",
-    fronteiras: ["ISLÂNDIA", "FRANÇA", "ALEMANHA"],
-  },
-  {
-    nome: "ISLÂNDIA",
-    fronteiras: ["INGLATERRA", "GROENLÂNDIA", "ESCANDINÁVIA"],
-  },
-  {
-    nome: "ESCANDINÁVIA",
-    fronteiras: ["ISLÂNDIA", "INGLATERRA", "MOSCOU", "ALEMANHA"],
-  },
-  {
-    nome: "ALEMANHA",
-    fronteiras: ["INGLATERRA", "ESCANDINÁVIA", "FRANÇA", "POLÔNIA"],
-  },
-  {
-    nome: "FRANÇA",
-    fronteiras: ["INGLATERRA", "ALEMANHA", "ITÁLIA"],
-  },
-  {
-    nome: "ITÁLIA",
-    fronteiras: ["FRANÇA", "POLÔNIA", "ORIENTE MÉDIO"],
-  },
-  {
-    nome: "POLÔNIA",
-    fronteiras: ["ALEMANHA", "ITÁLIA", "MOSCOU"],
-  },
-  {
-    nome: "MOSCOU",
-    fronteiras: ["ESCANDINÁVIA", "POLÔNIA", "ARAL"],
-  },
-
-  // ÁSIA (Verde)
-  {
-    nome: "ARAL",
-    fronteiras: ["MOSCOU", "TCHITA", "ORIENTE MÉDIO", "ÍNDIA"],
-  },
-  {
-    nome: "ORIENTE MÉDIO",
-    fronteiras: ["ITÁLIA", "EGITO", "ARAL", "ÍNDIA"],
-  },
-  {
-    nome: "ÍNDIA",
-    fronteiras: ["ORIENTE MÉDIO", "ARAL", "CHINA", "SUMATRA"],
-  },
-  {
-    nome: "CHINA",
-    fronteiras: ["ÍNDIA", "ARAL", "MONGÓLIA", "VLADIVOSTOK", "JAPÃO", "VIETNÃ"],
-  },
-  {
-    nome: "MONGÓLIA",
-    fronteiras: ["CHINA", "VLADIVOSTOK", "TCHITA", "SIBÉRIA"],
-  },
-  {
-    nome: "SIBÉRIA",
-    fronteiras: ["MONGÓLIA", "TCHITA", "URAL", "VLADIVOSTOK"],
-  },
-  {
-    nome: "TCHITA",
-    fronteiras: ["SIBÉRIA", "MONGÓLIA", "ARAL"],
-  },
-  {
-    nome: "VLADIVOSTOK",
-    fronteiras: ["SIBÉRIA", "MONGÓLIA", "CHINA", "JAPÃO"],
-  },
-  {
-    nome: "JAPÃO",
-    fronteiras: ["VLADIVOSTOK", "CHINA"],
-  },
-  {
-    nome: "VIETNÃ",
-    fronteiras: ["CHINA", "SUMATRA"],
-  },
-
-  // OCEANIA (Roxo)
-  {
-    nome: "SUMATRA",
-    fronteiras: ["ÍNDIA", "VIETNÃ", "BORNEO"],
-  },
-  {
-    nome: "BORNEO",
-    fronteiras: ["SUMATRA", "NOVA GUINÉ", "AUSTRÁLIA"],
-  },
-  {
-    nome: "NOVA GUINÉ",
-    fronteiras: ["BORNEO", "AUSTRÁLIA"],
-  },
-  {
-    nome: "AUSTRÁLIA",
-    fronteiras: ["BORNEO", "NOVA GUINÉ"],
-  },
-];
-
 export const SouthAmericaList: TerritorySVG[] = [
   {
     corClara: "#ff0000",
@@ -159,7 +63,7 @@ export const SouthAmericaList: TerritorySVG[] = [
     nome: "VENEZUELA",
     cx: "30",
     cy: "50",
-    fronteiras: ["MÉXICO", "BRASIL", "PERU"],
+    fronteiras: ["MÉXICO", "BRASIL", "BOLÍVIA"],
   },
 ];
 
@@ -462,7 +366,7 @@ export const AsiaList: TerritorySVG[] = [
     nome: "ÍNDIA",
     cx: "70",
     cy: "110",
-    fronteiras: ["ORIENTE MÉDIO", "CHINA", "VIETNÃ", "ARAL", "ÍNDIA"],
+    fronteiras: ["ORIENTE MÉDIO", "CHINA", "VIETNÃ", "ARAL", "ÍNDIA","SUMATRA"],
   },
   {
     width: "89",
@@ -673,7 +577,7 @@ export const AfricaList: TerritorySVG[] = [
     nome: "SUDÃO",
     cx: "80",
     cy: "80",
-    fronteiras: ["EGITO", "NIGÉRIA", "CONGO", "MADAGASCAR"],
+    fronteiras: ["ORIENTE MÉDIO","EGITO", "NIGÉRIA", "CONGO", "MADAGASCAR"],
   },
   {
     width: "118",
