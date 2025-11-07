@@ -37,7 +37,7 @@ export interface TerritoryDto {
   continent: string;
 }
 
- export type gameHUD = "DEFAULT" | "ALLOCATION" | "ATTACK";
+ export type gameHUD = "DEFAULT" | "ALLOCATION" | "ATTACK" | "MOVEMENT";
 
 export interface CurrentTurnResponse {
   gameId: number;
@@ -57,3 +57,9 @@ export interface CurrentTurnResponse {
   activePlayers: number;
 }
 
+export interface TroopMovementRequest {
+    sourceTerritory:number;
+    targetTerritory:number;
+    numberOfTroops:number;
+    gameId:number;
+}

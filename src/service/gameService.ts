@@ -124,4 +124,33 @@ export const gameService = {
       throw error;
     }
   },
+  async move(
+    gameId: number,
+    sourceTerritoryId: number,
+    targetTerritoryId: number,
+    troopCount: number,
+  ): Promise<void> {
+    const requestBody = {
+      sourceTerritoryId,
+      targetTerritoryId,
+      troopCount,
+    };
+    
+    console.log("🎯 Sending move request:");
+    console.log("  - URL:", `/api/games/${gameId}/move`);
+    console.log("  - Body:", requestBody);
+    console.log("  - Body stringified:", JSON.stringify(requestBody, null, 2));
+    
+    try {
+      const response = await api.post(`/api/games/${gameId}/move`, requestBody);
+      console.log("✅ Attack response:", response);
+      return response.data;
+    } catch (error: any) {
+      console.error("❌ Attack failed!");
+      console.error("  - Status:", error?.response?.status);
+      console.error("  - Error data:", error?.response?.data);
+      console.error("  - Full error:", error);
+      throw error;
+    }
+  },
 };

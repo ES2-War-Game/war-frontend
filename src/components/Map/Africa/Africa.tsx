@@ -1,10 +1,31 @@
 import style from "./Africa.module.css";
 import Territory from "../../Teritory/Territory";
 import { AfricaList } from "../../../utils/continents";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export default function Africa() {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [labelPos, setLabelPos] = useState<{ top: number; left: number } | null>(null);
+
+  useEffect(() => {
+    const update = () => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (rect) {
+        // offsets originally used when the label was absolutely positioned inside the container
+        setLabelPos({ top: rect.top + 290, left: rect.left + 232 });
+      }
+    };
+    update();
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", update, true);
+    };
+  }, []);
   return (
-    <div className={style.Africa}>
+    <div ref={containerRef} className={style.Africa}>
       <div
         style={{
           position: "absolute",
@@ -40,6 +61,7 @@ export default function Africa() {
           zIndex: "-1 ", // deixa redondo
         }}
       />
+      
 
       {/*Égito */}
       <div
@@ -78,6 +100,7 @@ export default function Africa() {
           zIndex: "-1 ", // deixa redondo
         }}
       />
+      
 
       {AfricaList.map((territorio) => (
         <Territory
@@ -99,32 +122,101 @@ export default function Africa() {
           fronteiras={territorio.fronteiras}
         />
       ))}
-      <svg
-        width="150"
-        height="15"
-        style={{ position: "absolute", top: "290px", left: "232px" }}
-      >
-        <text
-          x="54"
-          y="10"
-          textAnchor="middle"
-          dominantBaseline="central"
-          fontSize="12"
-          fontFamily="TrajanPro, Arial, sans-serif"
-          fontWeight="bold"
-          fill="white"
-          style={{
-            pointerEvents: "none",
-            userSelect: "none",
-            paintOrder: "stroke", // desenha o contorno primeiro
-            stroke: "black", // cor do contorno
-            strokeWidth: "2px", // espessura do contorno
-            filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))", // sombra leve
-          }}
-        >
-          MADAGASCAR
-        </text>
-      </svg>
+      <div
+        style={{
+          position: "absolute",
+          width: "10px", // largura da bola
+          height: "10px",
+          top: "202px",
+          left: "238px", // altura da bola
+          backgroundColor: "black", // cor preta
+          borderRadius: "50%",
+          zIndex: "-1 ", // deixa redondo
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          borderTop: "2px dashed #000",
+          transform: "rotate(50deg)",
+          top: "219px",
+          left: "232px", // 2px, tracejada e preta
+          width: "75px ", // ocupa toda a largura do container
+          margin: "20px 0", // espaço acima e abaixo
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          borderTop: "2px dashed #000",
+          transform: "rotate(0deg)",
+          top: "242px",
+          left: "232px", // 2px, tracejada e preta
+          width: "75px ", // ocupa toda a largura do container
+          margin: "20px 0", // espaço acima e abaixo
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          width: "10px", // largura da bola
+          height: "10px",
+          top: "259px",
+          left: "237px",  // altura da bola
+          backgroundColor: "black", // cor preta
+          borderRadius: "50%",
+          zIndex: "-1 ", // deixa redondo
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          width: "10px", // largura da bola
+          height: "10px",
+          top: "259px",
+          left: "285px",  // altura da bola
+          backgroundColor: "black", // cor preta
+          borderRadius: "50%",
+          zIndex: "-1 ", // deixa redondo
+        }}
+      />
+      {labelPos &&
+        createPortal(
+          <svg
+            width="150"
+            height="15"
+            style={{
+              position: "fixed",
+              top: `${labelPos.top}px`,
+              left: `${labelPos.left}px`,
+              zIndex: 1000,
+              pointerEvents: "none",
+            }}
+          >
+            <text
+              x="54"
+              y="10"
+              textAnchor="middle"
+              dominantBaseline="central"
+              fontSize="12"
+              fontFamily="TrajanPro, Arial, sans-serif"
+              fontWeight="bold"
+              fill="white"
+              style={{
+                pointerEvents: "none",
+                userSelect: "none",
+                paintOrder: "stroke",
+                stroke: "black",
+                strokeWidth: "2px",
+                filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))",
+              }}
+            >
+              MADAGASCAR
+            </text>
+          </svg>,
+          document.body
+        )}
+      
       <div
         style={{
           position: "absolute",

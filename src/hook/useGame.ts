@@ -233,5 +233,79 @@ export const useGame = () => {
       setIsLoading(false);
     }
   };
-  return { isLoading, error, allocateTroops, EndTurn, attack };
+  const move = async (
+    sourceTerritoryId: number,
+    targetTerritoryId: number,
+    troopCount: number
+  ) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const gameId = await ensureGameId();
+      if (!gameId) {
+        console.warn("⚠️ attack: não foi possível obter gameId");
+        setError("Partida não encontrada. Tente novamente.");
+        return;
+      }
+
+      console.log(
+        `⚔️ Moving from ${sourceTerritoryId} to ${targetTerritoryId} with ${troopCount} in game ${gameId}...`
+      );
+      
+      
+      
+      console.log(`📦 Tropas a mover : ${troopCount}`);
+      
+      await gameService.move(gameId, sourceTerritoryId, targetTerritoryId,  troopCount);
+      console.log(
+        "✅ Move request sent. Aguardando atualização via WebSocket..."
+      );
+    } catch (err: any) {
+      console.error("❌ Error attacking:", err);
+      
+      // 🚨 TRATAMENTO ESPECIAL PARA HTTP 409 - Fase Inválida
+      if (err?.response?.status === 409) {
+        const msg = err.response?.data || "Ação não permitida nesta fase do jogo.";
+        console.error("⚠️ ERRO DE FASE (HTTP 409):", msg);
+        setError(msg);
+        
+        // Recarregar estado do jogo para sincronizar
+        try {
+          console.log("🔄 Sincronizando estado do jogo após erro 409...");
+          const currentGame = await gameService.getCurrentGame();
+          if (currentGame) {
+            useGameStore.getState().setGameStatus(currentGame.status as any);
+            console.log("✅ Estado sincronizado. Fase atual:", currentGame.status);
+          }
+        } catch (syncErr) {
+          console.error("❌ Erro ao sincronizar estado:", syncErr);
+        }
+        
+        alert(msg);
+        throw err;
+      }
+      
+      if (err?.response?.status === 400) {
+        const msg = err.response?.data || "Erro ao atacar";
+        setError(msg);
+        try {
+          alert(msg);
+        } catch {}
+      } else if (
+        err?.response?.status === 401 ||
+        err?.response?.status === 403
+      ) {
+        setError("Sessão expirada. Por favor, faça login novamente.");
+      } else {
+        setError("Falha ao atacar. Tente novamente.");
+      }
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  return { isLoading, error, allocateTroops, EndTurn, attack, move };
 };
+
+  
