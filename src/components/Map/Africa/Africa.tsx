@@ -1,31 +1,11 @@
 import style from "./Africa.module.css";
 import Territory from "../../Teritory/Territory";
 import { AfricaList } from "../../../utils/continents";
-import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 export default function Africa() {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const [labelPos, setLabelPos] = useState<{ top: number; left: number } | null>(null);
-
-  useEffect(() => {
-    const update = () => {
-      const rect = containerRef.current?.getBoundingClientRect();
-      if (rect) {
-        // offsets originally used when the label was absolutely positioned inside the container
-        setLabelPos({ top: rect.top + 290, left: rect.left + 232 });
-      }
-    };
-    update();
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("scroll", update, true);
-    };
-  }, []);
   return (
-    <div ref={containerRef} className={style.Africa}>
+    <div id="africa-container" className={style.Africa}>
       <div
         style={{
           position: "absolute",
@@ -180,42 +160,42 @@ export default function Africa() {
           zIndex: "-1 ", // deixa redondo
         }}
       />
-      {labelPos &&
-        createPortal(
-          <svg
-            width="150"
-            height="15"
+
+      {createPortal(
+        <svg
+          width="150"
+          height="15"
+          style={{
+            position: "absolute",
+            top: `270px`,
+            left: `230px`,
+            zIndex: 10000,
+            pointerEvents: "none",
+          }}
+        >
+          <text
+            x="54"
+            y="10"
+            textAnchor="middle"
+            dominantBaseline="central"
+            fontSize="12"
+            fontFamily="TrajanPro, Arial, sans-serif"
+            fontWeight="bold"
+            fill="white"
             style={{
-              position: "fixed",
-              top: `${labelPos.top}px`,
-              left: `${labelPos.left}px`,
-              zIndex: 1000,
               pointerEvents: "none",
+              userSelect: "none",
+              paintOrder: "stroke",
+              stroke: "black",
+              strokeWidth: "2px",
+              filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))",
             }}
           >
-            <text
-              x="54"
-              y="10"
-              textAnchor="middle"
-              dominantBaseline="central"
-              fontSize="12"
-              fontFamily="TrajanPro, Arial, sans-serif"
-              fontWeight="bold"
-              fill="white"
-              style={{
-                pointerEvents: "none",
-                userSelect: "none",
-                paintOrder: "stroke",
-                stroke: "black",
-                strokeWidth: "2px",
-                filter: "drop-shadow(1px 1px 2px rgba(0,0,0,0.6))",
-              }}
-            >
-              MADAGASCAR
-            </text>
-          </svg>,
-          document.body
-        )}
+            MADAGASCAR
+          </text>
+        </svg>,
+        document.getElementById("africa-container") || document.body
+      )}
       
       <div
         style={{

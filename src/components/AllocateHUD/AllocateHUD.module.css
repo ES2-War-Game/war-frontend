@@ -1,113 +1,242 @@
 .fortificarContainer {
-  background-color: #2f2f2f;
-  padding: 12px;
-  border-radius: 15px;
-  width: 360px;
+  background: linear-gradient(135deg, #2a2d31 0%, #3a3d42 50%, #2a2d31 100%);
+  padding: 16px 20px;
+  border-radius: 20px;
+  width: 380px;
   text-align: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-  color: white;
-  font-family: sans-serif;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.6),
+    0 0 40px rgba(191, 166, 64, 0.3),
+    inset 0 2px 8px rgba(255, 255, 255, 0.1);
+  color: #f5ca6e;
+  font-family: "Inter", sans-serif;
   z-index: 13;
   position: fixed;
   bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
+  border: 3px solid rgba(191, 166, 64, 0.5);
+  backdrop-filter: blur(10px);
+  animation: slideUpFade 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 .titulo {
-  font-weight: 600;
-  margin-bottom: 8px;
+  font-weight: 800;
+  font-size: 18px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 
+    0 2px 8px rgba(0,0,0,0.8),
+    0 0 20px rgba(191, 166, 64, 0.4);
+  color: #fff;
 }
 
 .botoesLinha {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .botao {
   border: none;
   color: white;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+  font-weight: 700;
+  position: relative;
+  overflow: hidden;
+}
+
+.botao::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s, height 0.4s;
+}
+
+.botao:hover::before {
+  width: 150px;
+  height: 150px;
 }
 
 .botaoRed {
-  background-color: #c62828;
+  background: linear-gradient(135deg, #d32f2f 0%, #c62828 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  font-size: 20px;
-  width: 40px;
-  height: 40px;
+  font-size: 22px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.botaRed:hover {
-  background-color: #b71c1c;
+.botaoRed:hover {
+  background: linear-gradient(135deg, #e53935 0%, #d32f2f 100%);
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 
+    0 6px 24px rgba(211, 47, 47, 0.6),
+    inset 0 2px 4px rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.botaoRed:active {
+  transform: scale(1.05) rotate(90deg);
 }
 
 .botaoGreen {
-  background-color: #2e7d32;
+  background: linear-gradient(135deg, #43a047 0%, #2e7d32 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
   border-radius: 50%;
-  font-size: 20px;
-  width: 40px;
-  height: 40px;
+  font-size: 24px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .botaoGreen:hover {
-  background-color: #1b5e20;
+  background: linear-gradient(135deg, #4caf50 0%, #43a047 100%);
+  transform: scale(1.15);
+  box-shadow: 
+    0 6px 24px rgba(67, 160, 71, 0.6),
+    inset 0 2px 4px rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.botaoGreen:active {
+  transform: scale(1.08);
 }
 
 .botaoCinza {
-  background-color: #757575;
-  border-radius: 6px;
-  font-size: 18px;
-  width: 35px;
-  height: 35px;
+  background: linear-gradient(135deg, #757575 0%, #616161 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .botaoCinza:hover {
-  background-color: #616161;
+  background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%);
+  transform: scale(1.1);
+  box-shadow: 
+    0 4px 16px rgba(117, 117, 117, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.botaoCinza:active {
+  transform: scale(1.05);
 }
 
 .botaoAzul {
-  background-color: #1e88e5;
-  border-radius: 6px;
-  font-size: 18px;
-  width: 35px;
-  height: 35px;
+  background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .botaoAzul:hover {
-  background-color: #1565c0;
+  background: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+  transform: scale(1.1);
+  box-shadow: 
+    0 4px 16px rgba(30, 136, 229, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.botaoAzul:active {
+  transform: scale(1.05);
 }
 
 .controle {
   display: flex;
   align-items: center;
-  background-color: #424242;
-  padding: 5px 10px;
-  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.2) 100%);
+  padding: 8px 14px;
+  border-radius: 14px;
+  gap: 10px;
+  border: 2px solid rgba(191, 166, 64, 0.3);
+  box-shadow: 
+    inset 0 2px 8px rgba(0, 0, 0, 0.5),
+    0 2px 8px rgba(0, 0, 0, 0.3);
+  flex: 1;
+  justify-content: center;
 }
 
 .carrossel {
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 70px;
-  font-weight: bold;
-  gap:16px;
+  min-width: 90px;
+  font-weight: 800;
+  gap: 12px;
+  font-size: 20px;
 }
 
 .num {
   margin: 0 4px;
   font-size: 18px;
+  transition: all 0.3s ease;
 }
 
 .numFade {
-  opacity: 0.4;
+  opacity: 0.3;
+  font-size: 16px;
+  color: #999;
+  transform: scale(0.9);
 }
 
 .numAtual {
-  border-bottom: 2px solid white;
+  border-bottom: 3px solid #f5ca6e;
+  padding-bottom: 2px;
+  color: #fff;
+  font-size: 24px;
+  text-shadow: 
+    0 2px 8px rgba(0,0,0,0.8),
+    0 0 20px rgba(245, 202, 110, 0.5);
+  animation: numberPulse 1s ease-in-out infinite;
+}
+
+@keyframes numberPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 /* Estados disabled para todos os botões */
@@ -115,8 +244,60 @@
 .botaoGreen:disabled,
 .botaoCinza:disabled,
 .botaoAzul:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
-  filter: grayscale(0.3);
+  filter: grayscale(0.6);
   pointer-events: none;
+  transform: none !important;
+}
+
+.botaoRed:disabled:hover,
+.botaoGreen:disabled:hover,
+.botaoCinza:disabled:hover,
+.botaoAzul:disabled:hover {
+  transform: none !important;
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .fortificarContainer {
+    width: 95vw;
+    max-width: 360px;
+    padding: 14px 16px;
+  }
+
+  .titulo {
+    font-size: 16px;
+    margin-bottom: 10px;
+  }
+
+  .botaoRed,
+  .botaoGreen {
+    width: 44px;
+    height: 44px;
+    font-size: 20px;
+  }
+
+  .botaoCinza,
+  .botaoAzul {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .carrossel {
+    min-width: 80px;
+    gap: 8px;
+  }
+
+  .numAtual {
+    font-size: 20px;
+  }
+
+  .numFade {
+    font-size: 14px;
+  }
 }
