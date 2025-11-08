@@ -1,4 +1,5 @@
-import React, { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import Map from "../../components/Map/Map";
 import background from "../../assets/Game_background.jpg";
 import GameHUD from "../../components/GameHUD/gameHUD";
@@ -6,259 +7,162 @@ import ObjectiveButton from "../../components/ObjectiveButton/ObjectiveButton";
 import GameEndModal from "../../components/GameEndModal/GameEndModal";
 import GameEndViewHUD from "../../components/GameEndViewHUD/GameEndViewHUD";
 import ContinentInfo from "../../components/ContinentInfo/ContinentInfo";
-// import AttackAnimation from "../../components/AttackAnimation/AttackAnimation";
 import { useGameStore } from "../../store/useGameStore";
 import { useMapStore } from "../../store/useMapStore";
 import { useLobbyWebSocket } from "../../hook/useWebSocket";
 import { useAuthStore } from "../../store/useAuthStore";
-import { useNavigate } from "react-router-dom";
 import type { GameStatus } from "../../types/lobby";
 import { useAttackStore } from "../../store/useAttackStore";
 import { useMovementStore } from "../../store/useMovementStore";
 import { useAllocateStore } from "../../store/useAllocate";
-// turn-based info is handled inside HUD and store-connected components
+import { gameService } from "../../service/gameService";
+import { extractTerritoryInfo } from "../../utils/gameState";
+import type { GameStateResponseDto } from "../../types/game";
+import type { PlayerGameDto } from "../../types/player";
 
 export default function Game() {
-  // 🔥 CRITICAL: Ativa WebSocket para receber atualizações do jogo
-  useLobbyWebSocket();
-  
-
+  const { gameId: gameIdFromParams } = useParams<{ gameId: string }>();
   const navigate = useNavigate();
+
+  // Sempre chama o hook, mas só conecta se for liveGame
+  const isLiveGame = !gameIdFromParams;
+  useLobbyWebSocket(isLiveGame);
+
   const userId = useAuthStore((s) => s.getUserId?.());
-  const winner = useGameStore((s) => s.winner);
-  const gameEnded = useGameStore((s) => s.gameEnded);
-  const gameStatus = useGameStore((s) => s.gameStatus);
-  const gameId = useGameStore((s) => s.gameId);
-  const setGameEnded = useGameStore((s) => s.setGameEnded);
-  const setWinner = useGameStore((s) => s.setWinner);
-  const setGameHUD = useGameStore((s) => s.setGameHUD);
-  // Tornar dependências reativas para bloquear movimento/zoom quando em ações (ataque/alocação/movimento)
+  const {
+    winner,
+    gameEnded,
+    gameStatus,
+    setGameEnded,
+    setWinner,
+    setGameHUD,
+    setGameId,
+    setTerritoriesColors,
+    setGameStatus,
+    setPlayer,
+  } = useGameStore();
+
   const atacanteId = useAttackStore((s) => s.atacanteId);
   const sourceTerritoyId = useMovementStore((s) => s.sourceTerritoryId);
   const allocating = useAllocateStore((s) => s.allocating);
-  // Pega gameHUD de forma reativa (usado para bloquear câmera fora do modo DEFAULT)
   const gameHUD = useGameStore((s) => s.gameHud);
 
-  const resetAttack= useAttackStore.getState().resetAttack
-  const resetMove= useMovementStore.getState().resetMove
+  const resetAttack = useAttackStore.getState().resetAttack;
+  const resetMove = useMovementStore.getState().resetMove;
 
-  // Estado para controlar se está visualizando o jogo ou mostrando o modal
-  const [isViewingGame, setIsViewingGame] = React.useState(false);
+  const [isViewingGame, setIsViewingGame] = useState(false);
+  const [isFinalStateView, setIsFinalStateView] = useState(false);
+  const [isLoadingGameData, setIsLoadingGameData] = useState(true);
 
-  // 🔧 Reset gameHud ao montar o componente (fix para quando recarrega a página)
-  React.useEffect(() => {
-    console.log("🔄 Resetando gameHud para DEFAULT ao montar Game.tsx");
-    setGameHUD("DEFAULT");
-  }, [setGameHUD]); // Executa ao montar (setGameHUD é estável do Zustand)
-
-  
-
-  // � Sincroniza gameStatus com backend ao montar (fix para quando recarrega a página)
-  const hasSyncedStatus = React.useRef(false);
-  React.useEffect(() => {
-    const syncGameStatus = async () => {
-      if (hasSyncedStatus.current || !gameId) return;
-
-      console.log(
-        "🔄 Sincronizando gameStatus com backend ao montar Game.tsx",
-        {
-          gameId,
-          currentGameStatus: gameStatus,
-        }
-      );
-
+  // Carrega os dados do jogo quando necessário
+  useEffect(() => {
+    let mounted = true;
+    const loadGameData = async () => {
       try {
-        const { gameService } = await import("../../service/gameService");
-        const { extractTerritoryInfo } = await import("../../utils/gameState");
-        const currentGame = await gameService.getCurrentGame();
-
-        if (currentGame) {
-          console.log("📥 Jogo carregado ao recarregar página:", {
-            status: currentGame.status,
-            totalTerritories: currentGame.gameTerritories?.length,
-            hasTerritoryData: !!currentGame.gameTerritories,
-          });
-
-          // Atualiza o status do jogo
-          if (currentGame.status !== gameStatus) {
-            console.log("⚠️ GameStatus desatualizado! Atualizando...", {
-              localStorage: gameStatus,
-              backend: currentGame.status,
-            });
-            useGameStore
-              .getState()
-              .setGameStatus(currentGame.status as GameStatus);
-          } else {
-            console.log("✅ GameStatus está sincronizado:", currentGame.status);
-          }
-
-          // 🔥 CRÍTICO: Extrai e persiste informações dos territórios (incluindo staticArmies e movedInArmies)
-          if (
-            currentGame.gameTerritories &&
-            currentGame.gameTerritories.length > 0
-          ) {
-            console.log(
-              "🗺️ Extraindo informações dos territórios ao recarregar..."
+        if (gameIdFromParams) {
+          // Final state view mode - limpa antes de carregar
+          useGameStore.getState().clearGameState();
+          
+          const gameData = await gameService.getGameById(
+            Number(gameIdFromParams)
+          );
+          if (mounted && gameData.status === "FINISHED") {
+            setGameId(gameData.id);
+            setWinner(gameData.winner);
+            setGameStatus(gameData.status as GameStatus);
+            const territoryInfo = extractTerritoryInfo(gameData);
+            setTerritoriesColors(territoryInfo);
+            setGameEnded(true);
+            setIsFinalStateView(true);
+            // Set player for final state view if current user was part of this game
+            const currentPlayerGame = gameData.playerGames.find(
+              (pg) => String(pg.player.id) === userId
             );
-            // Cast para o tipo esperado pela função
-            const gameData =
-              currentGame as unknown as import("../../types/game").GameStateResponseDto;
-            const territoriesColors = extractTerritoryInfo(gameData);
-            useGameStore.getState().setTerritoriesColors(territoriesColors);
-            console.log("✅ Territórios atualizados ao recarregar:", {
-              totalTerritories: Object.keys(territoriesColors).length,
-              sampleTerritory: Object.values(territoriesColors)[0],
-            });
+            if (currentPlayerGame) {
+              setPlayer(currentPlayerGame);
+            }
+          } else if (mounted) {
+            // If gameIdFromParams but not finished, or error, redirect
+            navigate("/hub");
+          }
+        } else {
+          // Live game mode
+          const currentGame = await gameService.getCurrentGame();
+          if (mounted && currentGame) {
+            setGameId(currentGame.id);
+            setWinner(currentGame.winner!);
+            setGameStatus(currentGame.status as GameStatus);
+            const territoryInfo = extractTerritoryInfo(currentGame as GameStateResponseDto);
+            setTerritoriesColors(territoryInfo);
+            setGameEnded(currentGame.status === "FINISHED");
+            setGameHUD("DEFAULT");
+            // Set player for live game
+            const currentPlayerGame = currentGame.playerGames.find(
+              (pg) => String(pg.player.id) === userId
+            );
+            if (currentPlayerGame) {
+              setPlayer(currentPlayerGame as PlayerGameDto);
+            }
+          } else if (mounted) {
+            // If no current game, redirect to hub
+            navigate("/hub");
           }
         }
       } catch (error) {
-        console.error("❌ Erro ao sincronizar gameStatus:", error);
-      }
-
-      hasSyncedStatus.current = true;
-    };
-
-    syncGameStatus();
-  }, [gameId, gameStatus]);
-
-  // 🔧 Limpa estados de jogo anterior ao montar (fix para quando abandona e entra em novo jogo)
-  const hasClearedOnMount = React.useRef(false);
-  React.useEffect(() => {
-    if (hasClearedOnMount.current) return;
-
-    console.log(
-      "🧹 Verificando se precisa limpar estado de jogo anterior ao montar Game.tsx",
-      {
-        gameEnded,
-        winner: winner?.player?.username,
-        gameId,
-      }
-    );
-
-    // Se há winner ou gameEnded do jogo anterior, limpa ao montar
-    if (gameEnded || winner) {
-      console.log(
-        "⚠️ Detectado estado de jogo anterior! Limpando winner e gameEnded..."
-      );
-      setGameEnded(false);
-      setWinner(null);
-    }
-
-    hasClearedOnMount.current = true;
-  }, [gameEnded, winner, gameId, setGameEnded, setWinner]); // Executa apenas ao montar
-
-  // 🔍 Fallback: Se o gameStatus é FINISHED mas gameEnded é false, corrige
-  React.useEffect(() => {
-    if (gameStatus === "FINISHED" && !gameEnded) {
-      console.log(
-        "⚠️ FALLBACK: gameStatus é FINISHED mas gameEnded é false. Corrigindo..."
-      );
-      setGameEnded(true);
-    }
-  }, [gameStatus, gameEnded, setGameEnded]);
-
-  //  Fallback 2: Se o jogo está finalizado mas não tem winner, busca da API
-  React.useEffect(() => {
-    const fetchGameState = async () => {
-      if ((gameEnded || gameStatus === "FINISHED") && !winner && gameId) {
-        console.log(
-          "⚠️ FALLBACK 2: Jogo finalizado sem winner. Buscando da API..."
-        );
-
-        try {
-          const { gameService } = await import("../../service/gameService");
-          // Busca o jogo atual do jogador (retorna GameState com winner se finalizado)
-          const currentGame = await gameService.getCurrentGame();
-
-          console.log("📥 Jogo atual da API:", {
-            hasGame: !!currentGame,
-            gameId: currentGame?.id,
-            status: currentGame?.status,
-            hasWinner: !!currentGame?.winner,
-            winnerName: currentGame?.winner?.player?.username,
-            fullWinner: currentGame?.winner,
-          });
-
-          if (currentGame?.winner) {
-            console.log("✅ Winner encontrado na API! Salvando no store...");
-            setWinner(currentGame.winner);
-            setGameEnded(true);
-          } else {
-            console.log("⚠️ API não retornou winner. Possíveis causas:", {
-              gameExists: !!currentGame,
-              gameStatus: currentGame?.status,
-              suggestion:
-                "O jogo pode ter sido reiniciado ou o backend não salvou o winner",
-            });
-          }
-        } catch (error) {
-          console.error("❌ Erro ao buscar jogo atual:", error);
+        console.error("Failed to load game data:", error);
+        if (mounted) navigate("/hub");
+      } finally {
+        if (mounted) {
+          setIsLoadingGameData(false);
         }
       }
     };
+    loadGameData();
+    return () => {
+      mounted = false;
+    };
+  }, [
+    gameIdFromParams,
+    userId,
+    navigate,
+    setGameId,
+    setWinner,
+    setGameStatus,
+    setTerritoriesColors,
+    setGameEnded,
+    setIsFinalStateView,
+    setPlayer,
+    setGameHUD,
+  ]);
 
-    fetchGameState();
-  }, [gameEnded, gameStatus, winner, gameId, setWinner, setGameEnded]);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const dragging = useRef(false);
+  const last = useRef({ x: 0, y: 0 });
+  const targetPos = useRef({ x: 0, y: 0 });
+  const [spacePressed, setSpacePressed] = useState(false);
 
-  const [pos, setPos] = React.useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = React.useState(1);
-  // Removed unused turn/owner checks; HUD handles turn-based messaging
-
-  const dragging = React.useRef(false);
-  const last = React.useRef({ x: 0, y: 0 });
-  const targetPos = React.useRef({ x: 0, y: 0 }); // alvo para interpolação
-
-  const [spacePressed, setSpacePressed] = React.useState(false);
-
-  // Handler para fechar o modal de fim de jogo e voltar ao lobby
   const handleCloseEndModal = () => {
     setGameEnded(false);
     setWinner(null);
     setIsViewingGame(false);
-    navigate("/hub");
+    if (gameIdFromParams) {
+      navigate("/profile");
+    } else {
+      navigate("/hub");
+    }
   };
 
-  // Handler para visualizar o estado do jogo
   const handleViewGameState = () => {
     setIsViewingGame(true);
   };
 
-  // Handler para voltar ao modal de resultado
   const handleBackToModal = () => {
     setIsViewingGame(false);
   };
 
-  // Verificar se o jogador atual é o vencedor
   const isCurrentPlayerWinner =
     winner && userId ? String(winner.player.id) === String(userId) : false;
-
-  // 🎭 Log de debug da renderização do modal (só quando valores mudarem)
-  React.useEffect(() => {
-    const isGameFinished = gameEnded || gameStatus === "FINISHED";
-    const shouldShow = isGameFinished && winner && !isViewingGame;
-
-    console.log("🎭 Renderização Modal:", {
-      gameEnded,
-      gameStatus,
-      isGameFinished,
-      hasWinner: !!winner,
-      isViewingGame,
-      shouldShow,
-    });
-  }, [gameEnded, gameStatus, winner, isViewingGame]);
-
-  // 🐛 Debug: Log quando o componente renderiza
-  React.useEffect(() => {
-    console.log("🎮 Game Component Montado");
-    console.log("📊 Estado inicial:", {
-      gameEnded,
-      hasWinner: !!winner,
-      winnerName: winner?.player?.username,
-      isViewingGame,
-      userId,
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   function clampPosition(x: number, y: number, zoom: number) {
     const VIEWPORT_WIDTH = window.innerWidth;
@@ -277,41 +181,36 @@ export default function Game() {
     };
   }
 
-  // Loop de suavização
-  React.useEffect(() => {
+  useEffect(() => {
     let anim: number;
-
     function animate() {
       setPos((prev) => {
-        // interpolação (lerp) para suavizar
-        const smooth = 0.15; // ajuste: menor valor = mais suave
+        const smooth = 0.15;
         const newX = prev.x + (targetPos.current.x - prev.x) * smooth;
         const newY = prev.y + (targetPos.current.y - prev.y) * smooth;
-
         return { x: newX, y: newY };
       });
       anim = requestAnimationFrame(animate);
     }
-
     anim = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(anim);
   }, []);
 
-  // Sincroniza posição e zoom do mapa com o MapStore para uso na animação
-  React.useEffect(() => {
+  useEffect(() => {
     useMapStore.getState().setTransform(pos, zoom);
   }, [pos, zoom]);
 
-  useEffect(()=>{
-    resetAttack()
-    resetMove()
-  },[])
+  useEffect(() => {
+    resetAttack();
+    resetMove();
+  }, [resetAttack, resetMove]);
 
-  // Detecta espaço e zoom (apenas quando não estiver atacando / alocando / movendo)
-  React.useEffect(() => {
-    function onKeyDown(e: KeyboardEvent) {
-      const blocked = atacanteId || sourceTerritoyId || allocating || gameHUD !== "DEFAULT";
-      if (blocked) return; // Ignora qualquer input enquanto em ação
+  // Disable interactions in final state view
+  const interactionsBlocked = isFinalStateView || atacanteId || sourceTerritoyId || allocating || gameHUD !== "DEFAULT";
+
+  useEffect(() => {
+    function onKeyDown(e: globalThis.KeyboardEvent) {
+      if (interactionsBlocked) return;
 
       if (e.code === "Space") {
         setSpacePressed(true);
@@ -326,7 +225,7 @@ export default function Game() {
         e.preventDefault();
       }
     }
-    function onKeyUp(e: KeyboardEvent) {
+    function onKeyUp(e: globalThis.KeyboardEvent) {
       if (e.code === "Space") setSpacePressed(false);
     }
 
@@ -336,36 +235,32 @@ export default function Game() {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("keyup", onKeyUp);
     };
-  }, [atacanteId, sourceTerritoyId, allocating, gameHUD]);
+  }, [interactionsBlocked]);
 
-  // Se entrar em um estado bloqueado, garante que espaço/drag parem imediatamente
-  React.useEffect(() => {
-    const blocked = atacanteId || sourceTerritoyId || allocating || gameHUD !== "DEFAULT";
-    if (blocked) {
+  useEffect(() => {
+    if (interactionsBlocked) {
       setSpacePressed(false);
       dragging.current = false;
     }
-  }, [atacanteId, sourceTerritoyId, allocating, gameHUD]);
+  }, [interactionsBlocked]);
 
-  const SPEED = 1.5; // ajuste fino da velocidade
-  // Pan
-  React.useEffect(() => {
+  useEffect(() => {
     function onMouseDown(e: MouseEvent) {
+      if (interactionsBlocked) return;
+
       if (e.button === 0 && spacePressed) {
         dragging.current = true;
         last.current = { x: e.clientX, y: e.clientY };
 
         function onMouseMove(ev: MouseEvent) {
           if (dragging.current) {
-            const deltaX = (ev.clientX - last.current.x) * SPEED;
-            const deltaY = (ev.clientY - last.current.y) * SPEED;
-
+            const deltaX = (ev.clientX - last.current.x) * 1.5;
+            const deltaY = (ev.clientY - last.current.y) * 1.5;
             const newTarget = clampPosition(
               targetPos.current.x + deltaX,
               targetPos.current.y + deltaY,
               zoom
             );
-
             targetPos.current = newTarget;
             last.current = { x: ev.clientX, y: ev.clientY };
           }
@@ -385,9 +280,10 @@ export default function Game() {
 
     window.addEventListener("mousedown", onMouseDown, true);
     return () => window.removeEventListener("mousedown", onMouseDown, true);
-  }, [spacePressed, zoom]);
+  }, [interactionsBlocked, spacePressed, zoom]);
 
-  
+  // Adiciona loading para o mapa - só mostra loading se realmente estiver carregando
+  const showMapLoading = isLoadingGameData;
 
   return (
     <div
@@ -400,7 +296,7 @@ export default function Game() {
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
-        userSelect: dragging.current ? "none" : undefined,
+        userSelect: interactionsBlocked ? "none" : undefined,
         cursor: spacePressed
           ? dragging.current
             ? "grabbing"
@@ -408,57 +304,68 @@ export default function Game() {
           : undefined,
       }}
     >
-      {/* Attack Animation Layer - DESATIVADO TEMPORARIAMENTE */}
-      {/* <AttackAnimation /> */}
-
-      <div
-        style={{
-          position: "absolute",
-          left: 0,
-          top: 0,
-          width: "4000px",
-          height: "2000px",
-          transform: `translate(${pos.x}px, ${pos.y}px) scale(${zoom})`,
-          transformOrigin: "top left",
-          // ⚠ removi transition pra não engasgar
-        }}
-      >
-        <Map />
-      </div>
-      <div
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          zIndex: 10,
-        }}
-      >
-        {gameHUD == "DEFAULT" ? <GameHUD /> : null}
-      </div>
-      <ObjectiveButton />
+      {showMapLoading ? (
+        <div style={{position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 100}}>
+          <div className="spinner-border" role="status">
+            <span className="visually-hidden">Carregando mapa...</span>
+          </div>
+        </div>
+      ) : (
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: "4000px",
+            height: "2000px",
+            transform: `translate(${pos.x}px, ${pos.y}px) scale(${zoom})`,
+            transformOrigin: "top left",
+          }}
+        >
+          <Map />
+        </div>
+      )}
+      {!isFinalStateView && gameStatus !== "FINISHED" && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 10,
+          }}
+        >
+          {gameHUD === "DEFAULT" && <GameHUD />}
+        </div>
+      )}
+      {!isFinalStateView && gameStatus !== "FINISHED" && <ObjectiveButton />}
       <ContinentInfo />
 
-      {/* Modal de Fim de Jogo - Aparece quando o jogo terminou E não está visualizando */}
       {(() => {
-        // Verifica se o jogo terminou por gameEnded OU por gameStatus
         const isGameFinished = gameEnded || gameStatus === "FINISHED";
-        const shouldShow = isGameFinished && winner && !isViewingGame;
-
+        const shouldShow = isGameFinished && winner && !isViewingGame && !isFinalStateView;
+        // Define texto do botão de saída conforme contexto
+        const exitButtonText = gameIdFromParams ? "Ir para perfil" : "Sair para o lobby";
         return shouldShow ? (
           <GameEndModal
             winner={winner}
             isCurrentPlayerWinner={isCurrentPlayerWinner}
             onClose={handleCloseEndModal}
             onViewGameState={handleViewGameState}
+            exitButtonText={exitButtonText}
           />
         ) : null;
       })()}
 
-      {/* HUD de Visualização - Aparece quando está visualizando o jogo finalizado */}
-      {(gameEnded || gameStatus === "FINISHED") && winner && isViewingGame && (
-        <GameEndViewHUD onBackToModal={handleBackToModal} />
-      )}
+      {(gameEnded || gameStatus === "FINISHED") &&
+        winner &&
+        (isViewingGame || isFinalStateView) && (
+          <GameEndViewHUD
+            onBackToModal={
+              isFinalStateView ? () => navigate("/profile") : handleBackToModal
+            }
+          />
+        )}
     </div>
   );
 }

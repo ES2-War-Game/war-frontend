@@ -1,4 +1,3 @@
-import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import styles from "./GameEndModal.module.css";
@@ -9,11 +8,10 @@ interface GameEndModalProps {
   isCurrentPlayerWinner: boolean;
   onClose: () => void;
   onViewGameState?: () => void;
+  exitButtonText?: string;
 }
 
-export default function GameEndModal({ winner, isCurrentPlayerWinner, onClose, onViewGameState }: GameEndModalProps) {
-  const navigate = useNavigate();
-
+export default function GameEndModal({ winner, isCurrentPlayerWinner, onClose, onViewGameState, exitButtonText }: GameEndModalProps) {
   // Debug: Log quando o modal é montado
   useEffect(() => {
     console.log("🎭 GameEndModal MONTADO!", {
@@ -24,9 +22,9 @@ export default function GameEndModal({ winner, isCurrentPlayerWinner, onClose, o
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleBackToHub = () => {
+  // Usa o texto customizado se fornecido
+  const handleExit = () => {
     onClose();
-    navigate("/hub");
   };
 
   const handleViewGame = () => {
@@ -102,9 +100,9 @@ export default function GameEndModal({ winner, isCurrentPlayerWinner, onClose, o
           </button>
           <button 
             className={styles.backButton}
-            onClick={handleBackToHub}
+            onClick={handleExit}
           >
-            🚪 Sair para o Lobby
+            🚪 {typeof exitButtonText === "string" ? exitButtonText : "Sair para o Lobby"}
           </button>
         </div>
       </div>

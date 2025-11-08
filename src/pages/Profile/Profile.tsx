@@ -315,12 +315,7 @@ export default function Profile({
                       </ul>
                       <button
                         className={styles.viewFinalStateButton}
-                        onClick={() =>
-                          console.log(
-                            "Ver estado final da partida",
-                            partida.id
-                          )
-                        }
+                        onClick={() => navigate(`/game/${partida.id}`)}
                       >
                         Ver estado final
                       </button>
