@@ -2,16 +2,22 @@ import React from "react";
 import styles from "./AvatarModal.module.css";
 
 // Placeholder avatars - replace with your actual avatar imports
-import avatar1 from "../../assets/player.png";
-import avatar2 from "../../assets/player.png";
-import avatar3 from "../../assets/player.png";
-import avatar4 from "../../assets/player.png";
+import avatar1 from "../../assets/avatar1.jpg";
+import avatar2 from "../../assets/avatar2.jpg";
+import avatar3 from "../../assets/avatar3.jpg";
+import avatar4 from "../../assets/avatar4.jpg";
+import avatar5 from "../../assets/avatar5.jpg";
+import avatar6 from "../../assets/avatar6.jpg";
+import defaultPlayerAvatar from "../../assets/player.png"; // Renamed for clarity
 
 const avatars = [
+  { id: "defaultPlayerAvatar", src: defaultPlayerAvatar },
   { id: "avatar1", src: avatar1 },
   { id: "avatar2", src: avatar2 },
   { id: "avatar3", src: avatar3 },
   { id: "avatar4", src: avatar4 },
+  { id: "avatar5", src: avatar5 },
+  { id: "avatar6", src: avatar6 },
 ];
 
 interface AvatarModalProps {
