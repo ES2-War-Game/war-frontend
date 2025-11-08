@@ -24,6 +24,19 @@ export interface RegisterResponse {
   username?: string;
 }
 
+export interface PlayerUpdateDto {
+  email?: string;
+  imageUrl?: string | null;
+  username?: string;
+}
+
+export interface PlayerDto {
+  id: number;
+  username: string;
+  email?: string;
+  imageUrl?: string | null;
+}
+
 export class UsersService {
   async login(params: LoginRequest): Promise<LoginResponse> {
     try {
@@ -35,8 +48,8 @@ export class UsersService {
       }
       
       throw new Error('Token não encontrado na resposta');
-    } catch (error: any) {
-      console.error('Erro no login:', error.response?.data || error.message);
+    } catch (error) {
+      console.error('Erro no login:', error);
       throw error;
     }
   }
@@ -45,8 +58,40 @@ export class UsersService {
     try {
       const response = await api.post('/api/v1/players/register', params);
       return response.data;
-    } catch (error: any) {
-      console.error('Erro no registro:', error.response?.data || error.message);
+    } catch (error) {
+      console.error('Erro no registro:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get current authenticated player's profile
+   * GET /api/v1/players/me
+   * Requires Authorization: Bearer <JWT>
+   */
+  async getCurrentPlayer(): Promise<{ id: number; username: string; email: string; imageUrl: string | null }> {
+    try {
+      const response = await api.get('/api/v1/players/me');
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao obter dados do jogador atual:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update player profile (email, imageUrl, username)
+   * PATCH /api/v1/players/{id}
+   * @param id Player id
+   * @param update PlayerUpdateDto
+   * @returns Updated PlayerDto
+   */
+  async updatePlayer(id: number, update: PlayerUpdateDto): Promise<PlayerDto> {
+    try {
+      const response = await api.patch(`/api/v1/players/${id}`, update);
+      return response.data;
+    } catch (error) {
+      console.error('Erro ao atualizar perfil do jogador:', error);
       throw error;
     }
   }

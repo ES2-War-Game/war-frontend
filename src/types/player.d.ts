@@ -1,4 +1,4 @@
-interface PlayerGameDto {
+export interface PlayerGameDto {
   id: number;
   turnOrder: number;
   color: string;
@@ -10,8 +10,9 @@ interface PlayerGameDto {
   player: PlayerDto;
 }
 
-interface PlayerDto {
+export interface PlayerDto {
   id: number;
   username: string;
-  imageUrl: string;
+  email?: string;
+  imageUrl?: string | null;
 }

@@ -153,4 +153,8 @@ export const gameService = {
       throw error;
     }
   },
+  async getFinishedGames(): Promise<GameStateResponseDto[]> {
+    const response = await api.get<GameStateResponseDto[]>(`/api/games/history`);
+    return response.data;
+  },
 };

@@ -305,7 +305,21 @@ export const useGame = () => {
       setIsLoading(false);
     }
   };
-  return { isLoading, error, allocateTroops, EndTurn, attack, move };
+  const getFinishedGames = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const games = await gameService.getFinishedGames();
+      return games;
+    } catch (err: any) {
+      console.error("❌ Error fetching finished games:", err);
+      setError("Falha ao carregar histórico de partidas.");
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  return { isLoading, error, allocateTroops, EndTurn, attack, move, getFinishedGames };
 };
 
   

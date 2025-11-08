@@ -1,6 +1,7 @@
 import { useAuthStore } from "../store/useAuthStore";
 import { useGameStore } from "../store/useGameStore";
 import type { GameStateResponseDto, GameTerritoryDto } from "../types/game";
+import type { PlayerGameDto } from "../types/player";
 
 export interface TerritoryInfo {
   color: string;

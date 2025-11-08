@@ -3,6 +3,7 @@ import { persist } from "zustand/middleware";
 import type { GameStatus, PlayerGame } from "../types/lobby";
 import type { gameHUD } from "../types/game";
 import type { TerritoryInfo } from "../utils/gameState";
+import type { PlayerGameDto } from "../types/player";
 
 interface PlayerObjectiveMap {
   [playerId: string]: string;

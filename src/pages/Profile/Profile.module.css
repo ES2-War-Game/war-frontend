@@ -1,3 +1,124 @@
+.winnerBlock {
+  display: flex;
+  align-items: center;
+  background: linear-gradient(90deg, #fffbe6 80%, #ffe58f 100%);
+  border: 2px solid #ffd700;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.12);
+  padding: 12px 18px;
+  margin-bottom: 18px;
+}
+.winnerAvatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.18);
+  margin-right: 16px;
+  border: 2px solid #ffd700;
+}
+.winnerInfo {
+  display: flex;
+  flex-direction: column;
+}
+.winnerLabel {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #bfa100;
+}
+.winnerName {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.playerCard {
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 16px 15px 12px 15px;
+  height: 100%;
+  background: #f9f9fc;
+  position: relative;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.playerCard.winner {
+  border-color: #ffd700;
+  box-shadow: 0 2px 8px rgba(255, 215, 0, 0.18);
+  background: #fffbe6;
+}
+.playerCard .playerAvatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 8px;
+  border: 2px solid #eee;
+}
+.playerCard.winner .playerAvatar {
+  border-color: #ffd700;
+}
+.playerCard:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.13);
+  border-color: #0d6efd;
+}
+.playerName {
+  font-weight: 700;
+  margin-bottom: 5px;
+  font-size: 1.08rem;
+}
+.playerDetail {
+  font-size: 0.97rem;
+  color: #666;
+  margin-bottom: 4px;
+}
+.playerWin {
+  color: #28a745;
+  font-weight: 600;
+}
+.playerLoss {
+  color: #dc3545;
+  font-weight: 600;
+}
+.noPlayers {
+  text-align: center;
+  color: #888;
+  font-size: 1.05rem;
+  margin: 18px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.spinner {
+  display: inline-block;
+  width: 22px;
+  height: 22px;
+  border: 3px solid #eee;
+  border-top: 3px solid #0d6efd;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.row.g-3 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 0;
+}
+@media (max-width: 700px) {
+  .row.g-3 {
+    flex-direction: column;
+    gap: 16px 0;
+  }
+  .containerProfile {
+    padding: 20px 2px;
+  }
+  .cardSection {
+    padding: 15px 6px;
+  }
+}
 .containerProfile {
   max-width: 900px;
   margin: 0 auto;
