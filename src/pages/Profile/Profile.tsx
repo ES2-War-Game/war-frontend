@@ -141,7 +141,7 @@ export default function Profile({
     if (isInGame && onClose) {
       onClose();
     } else {
-      navigate(-1);
+      navigate("/");
     }
   };
 
