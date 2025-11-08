@@ -36,7 +36,7 @@ interface UseLobbyWebSocketReturn {
   startGame: (lobbyId: number) => Promise<void>;
 }
 
-export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
+export const useLobbyWebSocket = (enabled: boolean = true): UseLobbyWebSocketReturn => {
   const [lobbies, setLobbies] = useState<LobbyListResponseDto[]>([]);
   const [currentLobbyId, setCurrentLobbyId] = useState<number | null>(null);
   const [currentLobbyPlayers, setCurrentLobbyPlayers] = useState<Player[]>([]);
@@ -275,6 +275,10 @@ export const useLobbyWebSocket = (): UseLobbyWebSocketReturn => {
 
   // Initialize WebSocket with JWT
   useEffect(() => {
+    if (!enabled) {
+      return
+    }
+
     if (!token) {
       console.warn("Attempted to connect WebSocket without token");
       return;

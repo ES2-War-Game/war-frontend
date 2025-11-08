@@ -322,7 +322,7 @@ const GameSetupPage: React.FC = () => {
           return (
             <PlayerSlot
               key={slotKey}
-              avatar={player ? player.imageUrl ?? playerImg : playerImg}
+              avatar={player?.imageUrl ?? playerImg}
               borderColor={slot.borderColor}
               defaultName={player ? player.username : slot.defaultName}
               initialType={player ? "Jogador" : "CPU"}

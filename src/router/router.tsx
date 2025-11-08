@@ -7,7 +7,7 @@ import MainLayout from "../layout/MainLayout";
 import ProtectedRoute from "./ProtectedRoute";
 import Game from "../pages/Game/Game";
 import Hub from "../pages/Hub/hub";
-import Profile from "../components/Profile/Profile";
+import Profile from "../pages/Profile/Profile";
 
 const router = createBrowserRouter([
   {
@@ -52,6 +52,10 @@ const router = createBrowserRouter([
       },
       {
         path: "/game",
+        element: <Game />,
+      },
+      {
+        path: "/game/:gameId",
         element: <Game />,
       },
     ],

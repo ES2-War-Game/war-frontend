@@ -36,7 +36,9 @@ export default function GameResumeChecker() {
       "/jogadores"       // Está no lobby (já sabe que tem jogo ativo)
     ];
     
-    const isExcludedPage = excludedPages.includes(location.pathname);
+    // Também exclui rotas dinâmicas como /game/:gameId (visualização de jogo finalizado)
+    const isExcludedPage = excludedPages.includes(location.pathname) || 
+                          location.pathname.startsWith("/game/");
     
     if (!user || isExcludedPage) {
       return;
