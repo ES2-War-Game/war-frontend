@@ -61,19 +61,56 @@ export default function Game() {
       try {
         if (gameIdFromParams) {
           // Final state view mode - limpa antes de carregar
+          console.log("🧹 Clearing game state before loading final state");
           useGameStore.getState().clearGameState();
           
+          console.log("📡 Fetching game by ID:", gameIdFromParams);
           const gameData = await gameService.getGameById(
             Number(gameIdFromParams)
           );
+          
+          console.log("🎮 Game data loaded:", {
+            id: gameData.id,
+            status: gameData.status,
+            territoriesCount: gameData.gameTerritories?.length,
+            playersCount: gameData.playerGames?.length,
+            winner: gameData.winner?.player?.username,
+            sampleTerritory: gameData.gameTerritories?.[0]
+          });
+          
           if (mounted && gameData.status === "FINISHED") {
             setGameId(gameData.id);
             setWinner(gameData.winner);
             setGameStatus(gameData.status as GameStatus);
+            
+            console.log("🔄 Extracting territory info...");
             const territoryInfo = extractTerritoryInfo(gameData);
+            
+            console.log("🎨 Territory info extracted:", {
+              count: Object.keys(territoryInfo).length,
+              keys: Object.keys(territoryInfo).slice(0, 5),
+              sample: Object.entries(territoryInfo).slice(0, 3).map(([name, info]) => ({
+                name,
+                color: info.color,
+                armies: info.staticArmies,
+                ownerId: info.ownerId
+              }))
+            });
+            
+            console.log("💾 Setting territories colors in store...");
             setTerritoriesColors(territoryInfo);
+            
+            // Verify it was set
+            const verifyColors = useGameStore.getState().territoriesColors;
+            console.log("✅ Verification - territories in store:", {
+              count: Object.keys(verifyColors).length,
+              sample: Object.keys(verifyColors).slice(0, 3)
+            });
+            
             setGameEnded(true);
             setIsFinalStateView(true);
+            // Em final state view, inicia mostrando o HUD (mapa)
+            setIsViewingGame(true);
             // Set player for final state view if current user was part of this game
             const currentPlayerGame = gameData.playerGames.find(
               (pg) => String(pg.player.id) === userId
@@ -159,6 +196,11 @@ export default function Game() {
 
   const handleBackToModal = () => {
     setIsViewingGame(false);
+  };
+
+  const handleToggleModalInFinalState = () => {
+    // Alterna entre mostrar o modal e o HUD em visualização final
+    setIsViewingGame(!isViewingGame);
   };
 
   const isCurrentPlayerWinner =
@@ -343,7 +385,7 @@ export default function Game() {
 
       {(() => {
         const isGameFinished = gameEnded || gameStatus === "FINISHED";
-        const shouldShow = isGameFinished && winner && !isViewingGame && !isFinalStateView;
+        const shouldShow = isGameFinished && winner && !isViewingGame;
         // Define texto do botão de saída conforme contexto
         const exitButtonText = gameIdFromParams ? "Ir para perfil" : "Sair para o lobby";
         return shouldShow ? (
@@ -359,10 +401,10 @@ export default function Game() {
 
       {(gameEnded || gameStatus === "FINISHED") &&
         winner &&
-        (isViewingGame || isFinalStateView) && (
+        isViewingGame && (
           <GameEndViewHUD
             onBackToModal={
-              isFinalStateView ? () => navigate("/profile") : handleBackToModal
+              isFinalStateView ? handleToggleModalInFinalState : handleBackToModal
             }
           />
         )}
