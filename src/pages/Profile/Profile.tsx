@@ -7,6 +7,7 @@ import { useGame } from "../../hook/useGame";
 import { UsersService } from "../../service/userService";
 import type { GameStateResponseDto } from "../../types/game";
 import type { PlayerDto } from "../../types/player";
+import AvatarModal from "../../components/AvatarModal/AvatarModal";
 
 interface ProfileProps {
   isInGame?: boolean;
@@ -25,6 +26,8 @@ export default function Profile({
   const [visibleMatches, setVisibleMatches] = useState(2);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<number | null>(null);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const [selectedAvatar, setSelectedAvatar] = useState<string>(profileImg);
 
   const [currentPlayer, setCurrentPlayer] = useState<PlayerDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,6 +53,7 @@ export default function Profile({
 
         if (mounted) {
           setCurrentPlayer(playerData);
+          setSelectedAvatar(playerData.imageUrl ?? profileImg);
           setFormData({
             nomeCompleto: playerData.username ?? "",
             email: playerData.email ?? "",
@@ -75,6 +79,11 @@ export default function Profile({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleAvatarSelect = (avatarSrc: string) => {
+    setSelectedAvatar(avatarSrc);
+    setIsAvatarModalOpen(false);
+  };
+
   const handleAccordionToggle = (partidaId: number) => {
     setOpenAccordion(openAccordion === partidaId ? null : partidaId);
   };
@@ -85,6 +94,7 @@ export default function Profile({
         nomeCompleto: currentPlayer?.username ?? "",
         email: currentPlayer?.email ?? "",
       });
+      setSelectedAvatar(currentPlayer?.imageUrl ?? profileImg);
     }
     setIsEditing(!isEditing);
   };
@@ -96,6 +106,7 @@ export default function Profile({
       const updatePayload = {
         username: formData.nomeCompleto,
         email: formData.email,
+        imageUrl: selectedAvatar,
       };
       const updated = await svc.updatePlayer(currentPlayer.id, updatePayload);
       setCurrentPlayer(updated);
@@ -165,9 +176,14 @@ export default function Profile({
       <div className={styles.profileGrid}>
         <div className={styles.profileHeader}>
           <div className={styles.avatarContainer}>
-            <img src={profileImg} alt="Avatar" className={styles.avatar} />
+            <img src={selectedAvatar} alt="Avatar" className={styles.avatar} />
             {isOwnProfile && !isInGame && isEditing && (
-              <button className={styles.editAvatarBtn}>Alterar Avatar</button>
+              <button
+                className={styles.editAvatarBtn}
+                onClick={() => setIsAvatarModalOpen(true)}
+              >
+                Alterar Avatar
+              </button>
             )}
           </div>
           <h2 className={styles.userName}>
@@ -290,13 +306,22 @@ export default function Profile({
                         {partida.playerGames.map((playerGame) => (
                           <li key={playerGame.id}>
                             <strong>{playerGame.player.username}</strong>
-                            {partida.winner?.player?.id === playerGame.player.id
+                            {partida.winner?.player?.id ===
+                            playerGame.player.id
                               ? " - Vitorioso"
                               : ""}
                           </li>
                         ))}
                       </ul>
-                      <button className={styles.viewFinalStateButton} onClick={() => console.log('Ver estado final da partida', partida.id)}>
+                      <button
+                        className={styles.viewFinalStateButton}
+                        onClick={() =>
+                          console.log(
+                            "Ver estado final da partida",
+                            partida.id
+                          )
+                        }
+                      >
                         Ver estado final
                       </button>
                     </div>
@@ -316,6 +341,11 @@ export default function Profile({
           </div>
         </div>
       </div>
+      <AvatarModal
+        isOpen={isAvatarModalOpen}
+        onClose={() => setIsAvatarModalOpen(false)}
+        onSelectAvatar={handleAvatarSelect}
+      />
     </div>
   );
 
