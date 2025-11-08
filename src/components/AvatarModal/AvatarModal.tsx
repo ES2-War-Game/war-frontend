@@ -1,4 +1,3 @@
-import React from "react";
 import styles from "./AvatarModal.module.css";
 
 // Placeholder avatars - replace with your actual avatar imports

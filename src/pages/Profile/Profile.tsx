@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import profileImg from "../../assets/player.png";
 import styles from "./Profile.module.css";
-import { useAuthStore } from "../../store/useAuthStore";
 import { useGame } from "../../hook/useGame";
 import { UsersService } from "../../service/userService";
 import type { GameStateResponseDto } from "../../types/game";
