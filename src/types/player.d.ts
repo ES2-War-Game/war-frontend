@@ -8,6 +8,7 @@ export interface PlayerGameDto {
   stillInGame: boolean;
   objective: ObjectiveDto;
   player: PlayerDto;
+  playerCards: PlayerCard[];
 }
 
 export interface PlayerDto {

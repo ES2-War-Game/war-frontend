@@ -4,6 +4,7 @@ import Map from "../../components/Map/Map";
 import background from "../../assets/Game_background.jpg";
 import GameHUD from "../../components/GameHUD/gameHUD";
 import ObjectiveButton from "../../components/ObjectiveButton/ObjectiveButton";
+import CardsButton from "../../components/CardsButton/CardsButton";
 import GameEndModal from "../../components/GameEndModal/GameEndModal";
 import GameEndViewHUD from "../../components/GameEndViewHUD/GameEndViewHUD";
 import ContinentInfo from "../../components/ContinentInfo/ContinentInfo";
@@ -46,6 +47,7 @@ export default function Game() {
   const sourceTerritoyId = useMovementStore((s) => s.sourceTerritoryId);
   const allocating = useAllocateStore((s) => s.allocating);
   const gameHUD = useGameStore((s) => s.gameHud);
+  const player = useGameStore(state => state.player);
 
   const resetAttack = useAttackStore.getState().resetAttack;
   const resetMove = useMovementStore.getState().resetMove;
@@ -381,6 +383,7 @@ export default function Game() {
         </div>
       )}
       {!isFinalStateView && gameStatus !== "FINISHED" && <ObjectiveButton />}
+      <CardsButton playerCards={player?.playerCards || []} />
       <ContinentInfo />
 
       {(() => {
