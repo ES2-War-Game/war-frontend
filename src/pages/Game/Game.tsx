@@ -7,6 +7,7 @@ import ObjectiveButton from "../../components/ObjectiveButton/ObjectiveButton";
 import GameEndModal from "../../components/GameEndModal/GameEndModal";
 import GameEndViewHUD from "../../components/GameEndViewHUD/GameEndViewHUD";
 import ContinentInfo from "../../components/ContinentInfo/ContinentInfo";
+import Chat from "../../components/Chat/Chat";
 import { useGameStore } from "../../store/useGameStore";
 import { useMapStore } from "../../store/useMapStore";
 import { useLobbyWebSocket } from "../../hook/useWebSocket";
@@ -19,6 +20,7 @@ import { gameService } from "../../service/gameService";
 import { extractTerritoryInfo } from "../../utils/gameState";
 import type { GameStateResponseDto } from "../../types/game";
 import type { PlayerGameDto } from "../../types/player";
+import style from './Game.module.css'
 
 export default function Game() {
   const { gameId: gameIdFromParams } = useParams<{ gameId: string }>();
@@ -381,7 +383,15 @@ export default function Game() {
         </div>
       )}
       {!isFinalStateView && gameStatus !== "FINISHED" && <ObjectiveButton />}
-      <ContinentInfo />
+      <div className={style.bottomLeft}>
+        
+        <ContinentInfo />
+        
+        {/* Chat - só aparece quando o jogo está em andamento */}
+        {!isFinalStateView && gameStatus !== "FINISHED" && (
+          <Chat gameId={useGameStore.getState().gameId} enabled={true} />
+        )}
+      </div>
 
       {(() => {
         const isGameFinished = gameEnded || gameStatus === "FINISHED";
