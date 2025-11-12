@@ -20,3 +20,11 @@
     min-height: 180vh;
     width: 100vw;
 }
+.bottomLeft{
+    position: absolute;
+    bottom: 24px;
+    left:32px;
+    display: flex;
+    align-items: center;
+    gap:32px;
+}
