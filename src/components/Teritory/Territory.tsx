@@ -10,7 +10,7 @@ import { useAttackAnimationStore } from "../../store/useAttackAnimationStore";
 import { useMapStore } from "../../store/useMapStore";
 import { gameService } from "../../service/gameService";
 import { extractTerritoryInfo } from "../../utils/gameState";
-import type { GameStateResponseDto } from "../../types/game";
+import type { attackResultDice, GameStateResponseDto } from "../../types/game";
 import type { TerritoryInfo } from "../../utils/gameState";
 import {
   SouthAmericaList,
@@ -23,6 +23,8 @@ import {
 import "./Territory.module.css";
 import { useMovementStore } from "../../store/useMovementStore";
 import MoveHUD from "../MoveHUD/MoveHUD";
+import BattleDice from "../BattleDice/BattleDice";
+import attackResult from "../../utils/attackResult";
 
 export interface TerritorySVG {
   nome: string;
@@ -52,6 +54,19 @@ const PLAYER_COLORS: Record<string, string> = {
   purple: "#6d28d9",
   black: "#222",
 };
+
+interface DiceListProps {
+  DiceListTemp: {
+    DiceList: {
+      ataque: number[];
+      defesa: number[];
+    };
+    DiceResult: {
+      attackResult: number;
+      defenseResult: number;
+    };
+  } | null;
+}
 
 function getDarkerPlayerColor(color: string): string {
   // Normaliza para minúsculo e remove espaços
@@ -104,9 +119,20 @@ export default function Territory(territorio: TerritorySVG) {
   const fronteiras = useAttackStore.getState().fronteiras;
   const atacanteId = useAttackStore.getState().atacanteId;
   const defensorId = useAttackStore.getState().defensorId;
+
   const setAtacanteId = useAttackStore.getState().setAtacanteId;
   const setDefensorId = useAttackStore.getState().setDefensorId;
+  const setAttackTroops = useAttackStore.getState().setAttackTroops;
+  const setDefenseTroops = useAttackStore.getState().setDefenseTroops;
+  const setAttackDiceCount = useAttackStore.getState().setAttackDiceCount;
   const resetAttack = useAttackStore.getState().resetAttack;
+  const territories = useGameStore.getState().territoriesColors;
+
+  // Estados para controlar a animação de dados
+  const [showDiceAnimation, setShowDiceAnimation] = useState(false);
+  const [attackDiceData, setAttackDiceData] = useState<attackResultDice | null>(
+    null
+  );
 
   const setMoveCount = useMovementStore.getState().setMoveCount;
   const [movement, setMove] = useState(false);
@@ -119,6 +145,8 @@ export default function Territory(territorio: TerritorySVG) {
   const setTargetId = useMovementStore.getState().setTargetId;
   const resetMove = useMovementStore.getState().resetMove;
 
+  const [DiceList, setDiceList] = useState<DiceListProps>();
+
   // Use lightweight game actions to avoid initializing WebSocket per territory
   const { allocateTroops, attack, move } = useGame();
 
@@ -130,6 +158,8 @@ export default function Territory(territorio: TerritorySVG) {
   // pega o mapa de cores do jogo (persistido)
   const territoriesColors = useGameStore((s) => s.territoriesColors);
 
+
+  // Reset automático removido - agora é controlado pelo onComplete do BattleDice
   useEffect(() => {
     setMoveCount(moveNum);
   }, [moveNum]);
@@ -580,11 +610,47 @@ export default function Territory(territorio: TerritorySVG) {
     }
 
     try {
+      const territoriesArray = Object.values(territories);
+
+      const atacante = territoriesArray.find(
+        (territory) => territory.id === atacanteId
+      );
+      const defensor = territoriesArray.find(
+        (territory) => territory.id === defensorId
+      );
+
+      let attackTroops = 0;
+      let defenseTroops = 0;
+
+      if (atacante?.allocatedArmie) {
+        attackTroops = atacante.allocatedArmie;
+        console.log("💾 Salvando tropas do ATACANTE ANTES do ataque:", attackTroops);
+        setAttackTroops(attackTroops);
+      }
+      if (defensor?.allocatedArmie) {
+        defenseTroops = defensor.allocatedArmie;
+        console.log("💾 Salvando tropas do DEFENSOR ANTES do ataque:", defenseTroops);
+        setDefenseTroops(defenseTroops);
+      }
+      setAttackDiceCount(ataqueNum);
+
+      console.log("📊 VALORES ANTES DO ATAQUE:", {
+        attackTroops,
+        defenseTroops,
+        ataqueNum,
+        atacanteId,
+        defensorId
+      });
+
+      // Chama o ataque (que já retorna o resultado via store)
       await attack(atacanteId, defensorId, ataqueNum);
-      // Após enviar o ataque, limpa seleção e fecha overlay/HUD
-      setAtaque(false);
-      resetAttack();
-      setFronteiraDefense(false);
+      
+      setTimeout(() => {
+        const DiceResults = attackResult();
+        setDiceList({ DiceListTemp: DiceResults });
+        setShowDiceAnimation(true);
+      }, 500);
+      
     } catch {
       // erro já tratado no hook; mantém HUD aberto para tentar novamente
     } finally {
@@ -916,7 +982,7 @@ export default function Territory(territorio: TerritorySVG) {
       setFronteiraDefense(false);
       setMoveNum(1);
       setIsMoving(false);
-      setGameHUD("DEFAULT")
+      setGameHUD("DEFAULT");
     } catch {
       // erro já tratado no hook; mantém HUD aberto para tentar novamente
     } finally {
@@ -1098,7 +1164,6 @@ export default function Territory(territorio: TerritorySVG) {
   return (
     <div>
       <div style={{ zIndex: 44 }}>
-        
         <svg
           ref={svgRef}
           width={territorio.width}
@@ -1259,7 +1324,6 @@ export default function Territory(territorio: TerritorySVG) {
             </text>
           ) : null}
         </svg>
-        
       </div>
       {aloca &&
         createPortal(
@@ -1328,7 +1392,6 @@ export default function Territory(territorio: TerritorySVG) {
                 zIndex: 44,
               }}
             >
-              
               <svg
                 width={portalRect.width}
                 height={portalRect.height}
@@ -1445,7 +1508,6 @@ export default function Territory(territorio: TerritorySVG) {
                   </text>
                 ) : null}
               </svg>
-              
             </div>,
             document.body
           )
@@ -1495,6 +1557,45 @@ export default function Territory(territorio: TerritorySVG) {
             document.body
           )
         : null}
+
+      {/* Animação de dados de batalha */}
+      {showDiceAnimation ? (
+        <BattleDice
+          attackLose={DiceList?.DiceListTemp?.DiceResult.attackResult ?? null}
+          defenseLose={DiceList?.DiceListTemp?.DiceResult.defenseResult ?? null}
+          attackerDice={DiceList?.DiceListTemp?.DiceList.ataque ?? null }
+          defenderDice={DiceList?.DiceListTemp?.DiceList.defesa ?? null }
+          attackerDiceValues={DiceList?.DiceListTemp?.DiceList.ataque ?? undefined}
+          defenderDiceValues={DiceList?.DiceListTemp?.DiceList.defesa ?? undefined}
+          onComplete={(
+            attackerResults: number[],
+            defenderResults: number[]
+          ) => {
+            console.log("🎲 Animação de dados completa!");
+            console.log("  Resultados atacante:", attackerResults);
+            console.log("  Resultados defensor:", defenderResults);
+
+            // Esconde a animação
+            setShowDiceAnimation(false);
+            setAttackDiceData(null);
+
+            // Agora mostra o modal de resultado (via store)
+            const pendingResult = useAttackStore.getState().pendingAttackResult;
+            if (pendingResult) {
+              useAttackStore.getState().setLastAttackResult(pendingResult);
+              useAttackStore.getState().setPendingAttackResult(null);
+            }
+
+            // Limpa estados de ataque
+            setAtaque(false);
+            resetAttack();
+            setFronteiraDefense(false);
+            setMove(false);
+            resetMove();
+            setGameHUD("DEFAULT");
+          }}
+        />
+      ) : null}
     </div>
   );
 }

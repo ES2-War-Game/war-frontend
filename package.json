@@ -11,13 +11,18 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.1",
+    "@react-three/cannon": "^6.6.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.4.0",
     "@stomp/stompjs": "^7.2.0",
     "axios": "^1.12.1",
+    "cannon-es": "^0.20.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.62.0",
     "react-router-dom": "^7.8.2",
     "sockjs-client": "^1.6.1",
+    "three": "^0.181.1",
     "zod": "^4.1.8",
     "zustand": "^5.0.8"
   },
