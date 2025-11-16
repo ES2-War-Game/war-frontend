@@ -10,7 +10,7 @@ import { useAttackAnimationStore } from "../../store/useAttackAnimationStore";
 import { useMapStore } from "../../store/useMapStore";
 import { gameService } from "../../service/gameService";
 import { extractTerritoryInfo } from "../../utils/gameState";
-import type { attackResultDice, GameStateResponseDto } from "../../types/game";
+import type {  GameStateResponseDto } from "../../types/game";
 import type { TerritoryInfo } from "../../utils/gameState";
 import {
   SouthAmericaList,
@@ -130,9 +130,7 @@ export default function Territory(territorio: TerritorySVG) {
 
   // Estados para controlar a animação de dados
   const [showDiceAnimation, setShowDiceAnimation] = useState(false);
-  const [attackDiceData, setAttackDiceData] = useState<attackResultDice | null>(
-    null
-  );
+ 
 
   const setMoveCount = useMovementStore.getState().setMoveCount;
   const [movement, setMove] = useState(false);
@@ -1577,7 +1575,6 @@ export default function Territory(territorio: TerritorySVG) {
 
             // Esconde a animação
             setShowDiceAnimation(false);
-            setAttackDiceData(null);
 
             // Agora mostra o modal de resultado (via store)
             const pendingResult = useAttackStore.getState().pendingAttackResult;

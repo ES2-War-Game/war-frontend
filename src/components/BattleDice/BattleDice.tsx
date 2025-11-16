@@ -5,6 +5,25 @@ import { Physics, useBox } from "@react-three/cannon";
 import * as THREE from "three";
 import { createPortal } from "react-dom";
 
+// Calcula dimensões responsivas baseadas no tamanho da janela
+const getResponsiveDimensions = () => {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
+  const aspect = width / height;
+  
+  // Base nas dimensões da janela mantendo proporção 16:9
+  const boxWidth = width * 0.8; // 80% da largura da tela
+  const boxDepth = boxWidth / aspect;
+  const boxHeight = Math.min(height * 0.6, 300); // Até 60% da altura ou 300px
+  
+  return {
+    width: boxWidth,
+    depth: boxDepth,
+    height: boxHeight,
+    zoom: Math.min(width, height) * 0.15, // Zoom proporcional ao menor lado
+  };
+};
+
 interface DiceProps {
   position: [number, number, number];
   throwForce?: [number, number, number];
@@ -22,9 +41,13 @@ function Dice({ position, throwForce, throwTorque, onRest, color, value }: DiceP
     position: position,
     args: [diceSize, diceSize, diceSize],
     material: {
-      friction: 0.5,
-      restitution: 0.5, // Menos quique
+      friction: 0.8, // Aumentado para mais atrito
+      restitution: 0.3, // Reduzido para menos quique
     },
+    linearDamping: 0.5, // Amortecimento linear (reduz velocidade)
+    angularDamping: 0.5, // Amortecimento angular (reduz rotação)
+    sleepSpeedLimit: 0.1, // Velocidade mínima antes de "dormir"
+    sleepTimeLimit: 0.5, // Tempo antes de "dormir"
   }));
 
   const meshRef = useRef<THREE.Group>(null!);
@@ -58,17 +81,39 @@ function Dice({ position, throwForce, throwTorque, onRest, color, value }: DiceP
   }, [api.rotation]);
 
   useEffect(() => {
-    const unsubscribeVel = api.velocity.subscribe((v) => {
-      const speed = Math.sqrt(v[0] ** 2 + v[1] ** 2 + v[2] ** 2);
-      if (speed < 0.1 && !hasRested) {
+    let linearVelocity = [0, 0, 0];
+
+    const unsubscribeLinear = api.velocity.subscribe((v) => {
+      linearVelocity = v;
+    });
+
+    const unsubscribeAngular = api.angularVelocity.subscribe((av) => {
+      const linearSpeed = Math.sqrt(
+        linearVelocity[0] ** 2 + 
+        linearVelocity[1] ** 2 + 
+        linearVelocity[2] ** 2
+      );
+      
+      const angularSpeed = Math.sqrt(
+        av[0] ** 2 + 
+        av[1] ** 2 + 
+        av[2] ** 2
+      );
+      
+      // Dado só para quando ambas velocidades (linear e angular) são baixas
+      if (linearSpeed < 0.5 && angularSpeed < 0.5 && !hasRested) {
         setHasRested(true);
         if (onRest && meshRef.current) {
           onRest(meshRef.current.rotation);
         }
       }
     });
-    return unsubscribeVel;
-  }, [api.velocity, hasRested, onRest]);
+
+    return () => {
+      unsubscribeLinear();
+      unsubscribeAngular();
+    };
+  }, [api.velocity, api.angularVelocity, hasRested, onRest]);
 
   // Posições proporcionais ao tamanho do dado (42 unidades)
   const halfSize = diceSize / 2 + 0.01; // Metade do tamanho + pequeno offset para ficar na superfície
@@ -118,83 +163,91 @@ function Dice({ position, throwForce, throwTorque, onRest, color, value }: DiceP
 }
 
 function Floor() {
+  const dims = getResponsiveDimensions();
+  
   useBox(() => ({
     type: "Static",
     position: [0, -2, 0],
-    args: [853, 0.5, 480], // Chão reduzido em 1/3
+    args: [dims.width, 0.5, dims.depth],
   }));
 
   return (
     <mesh position={[0, -2, 0]} receiveShadow>
-      <boxGeometry args={[853, 0.5, 480]} />
-      <meshStandardMaterial color="#1a472a" transparent opacity={0.3} />
+      <boxGeometry args={[dims.width, 0.5, dims.depth]} />
+      <meshStandardMaterial transparent opacity={0} />
     </mesh>
   );
 }
 
 function Walls() {
-  // Paredes reduzidas em 1/3
+  const dims = getResponsiveDimensions();
+  const halfWidth = dims.width / 2;
+  const halfDepth = dims.depth / 2;
+  const wallHeight = dims.height;
+  const wallY = wallHeight / 2;
+  
+  // Paredes responsivas
   useBox(() => ({
     type: "Static",
-    position: [0, 25, -240],
-    args: [853, 50, 1], // Parede traseira
+    position: [0, wallY, -halfDepth],
+    args: [dims.width, wallHeight, 1], // Parede traseira
   }));
   
   useBox(() => ({
     type: "Static",
-    position: [0, 25, 240],
-    args: [853, 50, 1], // Parede frontal
+    position: [0, wallY, halfDepth],
+    args: [dims.width, wallHeight, 1], // Parede frontal
   }));
   
   useBox(() => ({
     type: "Static",
-    position: [-427, 25, 0],
-    args: [1, 50, 480], // Parede esquerda
+    position: [-halfWidth, wallY, 0],
+    args: [1, wallHeight, dims.depth], // Parede esquerda
   }));
   
   useBox(() => ({
     type: "Static",
-    position: [427, 25, 0],
-    args: [1, 50, 480], // Parede direita
+    position: [halfWidth, wallY, 0],
+    args: [1, wallHeight, dims.depth], // Parede direita
   }));
   
-  // Teto para evitar que dados saiam voando
+  // Teto para evitar que dados saiam voando - com mais espessura e mais baixo
   useBox(() => ({
     type: "Static",
-    position: [0, 50, 0],
-    args: [853, 1, 480], // Teto reduzido
+    position: [0, wallHeight * 0.6, 0], // 60% da altura para impedir dados de subir muito
+    args: [dims.width, 5, dims.depth], // Teto mais grosso para melhor colisão
   }));
 
   return (
     <>
       {/* Parede traseira */}
-      <mesh position={[0, 25, -240]}>
-        <boxGeometry args={[853, 50, 1]} />
-        <meshStandardMaterial color="#ff0000" transparent opacity={0.2} />
+      <mesh position={[0, wallY, -halfDepth]}>
+        <boxGeometry args={[dims.width, wallHeight, 1]} />
+        <meshStandardMaterial transparent opacity={0} />
       </mesh>
       
       {/* Parede frontal */}
-      <mesh position={[0, 25, 240]}>
-        <boxGeometry args={[853, 50, 1]} />
-        <meshStandardMaterial color="#00ff00" transparent opacity={0.2} />
+      <mesh position={[0, wallY, halfDepth]}>
+        <boxGeometry args={[dims.width, wallHeight, 1]} />
+        <meshStandardMaterial transparent opacity={0} />
       </mesh>
       
       {/* Parede esquerda */}
-      <mesh position={[-427, 25, 0]}>
-        <boxGeometry args={[1, 50, 480]} />
-        <meshStandardMaterial color="#0000ff" transparent opacity={0.2} />
+      <mesh position={[-halfWidth, wallY, 0]}>
+        <boxGeometry args={[1, wallHeight, dims.depth]} />
+        <meshStandardMaterial transparent opacity={0} />
       </mesh>
       
       {/* Parede direita */}
-      <mesh position={[427, 25, 0]}>
-        <boxGeometry args={[1, 50, 480]} />
-        <meshStandardMaterial color="#ffff00" transparent opacity={0.2} />
+      <mesh position={[halfWidth, wallY, 0]}>
+        <boxGeometry args={[1, wallHeight, dims.depth]} />
+        <meshStandardMaterial transparent opacity={0} />
       </mesh>
       
-      {/* Teto */}
-      <mesh position={[0, 50, 0]}>
-        <boxGeometry args={[853, 1, 480]} />
-        <meshStandardMaterial color="#ff00ff" transparent opacity={0.2} />
+      {/* Teto - mais grosso para melhor colisão e mais baixo */}
+      <mesh position={[0, wallHeight * 0.6, 0]}>
+        <boxGeometry args={[dims.width, 5, dims.depth]} />
+        <meshStandardMaterial transparent opacity={0} />
       </mesh>
     </>
   );
@@ -216,6 +269,8 @@ interface BattleDiceSceneProps {
 }
 
 function BattleDiceScene({ diceConfigs, onResult }: BattleDiceSceneProps) {
+  const dims = getResponsiveDimensions();
+  
   const handleDiceRest = (rotation: THREE.Euler, index: number, type: "attacker" | "defender") => {
     const result = calculateTopFace(rotation);
     onResult(result, index, type);
@@ -249,9 +304,12 @@ function BattleDiceScene({ diceConfigs, onResult }: BattleDiceSceneProps) {
     return topFace;
   };
 
+  // Posição da câmera ajustada para ficar acima do centro da caixa
+  const cameraY = dims.height + 50;
+
   return (
     <Canvas 
-      camera={{ position: [0, 90, 0], fov: 60, rotation: [-Math.PI / 12, 0, 0] }} // Câmera olhando de cima
+      camera={{ position: [0, cameraY, 0], fov: 60, rotation: [-Math.PI / 12, 0, 0] }} // Câmera olhando de cima
       style={{ 
         background: 'transparent',
         width: '100%',
@@ -260,14 +318,14 @@ function BattleDiceScene({ diceConfigs, onResult }: BattleDiceSceneProps) {
       }} 
       shadows
       orthographic // Câmera ortográfica para visão top-down
-      camera-zoom={200} // Zoom bem aumentado para aproximar os dados
+      camera-zoom={dims.zoom} // Zoom responsivo baseado no tamanho da tela
     >
-      <ambientLight intensity={1} />
-      <directionalLight position={[0, 20, 0]} intensity={2} castShadow />
+      <ambientLight intensity={0.4} />
+      <directionalLight position={[0, 20, 0]} intensity={0.1} castShadow />
       <pointLight position={[5, 15, 5]} intensity={1} />
       <pointLight position={[-5, 15, -5]} intensity={1} />
       
-      <Physics gravity={[0, -35, 0]}>
+      <Physics gravity={[0, -165, 0]}>
         {diceConfigs.map((config, index) => (
           <Dice
             key={config.key}
@@ -332,13 +390,13 @@ export default function BattleDiceOverlay({
     for (let i = 0; i < attackerDice?.length; i++) {
       // Posição inicial com variação aleatória
       const posX = attackerStartX + i * attackerSpacing + (Math.random() - 0.5) * 4; // Variação ±2
-      const posY = 6 + Math.random() * 3; // Altura inicial variável (6-9)
+      const posY = 3 + Math.random() * 2; // Altura inicial mais baixa (3-5)
       const posZ = -2 + (Math.random() - 0.5) * 6; // Variação ±3 em Z
       
-      // Forças completamente aleatórias em todas as direções
-      const forceX = (Math.random() - 0.5) * 16; // -8 a +8
-      const forceY = Math.random() * 8 + 4; // 4 a 12 (altura variável)
-      const forceZ = (Math.random() - 0.5) * 16; // -8 a +8
+      // Forças aleatórias mais controladas
+      const forceX = (Math.random() - 0.5) * 12; // -6 a +6
+      const forceY = Math.random() * 3 + 2; // 2 a 5 (força vertical reduzida)
+      const forceZ = (Math.random() - 0.5) * 12; // -6 a +6
       
       // Torque aleatório para rotação variada
       const torqueX = (Math.random() - 0.5) * 40; // -20 a +20
@@ -364,13 +422,13 @@ export default function BattleDiceOverlay({
     for (let i = 0; i < defenderDice.length; i++) {
       // Posição inicial com variação aleatória
       const posX = defenderStartX + i * defenderSpacing + (Math.random() - 0.5) * 4; // Variação ±2
-      const posY = 6 + Math.random() * 3; // Altura inicial variável (6-9)
+      const posY = 3 + Math.random() * 2; // Altura inicial mais baixa (3-5)
       const posZ = 2 + (Math.random() - 0.5) * 6; // Variação ±3 em Z
       
-      // Forças completamente aleatórias em todas as direções
-      const forceX = (Math.random() - 0.5) * 16; // -8 a +8
-      const forceY = Math.random() * 8 + 4; // 4 a 12 (altura variável)
-      const forceZ = (Math.random() - 0.5) * 16; // -8 a +8
+      // Forças aleatórias mais controladas
+      const forceX = (Math.random() - 0.5) * 12; // -6 a +6
+      const forceY = Math.random() * 3 + 2; // 2 a 5 (força vertical reduzida)
+      const forceZ = (Math.random() - 0.5) * 12; // -6 a +6
       
       // Torque aleatório para rotação variada
       const torqueX = (Math.random() - 0.5) * 40; // -20 a +20

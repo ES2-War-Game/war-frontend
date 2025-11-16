@@ -1,6 +1,5 @@
 import { useAttackStore } from "../store/useAttackStore";
 import { useGameStore } from "../store/useGameStore";
-import type { attackResultDice } from "../types/game";
 import type { TerritoryInfo } from "./gameState";
 
 function randomInRange(min: number, max: number) {
@@ -65,10 +64,7 @@ function gerarDadosDaBatalha(
   };
 }
 
-type Territory = {
-  id: string;
-  allocatedArmie: number;
-};
+
 
 type DiceListResult = {
   ataque: number[];
