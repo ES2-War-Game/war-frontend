@@ -1,6 +1,7 @@
 import api from "../interceptor/api";
 import type { GameStateResponseDto, CurrentTurnResponse, AttackResult } from "../types/game";
 import type { GameState } from "../types/lobby";
+import { useAuthStore } from "../store/useAuthStore";
 
 export const gameService = {
   async startGame(lobbyId: number): Promise<GameStateResponseDto> {
@@ -161,5 +162,25 @@ export const gameService = {
   async getGameById(gameId: number): Promise<GameStateResponseDto> {
     const response = await api.get<GameStateResponseDto>(`/api/games/${gameId}`);
     return response.data;
+  },
+  async getPlayerCards() {
+    try {
+      const response = await api.get("/current-game");
+      const game = response.data;
+
+      
+      const currentUser = useAuthStore.getState().user;
+      if (!currentUser) return [];
+
+      
+      const playerGame = game.playerGames?.find(
+        (pg: any) => pg.player?.id === currentUser.id
+      );
+
+      return playerGame?.playerCards || [];
+    } catch (err) {
+      console.error("❌ Erro ao buscar cartas do current-game:", err);
+      throw err;
+    }
   },
 };

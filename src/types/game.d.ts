@@ -1,3 +1,18 @@
+export interface Card {
+  id: number;
+  type: 'INFANTRY' | 'CAVALRY' | 'CANNON' | 'WILD';
+  territory: {
+    id: number;
+    name: string;
+    continent: string;
+  };
+}
+
+export interface PlayerCard {
+  id: number;
+  card: Card;
+}
+
 export interface GameStateResponseDto {
   id: number;
   status: string; // Ex.: "LOBBY" | "RUNNING" | "FINISHED"
