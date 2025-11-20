@@ -1,5 +1,5 @@
 import api from "../interceptor/api";
-import type { GameStateResponseDto, CurrentTurnResponse } from "../types/game";
+import type { GameStateResponseDto, CurrentTurnResponse, AttackResult } from "../types/game";
 import type { GameState } from "../types/lobby";
 import { useAuthStore } from "../store/useAuthStore";
 
@@ -100,7 +100,7 @@ export const gameService = {
     targetTerritoryId: number,
     attackDiceCount: number,
     troopsToMoveAfterConquest: number
-  ): Promise<void> {
+  ): Promise<AttackResult> {
     const requestBody = {
       sourceTerritoryId,
       targetTerritoryId,

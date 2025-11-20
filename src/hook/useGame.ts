@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGameStore } from "../store/useGameStore";
 import { gameService } from "../service/gameService";
+import { useAttackStore } from "../store/useAttackStore";
 
 export const useGame = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -185,7 +186,21 @@ export const useGame = () => {
       
       console.log(`📦 Tropas a mover após conquista: ${troopsToMove}`);
       
-      await gameService.attack(gameId, sourceTerritoryId, targetTerritoryId, attackDiceCount, troopsToMove);
+      // Chama o ataque e recebe o resultado
+      const attackResult = await gameService.attack(
+        gameId, 
+        sourceTerritoryId, 
+        targetTerritoryId, 
+        attackDiceCount, 
+        troopsToMove
+      );
+      
+      console.log("🎲 Resultado do ataque recebido:", attackResult);
+      
+      // Armazena o resultado pendente e ativa a animação de dados
+      useAttackStore.getState().setPendingAttackResult(attackResult);
+      useAttackStore.getState().setShowDiceAnimation(true);
+      
       console.log(
         "✅ Attack request sent. Aguardando atualização via WebSocket..."
       );

@@ -8,6 +8,7 @@ import CardsButton from "../../components/CardsButton/CardsButton";
 import GameEndModal from "../../components/GameEndModal/GameEndModal";
 import GameEndViewHUD from "../../components/GameEndViewHUD/GameEndViewHUD";
 import ContinentInfo from "../../components/ContinentInfo/ContinentInfo";
+import Chat from "../../components/Chat/Chat";
 import { useGameStore } from "../../store/useGameStore";
 import { useMapStore } from "../../store/useMapStore";
 import { useLobbyWebSocket } from "../../hook/useWebSocket";
@@ -20,6 +21,7 @@ import { gameService } from "../../service/gameService";
 import { extractTerritoryInfo } from "../../utils/gameState";
 import type { GameStateResponseDto } from "../../types/game";
 import type { PlayerGameDto } from "../../types/player";
+import style from "./Game.module.css";
 
 export default function Game() {
   const { gameId: gameIdFromParams } = useParams<{ gameId: string }>();
@@ -65,50 +67,52 @@ export default function Game() {
           // Final state view mode - limpa antes de carregar
           console.log("🧹 Clearing game state before loading final state");
           useGameStore.getState().clearGameState();
-          
+
           console.log("📡 Fetching game by ID:", gameIdFromParams);
           const gameData = await gameService.getGameById(
             Number(gameIdFromParams)
           );
-          
+
           console.log("🎮 Game data loaded:", {
             id: gameData.id,
             status: gameData.status,
             territoriesCount: gameData.gameTerritories?.length,
             playersCount: gameData.playerGames?.length,
             winner: gameData.winner?.player?.username,
-            sampleTerritory: gameData.gameTerritories?.[0]
+            sampleTerritory: gameData.gameTerritories?.[0],
           });
-          
+
           if (mounted && gameData.status === "FINISHED") {
             setGameId(gameData.id);
             setWinner(gameData.winner);
             setGameStatus(gameData.status as GameStatus);
-            
+
             console.log("🔄 Extracting territory info...");
             const territoryInfo = extractTerritoryInfo(gameData);
-            
+
             console.log("🎨 Territory info extracted:", {
               count: Object.keys(territoryInfo).length,
               keys: Object.keys(territoryInfo).slice(0, 5),
-              sample: Object.entries(territoryInfo).slice(0, 3).map(([name, info]) => ({
-                name,
-                color: info.color,
-                armies: info.staticArmies,
-                ownerId: info.ownerId
-              }))
+              sample: Object.entries(territoryInfo)
+                .slice(0, 3)
+                .map(([name, info]) => ({
+                  name,
+                  color: info.color,
+                  armies: info.staticArmies,
+                  ownerId: info.ownerId,
+                })),
             });
-            
+
             console.log("💾 Setting territories colors in store...");
             setTerritoriesColors(territoryInfo);
-            
+
             // Verify it was set
             const verifyColors = useGameStore.getState().territoriesColors;
             console.log("✅ Verification - territories in store:", {
               count: Object.keys(verifyColors).length,
-              sample: Object.keys(verifyColors).slice(0, 3)
+              sample: Object.keys(verifyColors).slice(0, 3),
             });
-            
+
             setGameEnded(true);
             setIsFinalStateView(true);
             // Em final state view, inicia mostrando o HUD (mapa)
@@ -131,7 +135,9 @@ export default function Game() {
             setGameId(currentGame.id);
             setWinner(currentGame.winner!);
             setGameStatus(currentGame.status as GameStatus);
-            const territoryInfo = extractTerritoryInfo(currentGame as GameStateResponseDto);
+            const territoryInfo = extractTerritoryInfo(
+              currentGame as GameStateResponseDto
+            );
             setTerritoriesColors(territoryInfo);
             setGameEnded(currentGame.status === "FINISHED");
             setGameHUD("DEFAULT");
@@ -249,8 +255,15 @@ export default function Game() {
     resetMove();
   }, [resetAttack, resetMove]);
 
+  useEffect(() => {}, []);
+
   // Disable interactions in final state view
-  const interactionsBlocked = isFinalStateView || atacanteId || sourceTerritoyId || allocating || gameHUD !== "DEFAULT";
+  const interactionsBlocked =
+    isFinalStateView ||
+    atacanteId ||
+    sourceTerritoyId ||
+    allocating ||
+    gameHUD !== "DEFAULT";
 
   useEffect(() => {
     function onKeyDown(e: globalThis.KeyboardEvent) {
@@ -349,7 +362,15 @@ export default function Game() {
       }}
     >
       {showMapLoading ? (
-        <div style={{position: "absolute", left: "50%", top: "50%", transform: "translate(-50%, -50%)", zIndex: 100}}>
+        <div
+          style={{
+            position: "absolute",
+            left: "50%",
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            zIndex: 100,
+          }}
+        >
           <div className="spinner-border" role="status">
             <span className="visually-hidden">Carregando mapa...</span>
           </div>
@@ -383,14 +404,28 @@ export default function Game() {
         </div>
       )}
       {!isFinalStateView && gameStatus !== "FINISHED" && <ObjectiveButton />}
-      <CardsButton playerCards={player?.playerCards || []} />
-      <ContinentInfo />
+
+      <div className={style.bottomLeft}>
+        <ContinentInfo />
+        
+        <CardsButton playerCards={player?.playerCards || []} />
+
+        {/* Chat - só aparece quando o jogo está em andamento */}
+        {!isFinalStateView && gameStatus !== "FINISHED" && (
+          <Chat gameId={useGameStore.getState().gameId} enabled={true} />
+        )}
+      </div>
+
+      {/* REMOVIDO: BattleDice duplicado - já renderizado em Territory.tsx com valores corretos */}
+
 
       {(() => {
         const isGameFinished = gameEnded || gameStatus === "FINISHED";
         const shouldShow = isGameFinished && winner && !isViewingGame;
         // Define texto do botão de saída conforme contexto
-        const exitButtonText = gameIdFromParams ? "Ir para perfil" : "Sair para o lobby";
+        const exitButtonText = gameIdFromParams
+          ? "Ir para perfil"
+          : "Sair para o lobby";
         return shouldShow ? (
           <GameEndModal
             winner={winner}
@@ -402,15 +437,13 @@ export default function Game() {
         ) : null;
       })()}
 
-      {(gameEnded || gameStatus === "FINISHED") &&
-        winner &&
-        isViewingGame && (
-          <GameEndViewHUD
-            onBackToModal={
-              isFinalStateView ? handleToggleModalInFinalState : handleBackToModal
-            }
-          />
-        )}
+      {(gameEnded || gameStatus === "FINISHED") && winner && isViewingGame && (
+        <GameEndViewHUD
+          onBackToModal={
+            isFinalStateView ? handleToggleModalInFinalState : handleBackToModal
+          }
+        />
+      )}
     </div>
   );
 }

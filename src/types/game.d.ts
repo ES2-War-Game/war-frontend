@@ -31,6 +31,14 @@ export interface GameStateResponseDto {
   type: string; // pode ser especializado conforme backend (ex.: "ELIMINATE" | "DOMINATE")
 }
 
+export interface attackResultDice{
+  attackResult: number | null;
+  defenseResult: number | null;
+  defenderDiceCount: number | null;
+  attackDiceCount: number | null;
+ 
+}
+
 export interface GameTerritoryDto {
   id: number;
   territory: Territory; // nome do território (usar como chave para pintura)
@@ -77,4 +85,14 @@ export interface TroopMovementRequest {
     targetTerritory:number;
     numberOfTroops:number;
     gameId:number;
+}
+
+export interface AttackResult {
+  attackerDice: number[];
+  defenderDice: number[];
+  attackerWins: number;
+  defenderWins: number;
+  conquered: boolean;
+  attackerLosses?: number;
+  defenderLosses?: number;
 }
