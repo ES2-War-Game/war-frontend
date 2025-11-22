@@ -15,6 +15,8 @@ interface AttackStore {
   lastAttackResult: AttackResult | null;
   showDiceAnimation: boolean;
   pendingAttackResult: AttackResult | null;
+  attackerDiceValues: number[];
+  defenderDiceValues: number[];
   
   setAtacanteId: (id: number | null) => void;
   setDefensorId: (id: number | null) => void;
@@ -25,6 +27,8 @@ interface AttackStore {
   setLastAttackResult: (result: AttackResult | null) => void;
   setShowDiceAnimation: (show: boolean) => void;
   setPendingAttackResult: (result: AttackResult | null) => void;
+  setAttackerDiceValues: (values: number[]) => void;
+  setDefenderDiceValues: (values: number[]) => void;
   resetTroops: () => void;
 
   resetAttack: () => void;
@@ -43,6 +47,8 @@ export const useAttackStore = create<AttackStore>()(
       lastAttackResult: null,
       showDiceAnimation: false,
       pendingAttackResult: null,
+      attackerDiceValues: [],
+      defenderDiceValues: [],
       
       setFronteiras: (fronteiras) => set(() => ({ fronteiras })),
       setAtacanteId: (id) => set(() => ({ atacanteId: id })),
@@ -54,6 +60,8 @@ export const useAttackStore = create<AttackStore>()(
       setLastAttackResult: (result) => set(() => ({ lastAttackResult: result })),
       setShowDiceAnimation: (show) => set(() => ({ showDiceAnimation: show })),
       setPendingAttackResult: (result) => set(() => ({ pendingAttackResult: result })),
+      setAttackerDiceValues: (values) => set(() => ({ attackerDiceValues: values })),
+      setDefenderDiceValues: (values) => set(() => ({ defenderDiceValues: values })),
       resetTroops: () => set(() => ({ attackTroops: null, defenseTroops: null })),
       resetAttack: () =>
         set(() => ({
@@ -66,7 +74,9 @@ export const useAttackStore = create<AttackStore>()(
           showDiceAnimation: false,
           pendingAttackResult: null,
           attackTroops:null,
-          defenseTroops:null
+          defenseTroops:null,
+          attackerDiceValues: [],
+          defenderDiceValues: [],
         })),
     }),
     {

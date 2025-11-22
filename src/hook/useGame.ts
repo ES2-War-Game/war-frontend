@@ -201,6 +201,15 @@ export const useGame = () => {
       useAttackStore.getState().setPendingAttackResult(attackResult);
       useAttackStore.getState().setShowDiceAnimation(true);
       
+      // Armazena os valores dos dados para usar na animação 3D
+      if (attackResult.attackerDice && attackResult.defenderDice) {
+        console.log("🎲 Salvando valores dos dados do backend:");
+        console.log("  - Atacante:", attackResult.attackerDice);
+        console.log("  - Defensor:", attackResult.defenderDice);
+        useAttackStore.getState().setAttackerDiceValues(attackResult.attackerDice);
+        useAttackStore.getState().setDefenderDiceValues(attackResult.defenderDice);
+      }
+      
       console.log(
         "✅ Attack request sent. Aguardando atualização via WebSocket..."
       );

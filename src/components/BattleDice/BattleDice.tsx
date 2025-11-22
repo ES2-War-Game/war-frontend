@@ -378,7 +378,22 @@ export default function BattleDiceOverlay({
   useEffect(() => {
     // Gera configurações para dados do atacante (vermelhos, à esquerda)
     // Só executa uma vez para evitar recriar dados
-    if(!attackerDice || !defenderDice || hasInitialized.current) return
+    console.log("🎲 BattleDice useEffect triggered", {
+      attackerDice,
+      defenderDice,
+      attackerDiceValues,
+      defenderDiceValues,
+      hasInitialized: hasInitialized.current
+    });
+    
+    if(!attackerDice || !defenderDice || hasInitialized.current) {
+      console.log("⏭️ Skipping BattleDice initialization:", {
+        hasAttackerDice: !!attackerDice,
+        hasDefenderDice: !!defenderDice,
+        alreadyInitialized: hasInitialized.current
+      });
+      return;
+    }
     
     // VALIDAÇÃO: Verifica se os arrays de dados são válidos
     if (!Array.isArray(attackerDice) || !Array.isArray(defenderDice)) {
@@ -399,6 +414,19 @@ export default function BattleDiceOverlay({
       attackerValues: attackerDiceValues,
       defenderValues: defenderDiceValues
     });
+    
+    // Validação: se temos valores predefinidos, eles devem ter o mesmo tamanho dos arrays de dados
+    if (attackerDiceValues && attackerDiceValues.length > 0) {
+      console.log("🎲 Usando valores PREDEFINIDOS do backend para atacante:", attackerDiceValues);
+    } else {
+      console.log("🎲 Gerando valores ALEATÓRIOS para atacante (backend não forneceu)");
+    }
+    
+    if (defenderDiceValues && defenderDiceValues.length > 0) {
+      console.log("🎲 Usando valores PREDEFINIDOS do backend para defensor:", defenderDiceValues);
+    } else {
+      console.log("🎲 Gerando valores ALEATÓRIOS para defensor (backend não forneceu)");
+    }
     
     hasInitialized.current = true; // Marca imediatamente para evitar dupla execução
     

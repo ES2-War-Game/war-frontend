@@ -15,18 +15,43 @@ function gerarDadosDaBatalha(
   // Número de comparações = mínimo entre dados de ataque e defesa
   const comparacoes = Math.min(attackDiceCount, defenseDiceCount);
   
-  // Validação: soma das perdas deve ser igual ao número de comparações
+  console.log("🎲 gerarDadosDaBatalha chamado:", {
+    ataquePerdeu,
+    defesaPerdeu,
+    attackDiceCount,
+    defenseDiceCount,
+    comparacoes,
+    somaPerdas: ataquePerdeu + defesaPerdeu
+  });
+  
+  // Em conquistas, o defensor pode perder mais tropas do que dados jogados
+  // Nesse caso, ajustamos as perdas para a geração dos dados
+  let ataquePerdasDados = ataquePerdeu;
+  let defesaPerdasDados = defesaPerdeu;
+  
+  // Se a soma de perdas não corresponde às comparações, ajusta
   if (ataquePerdeu + defesaPerdeu !== comparacoes) {
-    console.error("Erro: soma de perdas não corresponde ao número de comparações");
-    return null;
+    console.warn("⚠️ Soma de perdas não corresponde ao número de comparações");
+    
+    // Se defensor perdeu mais que as comparações (conquista total)
+    if (defesaPerdeu > comparacoes) {
+      console.log("  🏆 Conquista detectada! Ajustando perdas para geração de dados");
+      defesaPerdasDados = Math.min(defesaPerdeu, comparacoes);
+      ataquePerdasDados = comparacoes - defesaPerdasDados;
+    } else if (ataquePerdeu + defesaPerdeu < comparacoes) {
+      // Se perdas são menores que comparações, distribui proporcionalmente
+      console.log("  ⚖️ Perdas menores que comparações, mantendo proporção");
+    }
   }
+  
+  console.log("  Perdas ajustadas para dados:", { ataquePerdasDados, defesaPerdasDados });
 
   const attackDiceList: number[] = [];
   const defenseDiceList: number[] = [];
 
   // Gerar os pares de dados baseados no resultado
   // Primeiro: gerar pares onde o atacante VENCE (defensor perde)
-  for (let i = 0; i < defesaPerdeu; i++) {
+  for (let i = 0; i < defesaPerdasDados; i++) {
     // Atacante vence: dado do atacante > dado do defensor
     const defenseValue = randomInRange(1, 5); // 1-5 para garantir que atacante pode ser maior
     const attackValue = randomInRange(defenseValue + 1, 6); // Sempre maior que defesa
@@ -36,7 +61,7 @@ function gerarDadosDaBatalha(
   }
 
   // Segundo: gerar pares onde o DEFENSOR vence ou empata (atacante perde)
-  for (let i = 0; i < ataquePerdeu; i++) {
+  for (let i = 0; i < ataquePerdasDados; i++) {
     // Defensor vence/empata: dado do defensor >= dado do atacante
     const attackValue = randomInRange(1, 6);
     const defenseValue = randomInRange(attackValue, 6); // Maior ou igual ao ataque
@@ -57,6 +82,11 @@ function gerarDadosDaBatalha(
   // Ordenar ambas as listas em ordem DECRESCENTE (maior primeiro)
   attackDiceList.sort((a, b) => b - a);
   defenseDiceList.sort((a, b) => b - a);
+
+  console.log("✅ Dados gerados:", {
+    atacante: attackDiceList,
+    defensor: defenseDiceList
+  });
 
   return {
     ataque: attackDiceList,

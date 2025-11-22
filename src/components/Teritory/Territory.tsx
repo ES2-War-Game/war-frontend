@@ -707,6 +707,22 @@ export default function Territory(territorio: TerritorySVG) {
         
         setDiceList({ DiceListTemp: DiceResults });
         
+        // Pega os valores reais dos dados do backend
+        const backendAttackerDice = useAttackStore.getState().attackerDiceValues;
+        const backendDefenderDice = useAttackStore.getState().defenderDiceValues;
+        
+        console.log("🎲 Valores dos dados do backend:");
+        console.log("  - Atacante:", backendAttackerDice);
+        console.log("  - Defensor:", backendDefenderDice);
+        console.log("  - DiceList gerado:", DiceResults.DiceList);
+        
+        // Se temos valores do backend, usamos eles; senão, usa os gerados
+        if (backendAttackerDice.length === 0 || backendDefenderDice.length === 0) {
+          console.warn("⚠️ Valores do backend não disponíveis, usando dados gerados localmente");
+        } else {
+          console.log("✅ Usando valores do backend para animação");
+        }
+        
         // Verifica se a animação de dados está habilitada
         const diceAnimationEnabled = useSettingsStore.getState().diceAnimationEnabled;
         
@@ -1639,10 +1655,14 @@ export default function Territory(territorio: TerritorySVG) {
         <BattleDice
           attackLose={DiceList?.DiceListTemp?.DiceResult.attackResult ?? null}
           defenseLose={DiceList?.DiceListTemp?.DiceResult.defenseResult ?? null}
-          attackerDice={DiceList?.DiceListTemp?.DiceList.ataque ?? null }
-          defenderDice={DiceList?.DiceListTemp?.DiceList.defesa ?? null }
-          attackerDiceValues={DiceList?.DiceListTemp?.DiceList.ataque ?? undefined}
-          defenderDiceValues={DiceList?.DiceListTemp?.DiceList.defesa ?? undefined}
+          attackerDice={useAttackStore.getState().attackerDiceValues.length > 0 
+            ? useAttackStore.getState().attackerDiceValues 
+            : DiceList?.DiceListTemp?.DiceList.ataque ?? null}
+          defenderDice={useAttackStore.getState().defenderDiceValues.length > 0 
+            ? useAttackStore.getState().defenderDiceValues 
+            : DiceList?.DiceListTemp?.DiceList.defesa ?? null}
+          attackerDiceValues={useAttackStore.getState().attackerDiceValues}
+          defenderDiceValues={useAttackStore.getState().defenderDiceValues}
           onComplete={(
             attackerResults: number[],
             defenderResults: number[]
