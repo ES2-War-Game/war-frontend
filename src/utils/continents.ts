@@ -660,7 +660,7 @@ export const OceaniaList: TerritorySVG[] = [
     nome: "BORNEO",
     cx: "40",
     cy: "25",
-    fronteiras: ["VIETNÂ", "AUSTRÁLIA", "NOVA GUINÉ"],
+    fronteiras: ["VIETNÃ", "AUSTRÁLIA", "NOVA GUINÉ"],
   },
   {
     width: "94",
