@@ -3,6 +3,8 @@ import style from "./CardsButton.module.css";
 import cardsIcon from "../../assets/cards.png";
 import modalBackground from "../../assets/modalBackground.png";
 import type { PlayerCard } from "../../types/game";
+import { gameService } from "../../service/gameService";
+import { useGameStore } from "../../store/useGameStore";
 
 interface CardsButtonProps {
   playerCards?: PlayerCard[];
@@ -15,7 +17,10 @@ const cardImagesMap: Record<string, { default: string }> = import.meta.glob(
 
 export default function CardsButton({ playerCards = [] }: CardsButtonProps) {
   const [open, setOpen] = useState(false);
+  const [selectedCards, setSelectedCards] = useState<number[]>([]);
+  const [isTrading, setIsTrading] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+  const gameId = useGameStore((s) => s.gameId);
 
   // Mapeia nomes de arquivos das cartas
   const cardImagesByName: Record<string, string> = {};
@@ -44,15 +49,56 @@ export default function CardsButton({ playerCards = [] }: CardsButtonProps) {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [open]);
 
+  // Limpa seleção ao abrir/fechar modal
+  useEffect(() => {
+    if (!open) {
+      setSelectedCards([]);
+    }
+  }, [open]);
+
+  const handleCardClick = (cardId: number) => {
+    setSelectedCards((prev) => {
+      if (prev.includes(cardId)) {
+        return prev.filter((id) => id !== cardId);
+      }
+      if (prev.length < 3) {
+        return [...prev, cardId];
+      }
+      return prev;
+    });
+  };
+
+  const handleTradeCards = async () => {
+    if (selectedCards.length !== 3 || !gameId || isTrading) return;
+
+    setIsTrading(true);
+    try {
+      await gameService.tradeCards(gameId, selectedCards);
+      setSelectedCards([]);
+      setOpen(false);
+      // O WebSocket atualizará automaticamente o estado do jogo
+    } catch (error: any) {
+      console.error("❌ Erro ao trocar cartas:", error);
+      alert(error?.response?.data || "Erro ao trocar cartas. Verifique se é sua vez e a fase correta.");
+    } finally {
+      setIsTrading(false);
+    }
+  };
+
   const renderCard = (playerCard: PlayerCard) => {
     const { card } = playerCard;
     const { territory, type } = card;
     if (!territory && type !== "WILD") return null;
     const imageSrc = getCardImageSrc(card);
     const isJoker = type === "WILD";
+    const isSelected = selectedCards.includes(playerCard.id);
 
     return (
-      <div key={playerCard.id} className={style.card}>
+      <div 
+        key={playerCard.id} 
+        className={`${style.card} ${isSelected ? style.cardSelected : ''}`}
+        onClick={() => handleCardClick(playerCard.id)}
+      >
         <div className={style.cardImageContainer}>
           {imageSrc ? (
             <img
@@ -66,6 +112,7 @@ export default function CardsButton({ playerCards = [] }: CardsButtonProps) {
             </div>
           )}
         </div>
+        {isSelected && <div className={style.selectedBadge}>✓</div>}
         <p>{isJoker ? "Coringa" : territory.name}</p>
         <small className={style.cardType}>
           {isJoker && "Coringa"}
@@ -102,6 +149,20 @@ export default function CardsButton({ playerCards = [] }: CardsButtonProps) {
                 <div className={style.cardsGrid}>{playerCards.slice(0, 3).map(renderCard)}</div>
                 {playerCards.length > 3 && (
                   <div className={style.cardRow}>{playerCards.slice(3, 5).map(renderCard)}</div>
+                )}
+                {playerCards.length >= 3 && (
+                  <div className={style.tradeSection}>
+                    <p className={style.tradeHint}>
+                      Selecione 3 cartas para trocar por tropas ({selectedCards.length}/3)
+                    </p>
+                    <button
+                      className={style.tradeButton}
+                      onClick={handleTradeCards}
+                      disabled={selectedCards.length !== 3 || isTrading}
+                    >
+                      {isTrading ? "Trocando..." : "Trocar Cartas"}
+                    </button>
+                  </div>
                 )}
               </>
             ) : (

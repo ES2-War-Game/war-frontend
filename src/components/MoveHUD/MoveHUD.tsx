@@ -50,6 +50,14 @@ export default function MoveHUD({
     setMoveNum((prev) => (prev > min ? prev - 1 : prev));
   };
 
+  const handleMin = () => {
+    setMoveNum(min);
+  };
+
+  const handleMax = () => {
+    setMoveNum(max);
+  };
+
   const prevValue = moveNum > min ? moveNum - 1 : "";
   const nextValue = moveNum < max ? moveNum + 1 : "";
 
@@ -66,6 +74,15 @@ export default function MoveHUD({
         </button>
 
         <div className={style.controle}>
+          <button
+            className={style.botaoMin}
+            onClick={handleMin}
+            disabled={isLoading}
+            title="Mínimo"
+          >
+            MIN
+          </button>
+          
           <button
             className={style.botaoCinza}
             onClick={handleDecrease}
@@ -86,6 +103,15 @@ export default function MoveHUD({
             disabled={isLoading}
           >
             +
+          </button>
+          
+          <button
+            className={style.botaoMax}
+            onClick={handleMax}
+            disabled={isLoading}
+            title="Máximo"
+          >
+            MAX
           </button>
         </div>
 

@@ -494,7 +494,7 @@ export const AsiaList: TerritorySVG[] = [
     nome: "TCHITA",
     cx: "60",
     cy: "40",
-    fronteiras: ["SIBÉRIA", "OMSK", "VLADIVOSTOK", "MONGÓLIA"],
+    fronteiras: ["SIBÉRIA", "OMSK", "VLADIVOSTOK", "MONGÓLIA","DUDINKA"],
   },
   {
     width: "115",

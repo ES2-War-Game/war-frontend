@@ -205,4 +205,21 @@ export const gameService = {
       throw error;
     }
   },
+
+  async tradeCards(gameId: number, playerCardIds: number[]): Promise<GameStateResponseDto> {
+    console.log(`🃏 Trading cards for game ${gameId}:`, playerCardIds);
+    try {
+      const response = await api.post<GameStateResponseDto>(
+        `/api/games/${gameId}/trade-cards`,
+        playerCardIds
+      );
+      console.log("✅ Cards traded successfully:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error("❌ Error trading cards:", error);
+      console.error("  - Status:", error?.response?.status);
+      console.error("  - Error data:", error?.response?.data);
+      throw error;
+    }
+  },
 };

@@ -24,7 +24,7 @@ export default function SettingsModal({ onClose }: SettingsModalProps) {
     setIsLeaving(true);
     try {
       if (gameId) {
-        await gameService.leaveLobby(gameId);
+        await gameService.leaveGame(gameId);
       }
       
       // Limpa o estado do jogo

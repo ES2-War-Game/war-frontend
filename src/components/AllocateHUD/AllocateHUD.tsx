@@ -32,6 +32,14 @@ export default function AllocateHUD({alocaNum,AlocarTropa,setAlocaNum,onClose,is
     setAlocaNum((prev) => (prev > min ? prev - 1 : prev));
   };
 
+  const handleMin = () => {
+    setAlocaNum(min);
+  };
+
+  const handleMax = () => {
+    setAlocaNum(max);
+  };
+
   const prevValue = alocaNum > min ? alocaNum - 1 : "";
   const nextValue = alocaNum < max ? alocaNum + 1 : "";
 
@@ -42,6 +50,10 @@ export default function AllocateHUD({alocaNum,AlocarTropa,setAlocaNum,onClose,is
         <button className={style.botaoRed} onClick={onClose} disabled={isLoading}>✖</button>
 
         <div className={style.controle}>
+          <button className={style.botaoMin} onClick={handleMin} disabled={isLoading} title="Mínimo">
+            MIN
+          </button>
+          
           <button className={style.botaoCinza} onClick={handleDecrease} disabled={isLoading}>−</button>
 
           <div className={style.carrossel}>
@@ -51,6 +63,10 @@ export default function AllocateHUD({alocaNum,AlocarTropa,setAlocaNum,onClose,is
           </div>
 
           <button className={style.botaoAzul} onClick={handleIncrease} disabled={isLoading}>+</button>
+          
+          <button className={style.botaoMax} onClick={handleMax} disabled={isLoading} title="Máximo">
+            MAX
+          </button>
         </div>
 
         <button onClick={AlocarTropa} className={style.botaoGreen} disabled={isLoading}>

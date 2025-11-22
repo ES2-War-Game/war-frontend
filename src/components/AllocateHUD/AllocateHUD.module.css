@@ -181,6 +181,72 @@
   transform: scale(1.05);
 }
 
+.botaoMin {
+  background: linear-gradient(135deg, #f57c00 0%, #e65100 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  width: 40px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.5px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.botaoMin:hover {
+  background: linear-gradient(135deg, #fb8c00 0%, #f57c00 100%);
+  transform: scale(1.1);
+  box-shadow: 
+    0 4px 16px rgba(245, 124, 0, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.botaoMin:active {
+  transform: scale(1.05);
+}
+
+.botaoMax {
+  background: linear-gradient(135deg, #7b1fa2 0%, #6a1b9a 100%);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  width: 40px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.5px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.botaoMax:hover {
+  background: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+  transform: scale(1.1);
+  box-shadow: 
+    0 4px 16px rgba(123, 31, 162, 0.5),
+    inset 0 2px 4px rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.botaoMax:active {
+  transform: scale(1.05);
+}
+
 .controle {
   display: flex;
   align-items: center;
@@ -243,7 +309,9 @@
 .botaoRed:disabled,
 .botaoGreen:disabled,
 .botaoCinza:disabled,
-.botaoAzul:disabled {
+.botaoAzul:disabled,
+.botaoMin:disabled,
+.botaoMax:disabled {
   opacity: 0.4;
   cursor: not-allowed;
   filter: grayscale(0.6);
@@ -254,7 +322,9 @@
 .botaoRed:disabled:hover,
 .botaoGreen:disabled:hover,
 .botaoCinza:disabled:hover,
-.botaoAzul:disabled:hover {
+.botaoAzul:disabled:hover,
+.botaoMin:disabled:hover,
+.botaoMax:disabled:hover {
   transform: none !important;
   box-shadow: 
     0 4px 16px rgba(0, 0, 0, 0.4),
@@ -286,6 +356,13 @@
     width: 36px;
     height: 36px;
     font-size: 18px;
+  }
+
+  .botaoMin,
+  .botaoMax {
+    width: 36px;
+    height: 28px;
+    font-size: 10px;
   }
 
   .carrossel {
