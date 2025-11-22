@@ -9,6 +9,7 @@ import GameEndModal from "../../components/GameEndModal/GameEndModal";
 import GameEndViewHUD from "../../components/GameEndViewHUD/GameEndViewHUD";
 import ContinentInfo from "../../components/ContinentInfo/ContinentInfo";
 import Chat from "../../components/Chat/Chat";
+import SettingsModal from "../../components/SettingsModal/SettingsModal";
 import { useGameStore } from "../../store/useGameStore";
 import { useMapStore } from "../../store/useMapStore";
 import { useLobbyWebSocket } from "../../hook/useWebSocket";
@@ -57,6 +58,7 @@ export default function Game() {
   const [isViewingGame, setIsViewingGame] = useState(false);
   const [isFinalStateView, setIsFinalStateView] = useState(false);
   const [isLoadingGameData, setIsLoadingGameData] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Carrega os dados do jogo quando necessário
   useEffect(() => {
@@ -405,6 +407,17 @@ export default function Game() {
       )}
       {!isFinalStateView && gameStatus !== "FINISHED" && <ObjectiveButton />}
 
+      {/* Botão de Configurações */}
+      {!isFinalStateView && gameStatus !== "FINISHED" && (
+        <button
+          className={style.settingsButton}
+          onClick={() => setShowSettings(true)}
+          title="Configurações"
+        >
+          ⚙️
+        </button>
+      )}
+
       <div className={style.bottomLeft}>
         <ContinentInfo />
         
@@ -444,6 +457,9 @@ export default function Game() {
           }
         />
       )}
+
+      {/* Modal de Configurações */}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </div>
   );
 }

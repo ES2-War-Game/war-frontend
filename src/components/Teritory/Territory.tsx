@@ -2,6 +2,7 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useGameStore } from "../../store/useGameStore";
 import { useAllocateStore } from "../../store/useAllocate";
+import { useSettingsStore } from "../../store/useSettingsStore";
 import AllocateHUD from "../AllocateHUD/AllocateHUD";
 import AttackHUD from "../AttackHUD/AttackHUD";
 import { useGame } from "../../hook/useGame";
@@ -705,7 +706,26 @@ export default function Territory(territorio: TerritorySVG) {
         setDefensorId(null);
         
         setDiceList({ DiceListTemp: DiceResults });
-        setShowDiceAnimation(true);
+        
+        // Verifica se a animação de dados está habilitada
+        const diceAnimationEnabled = useSettingsStore.getState().diceAnimationEnabled;
+        
+        if (diceAnimationEnabled) {
+          setShowDiceAnimation(true);
+        } else {
+          // Se animação desabilitada, pula direto para o resultado
+          console.log("⚡ Animação de dados desabilitada, mostrando resultado direto");
+          
+          const pendingResult = useAttackStore.getState().pendingAttackResult;
+          if (pendingResult) {
+            useAttackStore.getState().setLastAttackResult(pendingResult);
+            useAttackStore.getState().setPendingAttackResult(null);
+          }
+          
+          setAtaque(false);
+          resetAttack();
+          setGameHUD("DEFAULT");
+        }
       }, 1000); // Aumentado para 1000ms para dar mais tempo ao WebSocket
       
     } catch {
