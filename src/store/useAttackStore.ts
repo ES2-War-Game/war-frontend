@@ -8,6 +8,7 @@ interface AttackStore {
 
   atacanteId: number | null;
   defensorId: number | null;
+  defensorOriginalPlayerId: number | null; // PlayerId original do defensor antes do ataque
   attackDiceCount: number | null;
   attackTroops: number | null;
   defenseTroops: number | null;
@@ -17,6 +18,7 @@ interface AttackStore {
   
   setAtacanteId: (id: number | null) => void;
   setDefensorId: (id: number | null) => void;
+  setDefensorOriginalPlayerId: (id: number | null) => void;
   setAttackDiceCount: (count: number | null) => void;
   setAttackTroops: (id: number | null) => void;
   setDefenseTroops: (id: number | null) => void;
@@ -34,6 +36,7 @@ export const useAttackStore = create<AttackStore>()(
       fronteiras: [],
       atacanteId: null,
       defensorId: null,
+      defensorOriginalPlayerId: null,
       attackDiceCount: null,
       attackTroops: null,
       defenseTroops: null,
@@ -44,6 +47,7 @@ export const useAttackStore = create<AttackStore>()(
       setFronteiras: (fronteiras) => set(() => ({ fronteiras })),
       setAtacanteId: (id) => set(() => ({ atacanteId: id })),
       setDefensorId: (id) => set(() => ({ defensorId: id })),
+      setDefensorOriginalPlayerId: (id) => set(() => ({ defensorOriginalPlayerId: id })),
       setAttackDiceCount: (count) => set(() => ({ attackDiceCount: count })),
       setAttackTroops: (troops) => set(() => ({ attackTroops: troops })),
       setDefenseTroops: (troops) => set(() => ({ defenseTroops: troops })),
@@ -56,6 +60,7 @@ export const useAttackStore = create<AttackStore>()(
           fronteiras: [],
           atacanteId: null,
           defensorId: null,
+          defensorOriginalPlayerId: null,
           attackDiceCount: null,
           lastAttackResult: null,
           showDiceAnimation: false,
@@ -70,6 +75,7 @@ export const useAttackStore = create<AttackStore>()(
         fronteiras: state.fronteiras,
         atacanteId: state.atacanteId,
         defensorId: state.defensorId,
+        defensorOriginalPlayerId: state.defensorOriginalPlayerId,
         attackDiceCount: state.attackDiceCount,
         attackTroops: state.attackTroops,
         defenseTroops: state.defenseTroops

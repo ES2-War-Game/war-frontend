@@ -5,7 +5,7 @@ interface PlayerSlotProps {
   borderColor: string;
   defaultName: string;
   avatar: string;
-  initialType?: "Jogador" | "CPU" | "Desativado";
+  initialType?: "Jogador" | "Desativado";
 }
 
 const PlayerSlot: React.FC<PlayerSlotProps> = ({

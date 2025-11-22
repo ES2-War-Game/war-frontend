@@ -3,11 +3,12 @@ import PlayerSlot from "../../components/PlayerSlot/playerSlot";
 import style from "./gameSetup.module.css";
 import playerImg from "../../assets/player.png";
 import { useLobbyWebSocket } from "../../hook/useWebSocket";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLobbyStore } from "../../store/lobbyStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { gameService } from "../../service/gameService";
 import type { Player } from "../../types/lobby";
+import { useGame } from "../../hook/useGame";
 
 // Helper function to decode JWT token
 const decodeJWT = (token: string) => {
@@ -55,6 +56,9 @@ const COLOR_MAP: Record<string, string> = {
 
 const GameSetupPage: React.FC = () => {
   const navigate = useNavigate();
+  const { addBot } = useGame();
+  const [showBotModal, setShowBotModal] = useState(false);
+  const [botUsername, setBotUsername] = useState("");
 
   const {
     currentLobbyPlayers,
@@ -248,6 +252,30 @@ const GameSetupPage: React.FC = () => {
     }
   };
 
+  const handleAddBot = async () => {
+    const lobbyId = currentLobbyId || currentLobbyIdStore;
+    
+    if (!lobbyId) {
+      alert("Erro: Nenhum lobby ativo encontrado.");
+      return;
+    }
+
+    if (!botUsername.trim()) {
+      alert("Por favor, insira o nome do bot.");
+      return;
+    }
+
+    try {
+      console.log("🤖 Adding bot to lobby...");
+      await addBot(lobbyId, botUsername.trim());
+      setBotUsername("");
+      setShowBotModal(false);
+      // A atualização da lista de jogadores acontecerá via WebSocket
+    } catch (err) {
+      console.error("Erro ao adicionar bot:", err);
+    }
+  };
+
   // Se não estiver em um lobby, sugere voltar ao hub
   if (!currentLobbyId && !currentLobbyIdStore) {
     return (
@@ -325,7 +353,7 @@ const GameSetupPage: React.FC = () => {
               avatar={player?.imageUrl ?? playerImg}
               borderColor={slot.borderColor}
               defaultName={player ? player.username : slot.defaultName}
-              initialType={player ? "Jogador" : "CPU"}
+              initialType={player ? "Jogador" : "Desativado"}
             />
           );
         })}
@@ -336,17 +364,31 @@ const GameSetupPage: React.FC = () => {
           Voltar
         </Link>
         {isCurrentUserOwner && (
-          <button 
-            className={style.btn} 
-            onClick={handleStartGame}
-            disabled={isLoading || (activePlayers?.length || 0) < 2}
-            style={{ 
-              opacity: isLoading || (activePlayers?.length || 0) < 2 ? 0.5 : 1,
-              cursor: isLoading || (activePlayers?.length || 0) < 2 ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {isLoading ? "Iniciando..." : "Iniciar Partida"}
-          </button>
+          <>
+            <button 
+              className={style.btn} 
+              onClick={handleStartGame}
+              disabled={isLoading || (activePlayers?.length || 0) < 2}
+              style={{ 
+                opacity: isLoading || (activePlayers?.length || 0) < 2 ? 0.5 : 1,
+                cursor: isLoading || (activePlayers?.length || 0) < 2 ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {isLoading ? "Iniciando..." : "Iniciar Partida"}
+            </button>
+            <button
+              className={style.btn}
+              onClick={() => setShowBotModal(true)}
+              disabled={isLoading || (activePlayers?.length || 0) >= 6}
+              style={{ 
+                marginLeft: 8,
+                opacity: isLoading || (activePlayers?.length || 0) >= 6 ? 0.5 : 1,
+                cursor: isLoading || (activePlayers?.length || 0) >= 6 ? 'not-allowed' : 'pointer'
+              }}
+            >
+              🤖 Adicionar Bot
+            </button>
+          </>
         )}
         <button
           className={`${style.btn} ${style["btn-voltar"]}`}
@@ -356,6 +398,94 @@ const GameSetupPage: React.FC = () => {
           Sair do Lobby
         </button>
       </div>
+
+      {/* Modal para adicionar bot */}
+      {showBotModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000
+          }}
+          onClick={() => setShowBotModal(false)}
+        >
+          <div 
+            style={{
+              backgroundColor: '#776531',
+              padding: '30px',
+              borderRadius: '12px',
+              minWidth: '400px',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ color: 'white', marginBottom: '20px' }}>Adicionar Bot</h2>
+            <p style={{ color: 'white', marginBottom: '15px', fontSize: '14px' }}>
+              Digite o nome de usuário do bot (ex: GabrielBOT, MariaBOT)
+            </p>
+            <input
+              type="text"
+              value={botUsername}
+              onChange={(e) => setBotUsername(e.target.value)}
+              placeholder="Nome do bot"
+              style={{
+                width: '100%',
+                padding: '10px',
+                marginBottom: '20px',
+                borderRadius: '6px',
+                border: '1px solid #ccc',
+                fontSize: '16px'
+              }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleAddBot();
+                }
+              }}
+            />
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+              <button
+                onClick={() => {
+                  setBotUsername("");
+                  setShowBotModal(false);
+                }}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: '#666',
+                  color: 'white',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleAddBot}
+                disabled={!botUsername.trim()}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: '6px',
+                  border: 'none',
+                  backgroundColor: botUsername.trim() ? '#4CAF50' : '#ccc',
+                  color: 'white',
+                  cursor: botUsername.trim() ? 'pointer' : 'not-allowed',
+                  fontSize: '14px'
+                }}
+              >
+                Adicionar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

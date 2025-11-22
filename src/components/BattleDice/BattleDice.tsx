@@ -380,6 +380,26 @@ export default function BattleDiceOverlay({
     // Só executa uma vez para evitar recriar dados
     if(!attackerDice || !defenderDice || hasInitialized.current) return
     
+    // VALIDAÇÃO: Verifica se os arrays de dados são válidos
+    if (!Array.isArray(attackerDice) || !Array.isArray(defenderDice)) {
+      console.error("❌ BattleDice: Dados inválidos recebidos", { attackerDice, defenderDice });
+      onComplete([], []); // Chama onComplete imediatamente para fechar
+      return;
+    }
+
+    if (attackerDice.length === 0 || defenderDice.length === 0) {
+      console.error("❌ BattleDice: Arrays de dados vazios", { attackerDice, defenderDice });
+      onComplete([], []); // Chama onComplete imediatamente para fechar
+      return;
+    }
+
+    console.log("✅ BattleDice: Dados válidos recebidos", { 
+      attackerDice: attackerDice.length, 
+      defenderDice: defenderDice.length,
+      attackerValues: attackerDiceValues,
+      defenderValues: defenderDiceValues
+    });
+    
     hasInitialized.current = true; // Marca imediatamente para evitar dupla execução
     
     const uniqueId = Math.random() * 1000000;

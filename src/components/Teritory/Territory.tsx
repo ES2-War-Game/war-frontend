@@ -115,11 +115,14 @@ export default function Territory(territorio: TerritorySVG) {
   const [ataque, setAtaque] = useState(false);
   const [fronteiraDefense, setFronteiraDefense] = useState(false);
   const [fronteiraDefenseMove, setFronteiraDefenseMove] = useState(false);
+  
+  // ✅ Usando hooks reativos para atualizar quando o store mudar
+  const atacanteId = useAttackStore((s) => s.atacanteId);
+  const defensorId = useAttackStore((s) => s.defensorId);
+  const fronteiras = useAttackStore((s) => s.fronteiras);
+  
+  // Getters não reativos (apenas para ações)
   const setFronteiras = useAttackStore.getState().setFronteiras;
-  const fronteiras = useAttackStore.getState().fronteiras;
-  const atacanteId = useAttackStore.getState().atacanteId;
-  const defensorId = useAttackStore.getState().defensorId;
-
   const setAtacanteId = useAttackStore.getState().setAtacanteId;
   const setDefensorId = useAttackStore.getState().setDefensorId;
   const setAttackTroops = useAttackStore.getState().setAttackTroops;
@@ -624,12 +627,21 @@ export default function Territory(territorio: TerritorySVG) {
         attackTroops = atacante.allocatedArmie;
         console.log("💾 Salvando tropas do ATACANTE ANTES do ataque:", attackTroops);
         setAttackTroops(attackTroops);
+      } else {
+        console.error("❌ ATACANTE não tem tropas alocadas!", atacante);
       }
+      
       if (defensor?.allocatedArmie) {
         defenseTroops = defensor.allocatedArmie;
         console.log("💾 Salvando tropas do DEFENSOR ANTES do ataque:", defenseTroops);
         setDefenseTroops(defenseTroops);
+        // Salva o ownerId original do defensor para detectar conquista
+        useAttackStore.getState().setDefensorOriginalPlayerId(defensor.ownerId || null);
+        console.log("💾 Salvando ownerId original do defensor:", defensor.ownerId);
+      } else {
+        console.error("❌ DEFENSOR não tem tropas alocadas!", defensor);
       }
+      
       setAttackDiceCount(ataqueNum);
 
       console.log("📊 VALORES ANTES DO ATAQUE:", {
@@ -640,14 +652,61 @@ export default function Territory(territorio: TerritorySVG) {
         defensorId
       });
 
+      // Validação crítica: não prosseguir se não temos as tropas
+      if (attackTroops === 0 || defenseTroops === 0) {
+        console.error("❌ Tropas não foram salvas corretamente! Abortando ataque.");
+        setIsAttacking(false);
+        return;
+      }
+
       // Chama o ataque (que já retorna o resultado via store)
       await attack(atacanteId, defensorId, ataqueNum);
       
+      // Aguarda um pouco mais para garantir que o WebSocket atualizou os territórios
       setTimeout(() => {
+        console.log("🎲 Tentando gerar dados da batalha...");
+        
+        // Verifica se as tropas foram salvas corretamente
+        const storeState = useAttackStore.getState();
+        console.log("📊 Estado do store antes de gerar dados:", {
+          attackTroops: storeState.attackTroops,
+          defenseTroops: storeState.defenseTroops,
+          attackDiceCount: storeState.attackDiceCount,
+          atacanteId: storeState.atacanteId,
+          defensorId: storeState.defensorId,
+          defensorOriginalPlayerId: storeState.defensorOriginalPlayerId
+        });
+        
         const DiceResults = attackResult();
+        
+        if (!DiceResults) {
+          console.error("❌ attackResult() retornou null - não é possível gerar dados");
+          console.log("💡 Verifique se os territórios foram atualizados pelo WebSocket");
+          // Limpa estados e volta ao normal
+          setAtaque(false);
+          resetAttack();
+          setGameHUD("DEFAULT");
+          return;
+        }
+
+        // Validação adicional: verifica se os dados são válidos
+        if (!DiceResults.DiceList?.ataque || !DiceResults.DiceList?.defesa) {
+          console.error("❌ Dados da batalha inválidos", DiceResults);
+          setAtaque(false);
+          resetAttack();
+          setGameHUD("DEFAULT");
+          return;
+        }
+
+        console.log("✅ Dados da batalha válidos, iniciando animação", DiceResults);
+        
+        // Limpa os IDs AGORA para remover os traçados, mas DEPOIS de gerar os dados
+        setAtacanteId(null);
+        setDefensorId(null);
+        
         setDiceList({ DiceListTemp: DiceResults });
         setShowDiceAnimation(true);
-      }, 500);
+      }, 1000); // Aumentado para 1000ms para dar mais tempo ao WebSocket
       
     } catch {
       // erro já tratado no hook; mantém HUD aberto para tentar novamente
@@ -1393,7 +1452,6 @@ export default function Territory(territorio: TerritorySVG) {
               <svg
                 width={portalRect.width}
                 height={portalRect.height}
-                viewBox={`0 0 ${portalRect.width} ${portalRect.height}`}
                 style={{ display: "block", cursor: "pointer" }}
                 onClick={() => {
                   const id = getId();

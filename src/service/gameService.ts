@@ -183,4 +183,26 @@ export const gameService = {
       throw err;
     }
   },
+
+  async addBotToLobby(lobbyId: number, botUsername: string): Promise<GameState> {
+    console.log(`🤖 Adding bot ${botUsername} to lobby ${lobbyId}...`);
+    try {
+      const response = await api.post<GameState>(
+        `/api/games/add-bot/${lobbyId}`,
+        null,
+        {
+          params: {
+            botUsername,
+          },
+        }
+      );
+      console.log("✅ Bot added successfully:", response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error("❌ Error adding bot:", error);
+      console.error("  - Status:", error?.response?.status);
+      console.error("  - Error data:", error?.response?.data);
+      throw error;
+    }
+  },
 };

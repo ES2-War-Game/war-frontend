@@ -82,34 +82,70 @@ type AttackReturn = {
 } | null;
 
 export default function attackResult(): AttackReturn {
+  console.log("🎲 attackResult() INICIADO");
+  
   const {
     atacanteId,
     defensorId,
     attackDiceCount,
     attackTroops,
     defenseTroops,
+    defensorOriginalPlayerId,
   } = useAttackStore.getState();
+
+  console.log("📊 Valores do store:", {
+    atacanteId,
+    defensorId,
+    attackDiceCount,
+    attackTroops,
+    defenseTroops,
+    defensorOriginalPlayerId
+  });
 
   const territories = useGameStore.getState().territoriesColors;
   const territoriesArray = Object.values(territories) as TerritoryInfo[];
 
+  console.log("🗺️ Total de territórios disponíveis:", territoriesArray.length);
+
   const atacante = territoriesArray.find((t) => t.id == atacanteId);
   const defensor = territoriesArray.find((t) => t.id == defensorId);
-  console.log("atacante",atacante)
-    console.log("defensor",defensor)
+  
+  console.log("🔍 Territórios encontrados:");
+  console.log("  - Atacante:", atacante ? `ID ${atacante.id}, ${atacante.allocatedArmie} tropas, owner ${atacante.ownerId}` : "NÃO ENCONTRADO");
+  console.log("  - Defensor:", defensor ? `ID ${defensor.id}, ${defensor.allocatedArmie} tropas, owner ${defensor.ownerId}` : "NÃO ENCONTRADO");
 
-
-  if (!atacante || !defensor) return null;
+  if (!atacante || !defensor) {
+    console.error("❌ Territórios não encontrados!");
+    return null;
+  }
 
   // Verificar se há soldados registrados
-  if (!attackTroops || !defenseTroops) return null;
+  if (!attackTroops || !defenseTroops) {
+    console.error("❌ Tropas não registradas antes do ataque!");
+    console.log("  - attackTroops:", attackTroops);
+    console.log("  - defenseTroops:", defenseTroops);
+    return null;
+  }
 
   // Cálculo CORRETO das perdas:
   // attackTroops = tropas ANTES do ataque
   // atacante.allocatedArmie = tropas DEPOIS do ataque
   // Logo: perda = ANTES - DEPOIS
   const attackLoss = attackTroops - atacante.allocatedArmie;
-  const defenseLoss = defenseTroops - defensor.allocatedArmie;
+  
+  // CORREÇÃO: Se o território foi conquistado, defensor perdeu TODAS as tropas
+  // Verificar se o território mudou de dono comparando com ownerId salvo
+  let defenseLoss = defenseTroops - defensor.allocatedArmie;
+  
+  // Se o território mudou de dono, o defensor perdeu tudo
+  const territorioFoiConquistado = defensor.ownerId !== defensorOriginalPlayerId;
+  
+  if (territorioFoiConquistado || defensor.allocatedArmie === 0) {
+    defenseLoss = defenseTroops;
+    console.log("🏆 TERRITÓRIO CONQUISTADO! Defensor perdeu todas as tropas:", defenseLoss);
+    console.log("  - Owner anterior:", defensorOriginalPlayerId);
+    console.log("  - Owner atual:", defensor.ownerId);
+  }
 
   console.log("=== DEBUG CÁLCULO DE PERDAS ===");
   console.log("Atacante ANTES:", attackTroops);
@@ -118,6 +154,7 @@ export default function attackResult(): AttackReturn {
   console.log("Defensor ANTES:", defenseTroops);
   console.log("Defensor DEPOIS:", defensor.allocatedArmie);
   console.log("Defensor PERDEU:", defenseLoss);
+  console.log("Território conquistado?:", territorioFoiConquistado);
 
   // Se qualquer um estiver inconsistente, aborta
   if (attackLoss < 0 || defenseLoss < 0) {
@@ -132,13 +169,12 @@ export default function attackResult(): AttackReturn {
     return null;
   }
 
-  // Defender joga no máximo 2 dados no WAR clássico,
-  // mas aqui seguimos sua regra: defender usa quantos soldados defendia.
-  const defenderDiceCount = Math.min(defenseTroops, 3); // ajuste se quiser outra regra
+  // Defender joga no máximo 3 dados baseado nas tropas que tinha
+  const defenderDiceCount = Math.min(defenseTroops, 3);
 
   if (attackDiceCount && defenderDiceCount) {
-    console.log("chegou aqui yay35536",attackLoss,defenseLoss,attackDiceCount,defenderDiceCount);
-    console.log("chegou aqui");
+    console.log("🎲 Gerando dados da batalha:",{attackLoss, defenseLoss, attackDiceCount, defenderDiceCount});
+    
     const DiceList = gerarDadosDaBatalha(
       attackLoss,
       defenseLoss,
@@ -146,17 +182,19 @@ export default function attackResult(): AttackReturn {
       defenderDiceCount
     );
     
-    if (!DiceList) return null;
+    if (!DiceList) {
+      console.error("❌ Falha ao gerar dados da batalha");
+      return null;
+    }
     
-    console.log("chegou aqui yay", DiceList);
-    console.log("chegou aqui");
+    console.log("✅ Dados gerados com sucesso:", DiceList);
 
     const DiceResult: DiceResult = {
       attackResult: attackLoss,
       defenseResult: defenseLoss,
     };
 
-    console.log("lista de dados:", DiceList);
+    console.log("📋 Resultado final:", { DiceList, DiceResult });
 
     return {
       DiceList,
@@ -164,5 +202,6 @@ export default function attackResult(): AttackReturn {
     };
   }
 
+  console.error("❌ Contagem de dados inválida");
   return null;
 }

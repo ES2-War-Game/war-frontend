@@ -334,7 +334,49 @@ export const useGame = () => {
       setIsLoading(false);
     }
   };
-  return { isLoading, error, allocateTroops, EndTurn, attack, move, getFinishedGames };
+
+  const addBot = async (lobbyId: number, botUsername: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      console.log(`🤖 Adding bot ${botUsername} to lobby ${lobbyId}...`);
+      
+      const response = await gameService.addBotToLobby(lobbyId, botUsername);
+      
+      console.log("✅ Bot added successfully. Aguardando atualização via WebSocket...");
+      return response;
+    } catch (err: any) {
+      console.error("❌ Error adding bot:", err);
+      
+      // Tratamento de erros específicos
+      if (err?.response?.status === 409) {
+        const msg = err.response?.data || "Ação não permitida. Apenas o dono pode adicionar bots.";
+        console.error("⚠️ ERRO 409:", msg);
+        setError(msg);
+        alert(msg);
+        throw err;
+      }
+      
+      if (err?.response?.status === 400) {
+        const msg = err.response?.data || "Erro ao adicionar bot";
+        setError(msg);
+        alert(msg);
+      } else if (
+        err?.response?.status === 401 ||
+        err?.response?.status === 403
+      ) {
+        setError("Sessão expirada. Por favor, faça login novamente.");
+      } else {
+        setError("Falha ao adicionar bot. Tente novamente.");
+      }
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { isLoading, error, allocateTroops, EndTurn, attack, move, getFinishedGames, addBot };
 };
 
   
